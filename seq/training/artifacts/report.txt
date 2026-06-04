@@ -1,0 +1,12 @@
+val accuracy: 1.0000  (n=19)
+
+per-class:
+  like               recall= 1.00 (2/2)
+  ok                 recall= 1.00 (2/2)
+  pinecone           recall= 1.00 (2/2)
+  Ганхөлөг           recall= 1.00 (2/2)
+  би                 recall= 1.00 (2/2)
+  гэдэг              recall= 1.00 (3/3)
+  намайг             recall= 1.00 (2/2)
+  настай             recall= 1.00 (2/2)
+  сайн уу            recall= 1.00 (2/2)

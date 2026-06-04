@@ -1,0 +1,24 @@
+# Node
+node_modules/
+.next/
+*.tsbuildinfo
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Models (large binary files)
+*.task
+*.bin
+*.h5
+*.keras
+
+# macOS
+.DS_Store
+
+# Build
+dist/
+build/
+.cache/
