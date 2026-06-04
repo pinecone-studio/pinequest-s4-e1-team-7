@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+data/raw/
+data/manifest.csv
+artifacts/
+models/*.task
