@@ -74,9 +74,9 @@ MIN_SHOULDER_WIDTH = 1e-3
 # =========================================================================
 # SEQUENCE / WINDOW
 # =========================================================================
-SEQ_LEN = 12                  # frames fed to the model (resampled per clip)
+SEQ_LEN = 20                  # frames fed to the model (resampled per clip)
 RECORD_FPS = 24               # capture rate while recording clips
-CLIP_SECONDS = 1.0            # nominal clip length while recording
+CLIP_SECONDS = 1.8            # nominal clip length while recording
 MIN_CLIP_FRAMES = 5           # clips shorter than this are dropped
 
 # Live inference window (web): slide over the most recent frames.

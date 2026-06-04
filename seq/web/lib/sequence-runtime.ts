@@ -248,8 +248,8 @@ export class SequenceRecognizer {
 //   - Нэг ч буруу frame streak-ийг ТЭГЛЭНЭ → noise бараг нэвтрэхгүй
 //   - Instant emit: нэг frame-д ≥ earlyConf → streak хүлээлгүй шууд emit
 //
-// seqLen=12, stride=1, 15fps → inference ~67ms/frame
-//   streak=3 → ~200ms хүлээх (өмнөх 2–5 сектэй харьцуулахад маш хурдан)
+// seqLen=20, stride=1, 30fps → inference ~33ms/frame
+//   streak=5 → ~165ms хүлээх (өмнөх 2–5 сектэй харьцуулахад маш хурдан)
 //   noise burst (1-2 frame) → streak reset → emit болохгүй
 // ─────────────────────────────────────────────────────────────────────────────
 
