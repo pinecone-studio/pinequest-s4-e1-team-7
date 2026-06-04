@@ -4,10 +4,10 @@ import { Logo } from "../Logo";
 export const Footer = () => {
   return (
     <footer className="w-full bg-[#ededed] px-8 md:px-16 pt-16 pb-8">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-gray-200">
-        
+      <div className="pb-2 border-b border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 ">
         {/* Brand column */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 ml-20">
           <div className="flex items-center gap-2">
             <div className="bg-green-500 text-black flex justify-center items-center rounded-xl">
               <Logo className="p-3" />
@@ -22,7 +22,7 @@ export const Footer = () => {
         {/* Бүтээгдэхүүн */}
         <div className="flex flex-col gap-3">
           <h3 className="text-xs font-semibold tracking-widest text-gray-400 uppercase mb-1">Бүтээгдэхүүн</h3>
-          {["Боломжууд", "Хэрхэн ажилладаг", "Дэлгэц", "Татах"].map((item) => (
+          {["Боломжууд", "Хэрхэн ажилладаг"].map((item) => (
             <a key={item} href="#" className="text-sm text-gray-600 hover:text-green-600 transition-colors">
               {item}
             </a>
@@ -32,7 +32,7 @@ export const Footer = () => {
         {/* Дэмжлэг */}
         <div className="flex flex-col gap-3">
           <h3 className="text-xs font-semibold tracking-widest text-gray-400 uppercase mb-1">Дэмжлэг</h3>
-          {["Тусламж", "Холбоо барих", "Нийтлэг асуулт", "Хүртээмж"].map((item) => (
+          {[ "Холбоо барих", "Нийтлэг асуулт"].map((item) => (
             <a key={item} href="#" className="text-sm text-gray-600 hover:text-green-600 transition-colors">
               {item}
             </a>
@@ -48,12 +48,8 @@ export const Footer = () => {
             </a>
           ))}
         </div>
-      </div>
-
-      {/* Bottom bar */}
-      <div className="flex flex-col md:flex-row justify-between items-center pt-6 gap-4">
-        <p className="text-sm text-gray-400">© 2026 ДОХИО. Бүх эрх хуулиар хамгаалагдсан.</p>
-        <div className="flex items-center gap-3">
+        </div>
+        <div className="flex items-end justify-end gap-5">
           {/* Facebook */}
           <Link href={"https://www.facebook.com/munkhjin.batbold.717535"} className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:border-green-500 hover:text-green-600 transition-colors text-gray-400">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -69,6 +65,13 @@ export const Footer = () => {
             </svg>
           </Link>
         </div>
+      </div>
+      
+
+      {/* Bottom bar */}
+      <div className="flex flex-col md:flex-row justify-center items-center pt-6 gap-4">
+        <p className="text-sm text-gray-400">© 2026 ДОХИО. Бүх эрх хуулиар хамгаалагдсан.</p>
+        
       </div>
     </footer>
   );

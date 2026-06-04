@@ -5,7 +5,7 @@ import TranslateWidget from "./Translator";
 
 export const Header = () => {
   return (
-    <header className="w-full flex justify-between items-center px-8 md:px-16 py-4 bg-white/10 backdrop-blur-md border-b border-white/20">
+    <header className="w-full sticky flex justify-between items-center px-8 md:px-16 py-4 bg-white/10 backdrop-blur-md border-b border-white/20">
       <div className="flex items-center gap-2">
         <div className="bg-green-500 text-black flex justify-center items-center rounded-xl">
           <Logo className="p-2" />
@@ -14,16 +14,19 @@ export const Header = () => {
       </div>
 
       <nav className="hidden md:flex items-center gap-8">
-        {["Боломжууд", "Хэрхэн ажилладаг", "Нөлөө", "Татах"].map((item) => (
-          <a
-            key={item}
-            href="#"
-            className="text-sm font-medium text-white/80 hover:text-white transition-colors"
-          >
-            {item}
-          </a>
-        ))}
-       </nav>
+  {[
+    { label: "Боломжууд", href: "#features" },
+    { label: "Хэрхэн ажилладаг", href: "#how-it-works" },
+  ].map((item) => (
+    <a
+      key={item.label}
+      href={item.href}
+      className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+    >
+      {item.label}
+    </a>
+  ))}
+</nav>
 
 
       <div className="flex items-center gap-3">
@@ -34,7 +37,6 @@ export const Header = () => {
           </svg>
         </button>
 
-        {/* Register button */}
         <button className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-black font-semibold text-sm px-5 py-2.5 rounded-full transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
