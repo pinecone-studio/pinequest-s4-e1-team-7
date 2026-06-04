@@ -1,7 +1,6 @@
 .venv/
 __pycache__/
 *.pyc
-data/raw/
-data/manifest.csv
-artifacts/
+artifacts/*.keras
+artifacts/*.h5
 models/*.task
