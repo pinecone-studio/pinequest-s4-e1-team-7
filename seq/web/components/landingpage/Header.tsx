@@ -27,8 +27,6 @@ export const Header = () => {
 
 
       <div className="flex items-center gap-3">
-        {/* Light/dark toggle - now visible on dark bg */}
-        <TranslateWidget/>
         <button className="w-9 h-9 rounded-full bg-white/15 border border-white/30 flex items-center justify-center hover:bg-white/25 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="4"/>
