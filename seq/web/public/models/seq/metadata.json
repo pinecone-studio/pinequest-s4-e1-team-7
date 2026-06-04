@@ -1,0 +1,34 @@
+{
+  "labels": [
+    "like",
+    "ok",
+    "pinecone",
+    "Ганхөлөг",
+    "би",
+    "гэдэг",
+    "намайг",
+    "настай",
+    "сайн уу"
+  ],
+  "neutralLabel": "neutral",
+  "seqLen": 12,
+  "featureDim": 104,
+  "poseKeypoints": [
+    0,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    23,
+    24
+  ],
+  "nPose": 9,
+  "nHand": 21,
+  "nCoords": 2,
+  "leftPresentIdx": 102,
+  "rightPresentIdx": 103,
+  "liveWindow": 12,
+  "liveStride": 1
+}
