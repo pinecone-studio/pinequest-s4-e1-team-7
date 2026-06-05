@@ -9,10 +9,8 @@ __pycache__/
 *.pyd
 .Python
 
-# seq/training — Python орчин ба өгөгдөл
+# seq/training — Python орчин (data/ git-д орно)
 seq/training/.venv/
-seq/training/data/raw/
-seq/training/data/manifest.csv
 seq/training/artifacts/
 seq/training/models/*.task
 
