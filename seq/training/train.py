@@ -15,11 +15,6 @@ Outputs:
 """
 from __future__ import annotations
 
-import os
-
-# Keras 2 serialization — required for TensorFlow.js export (Keras 3 JSON breaks in browser).
-os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
-
 import json
 import os
 import subprocess
@@ -169,7 +164,7 @@ def export_tfjs(model, labels: list[str]) -> None:
     try:
         from export_model import export_h5_to_tfjs
         h5_path = os.path.join(C.ARTIFACTS_DIR, "model.h5")
-        model.save(h5_path, save_format="h5")
+        model.save(h5_path)
         export_h5_to_tfjs(h5_path, C.WEB_MODEL_DIR)
         print(f"✓ TFJS export → {C.WEB_MODEL_DIR}")
         return
@@ -177,7 +172,7 @@ def export_tfjs(model, labels: list[str]) -> None:
         pass
 
     print("\n⚠ TFJS export алгассан.")
-    print("  python3 -m pip install --no-compile -r requirements-export.txt")
+    print("  python3 -m pip install --no-compile --no-deps tensorflowjs==4.13.0")
     print("  python3 export_model.py")
 
 

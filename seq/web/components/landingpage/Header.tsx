@@ -1,7 +1,5 @@
-"use client";
-
+import Link from "next/link";
 import { Logo } from "../Logo";
-import TranslateWidget from "./Translator";
 
 export const Header = () => {
   return (
@@ -10,41 +8,64 @@ export const Header = () => {
         <div className="bg-green-500 text-black flex justify-center items-center rounded-xl">
           <Logo className="p-2" />
         </div>
-        <span className="text-xl font-bold tracking-wide text-black">ДОХИО</span>
+        <span className="text-xl font-bold tracking-wide text-black">
+          ДОХИО
+        </span>
       </div>
 
       <nav className="hidden md:flex items-center gap-8">
-  {[
-    { label: "Боломжууд", href: "#features" },
-    { label: "Хэрхэн ажилладаг", href: "#how-it-works" },
-  ].map((item) => (
-    <a
-      key={item.label}
-      href={item.href}
-      className="text-sm font-medium text-black/80 hover:text-black transition-colors"
-    >
-      {item.label}
-    </a>
-  ))}
-</nav>
-
+        {[
+          { label: "Боломжууд", href: "#features" },
+          { label: "Хэрхэн ажилладаг", href: "#how-it-works" },
+        ].map((item) => (
+          <a
+            key={item.label}
+            href={item.href}
+            className="text-sm font-medium text-black/80 hover:text-black transition-colors"
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
 
       <div className="flex items-center gap-3">
         <button className="w-9 h-9 rounded-full bg-black/15 border border-black/10 flex items-center justify-center hover:bg-black/25 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
           </svg>
         </button>
 
         {/* Register button */}
-        <button className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-black font-semibold text-sm px-5 py-2.5 rounded-full transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-          Бүртгүүлэх
-        </button>
+        <Link href="/dashboard">
+          <button className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-black font-semibold text-sm px-5 py-2.5 rounded-full transition-colors">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="black"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Бүртгүүлэх
+          </button>
+        </Link>
       </div>
     </header>
   );

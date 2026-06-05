@@ -18,9 +18,9 @@ import os
 import sys
 import types
 
-# train.py uses TF_USE_LEGACY_KERAS=1 → model is saved with tf_keras.
-# Export must use the same backend or loading fails with "Functional not found".
-os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
+# This project trains with TensorFlow 2.19 / Keras 3.  If a shell has this set
+# from older TensorFlow.js workflows, tf.keras tries to import missing tf_keras.
+os.environ.pop("TF_USE_LEGACY_KERAS", None)
 
 import config as C
 
@@ -69,7 +69,7 @@ def _load_keras_h5_converter():
     if not root:
         sys.exit(
             "❌ tensorflowjs олдсонгүй.\n"
-            "   python3 -m pip install --no-compile -r requirements-export.txt"
+            "   python3 -m pip install --no-compile --no-deps tensorflowjs==4.13.0"
         )
 
     def ensure_pkg(name: str) -> None:
@@ -118,7 +118,7 @@ def main() -> None:
     labels = _labels_from_dataset()
     write_metadata(labels)
 
-    # Legacy Keras .keras / .h5 — compatible with TFJS after export_model.py patch.
+    # Keras 3 .keras / .h5 — compatible with TFJS after export_model.py patch.
     import tensorflow as tf
 
     print("→ Loading model...")
@@ -126,7 +126,7 @@ def main() -> None:
 
     h5_path = os.path.join(C.ARTIFACTS_DIR, "model.h5")
     print(f"→ Saving {h5_path}...")
-    model.save(h5_path, save_format="h5")
+    model.save(h5_path)
 
     print(f"→ Converting → {C.WEB_MODEL_DIR}")
     export_h5_to_tfjs(h5_path, C.WEB_MODEL_DIR)
