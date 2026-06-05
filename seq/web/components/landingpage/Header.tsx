@@ -1,68 +1,64 @@
-"use client"
-import { useEffect, useRef } from "react";
+"use client";
+
 import Link from "next/link";
-import { Logo } from "../Logo";
+import { ArrowRight, Hand, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import Switch from "./DarkLightButton";
-import { User } from "lucide-react";
+import { Show, UserButton } from "@clerk/nextjs";
 
-export const Header = () => {
-  const checkboxRef = useRef<HTMLInputElement>(null);
+const LINKS = [
+  { href: "#features", label: "Боломжууд" },
+  { href: "#how", label: "Хэрхэн ажилладаг" },
+];
 
-  useEffect(() => {
-    const saved = localStorage.getItem("theme") as "light" | "dark" | null;
-    const isDark = saved === "dark";
-    if (checkboxRef.current) checkboxRef.current.checked = isDark;
-    document.documentElement.setAttribute("data-theme", saved || "light");
-  }, []);
+export const Header = () => (
+  <nav className="sticky top-0 z-50 flex items-center justify-between border-b bg-background/80 px-4 py-4 backdrop-blur md:px-8">
+    <Link
+      href="#top"
+      className="flex items-center gap-3 font-display text-xl font-bold"
+    >
+      <span className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground">
+        <Hand className="size-5" />
+      </span>
+      Sign-Bridge
+    </Link>
 
-  useEffect(() => {
-    const checkbox = document.getElementById("input") as HTMLInputElement;
-    if (!checkbox) return;
+    <div className="hidden gap-1 md:flex">
+      {LINKS.map((l) => (
+        <a
+          key={l.href}
+          href={l.href}
+          className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          {l.label}
+        </a>
+      ))}
+    </div>
 
-    const handleChange = () => {
-      const next = checkbox.checked ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem("theme", next);
-    };
+    <div className="flex items-center gap-2.5">
+      <ThemeToggle />
+      <Switch />
 
-    checkbox.addEventListener("change", handleChange);
-    return () => checkbox.removeEventListener("change", handleChange);
-  }, []);
-
-  return (
-    <>
-      <style>{`
-        @media (max-width: 768px) {
-          .lnav-links { display: none !important; }
-        }
-      `}</style>
-
-      <header className="lnav" style={{ padding: "clamp(12px, 4vw, 16px) clamp(16px, 5vw, 32px)", gap: "clamp(12px, 3vw, 18px)" }}>
-        <div className="lnav-logo" style={{ fontSize: "clamp(16px, 4vw, 21px)", gap: "clamp(8px, 2vw, 11px)" }}>
-          <div className="m" style={{ width: "clamp(36px, 8vw, 40px)", height: "clamp(36px, 8vw, 40px)" }}>
-            <Logo />
-          </div>
-          ДОХИО
-        </div>
-        <nav className="lnav-links">
-          {[
-            { label: "Боломжууд", href: "#features" },
-            { label: "Хэрхэн ажилладаг", href: "#how-it-works" },
-          ].map((item) => (
-            <a key={item.label} href={item.href}>{item.label}</a>
-          ))}
-        </nav>
-
-        <div className="lnav-right">
-          <Switch />
-          <Link href="/dashboard">
-            <button className="db-pillbtn green sm">
-              <User style={{ marginRight: "4px" }} />
-              Эхлэх
-            </button>
+      <Show when="signed-out">
+        <Button asChild variant="outline" size="sm">
+          <Link href="/auth/login">Нэвтрэх</Link>
+        </Button>
+        <Button asChild size="sm">
+          <Link href="/auth/register">
+            <UserPlus className="size-4" /> Бүртгүүлэх
           </Link>
-        </div>
-      </header>
-    </>
-  );
-};
+        </Button>
+      </Show>
+
+      <Show when="signed-in">
+        <Button asChild size="sm">
+          <Link href="/dashboard">
+            Эхлэх <ArrowRight className="size-4" />
+          </Link>
+        </Button>
+        <UserButton />
+      </Show>
+    </div>
+  </nav>
+);

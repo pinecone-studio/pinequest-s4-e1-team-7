@@ -1,7 +1,5 @@
 "use client";
-
-import { useState } from "react";
-import { TopNav } from "./TopNav";
+import { usePathname, useRouter } from "next/navigation";
 import { Overview } from "./Overview";
 import { Translator } from "./Translator";
 import { VoiceToText } from "./VoiceToText";
@@ -10,11 +8,14 @@ import { Dictionary } from "./Dictionary";
 import { Settings } from "./Settings";
 import type { DashboardSection } from "@/lib/types";
 
-export function DashboardShell() {
-  const [section, setSection] = useState<DashboardSection>("overview");
+export const DashboardShell = () => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const section = (pathname.split("/")[2] ?? "overview") as DashboardSection;
+  const go = (s: DashboardSection) => router.push(`/dashboard/${s}`);
 
   const views: Record<DashboardSection, React.ReactNode> = {
-    overview: <Overview onGo={setSection} />,
+    overview: <Overview onGo={go} />,
     translator: <Translator />,
     voice: <VoiceToText />,
     call: <VideoCall />,
@@ -22,12 +23,5 @@ export function DashboardShell() {
     settings: <Settings />,
   };
 
-  return (
-    <div className="dbx">
-      <TopNav active={section} onSelect={setSection} />
-      <main className="dbmain">
-        <div className="db-content">{views[section]}</div>
-      </main>
-    </div>
-  );
-}
+  return <>{views[section]}</>;
+};

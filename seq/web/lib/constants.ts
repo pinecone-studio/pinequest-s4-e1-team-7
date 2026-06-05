@@ -1,3 +1,5 @@
+import { LayoutDashboard, Hand, Mic, Video, BookOpen } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { DashboardSection } from "./types";
 
 export const SIGN_PHRASES = [
@@ -30,10 +32,10 @@ export const DICTIONARY = [
   { word: "Хэрэгтэй", note: "Хүсэлт" },
 ];
 
-export const NAV_ITEMS: { id: DashboardSection; label: string; icon: string }[] = [
-  { id: "overview", label: "Хяналтын самбар", icon: "layout-dashboard" },
-  { id: "translator", label: "Дохио → Дуу", icon: "hand" },
-  { id: "voice", label: "Дуу → Бичвэр", icon: "captions" },
-  { id: "call", label: "Видео", icon: "video" },
-  { id: "dict", label: "Толь бичиг", icon: "book-open" },
+export const NAV_ITEMS: { id: DashboardSection; label: string; icon: LucideIcon }[] = [
+  { id: "overview", label: "Хяналтын самбар", icon: LayoutDashboard },
+  { id: "translator", label: "Дохио → Дуу", icon: Hand },
+  { id: "voice", label: "Дуу → Бичвэр", icon: Mic },
+  { id: "call", label: "Видео", icon: Video },
+  { id: "dict", label: "Толь бичиг", icon: BookOpen },
 ];
