@@ -1,6 +1,6 @@
 "use client";
 import { useApp } from "@/context/AppContext";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
 import { greeting } from "@/lib/utils";
 import { ProfileCard } from "./overview/ProfileCard";
