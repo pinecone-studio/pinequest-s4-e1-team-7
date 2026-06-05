@@ -30,27 +30,44 @@ export const ThreeSteps = () => {
   ];
 
   return (
-    <section className="w-full bg-[#f5f7f5] py-24 px-8 md:px-16" id="how-it-works">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16">
-          <span className="text-xs font-semibold tracking-widest text-green-600 uppercase mb-4 block">Гурван амжилт</span>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-black">Гурван энгийн алхам</h2>
-          <p className="text-gray-500 mt-4 max-w-md mx-auto text-sm leading-relaxed">
+    <>
+      <style>{`
+        @media (max-width: 768px) {
+          .lstep-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 1024px) {
+          .lstep-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+      `}</style>
+
+      <section className="lhow lsec" id="how-it-works" style={{ padding: "clamp(40px, 8vw, 80px) clamp(16px, 5vw, 32px)" }}>
+        <div className="lsec-head" style={{ marginBottom: "clamp(32px, 6vw, 50px)" }}>
+          <div className="ltag" style={{ fontSize: "clamp(11px, 2vw, 13px)" }}>Гурван амжилт</div>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 5vw, 42px)", fontWeight: 700, letterSpacing: "-1px", color: "var(--text)", marginTop: "clamp(12px, 2vw, 16px)", marginBottom: "clamp(10px, 2vw, 14px)" }}>
+            Гурван энгийн алхам
+          </h2>
+          <p style={{ fontSize: "clamp(14px, 3vw, 15px)", color: "var(--text-2)", marginTop: "clamp(10px, 2vw, 12px)", lineHeight: 1.6 }}>
             Татаж авснаас хойш хэдхэн секундын дотор — хэрэглэхэд хялбар, зохион байгуулалттай.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div className="lstep-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "clamp(14px, 3vw, 20px)" }}>
           {steps.map((step, i) => (
-            <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-4">
-              <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-green-600">
+            <div key={i} className="lstep" style={{ position: "relative", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "24px", padding: "clamp(20px, 4vw, 30px)" }}>
+              <div className="num" style={{ position: "absolute", top: "clamp(16px, 3vw, 24px)", right: "clamp(18px, 3vw, 26px)", fontFamily: "var(--font-display)", fontSize: "clamp(32px, 6vw, 40px)", fontWeight: 800, color: "var(--olive-faint)" }}>0{i + 1}</div>
+              <div className="ic" style={{ width: "clamp(48px, 10vw, 56px)", height: "clamp(48px, 10vw, 56px)", borderRadius: "16px", background: "linear-gradient(150deg,var(--olive),var(--olive-deep))", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "clamp(14px, 2vw, 18px)", flexShrink: 0 }}>
                 {step.icon}
               </div>
-              <h3 className="font-bold text-black text-base">{step.title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
+              <h4 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(16px, 3vw, 19px)", fontWeight: 600, marginBottom: "clamp(8px, 1.5vw, 10px)", color: "var(--text)" }}>{step.title}</h4>
+              <p style={{ fontSize: "clamp(13px, 2vw, 14.5px)", color: "var(--text-2)", lineHeight: 1.6 }}>{step.desc}</p>
             </div>
           ))}
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };

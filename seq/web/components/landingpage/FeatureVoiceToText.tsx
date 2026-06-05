@@ -1,39 +1,68 @@
 export const FeatureVoiceToText = () => {
   return (
-    <section className="w-full bg-[#f5f7f5] py-24 px-8 md:px-16">
-      <div className="max-w-5xl mx-auto flex flex-col md:flex-row-reverse gap-16 items-center">
-        {/* Phone mockup */}
-        <div className="flex-1 flex justify-center">
-          <div className="w-56 h-[420px] bg-[#0d1a0d] rounded-[40px] border-4 border-gray-800 shadow-2xl flex flex-col overflow-hidden">
-            <div className="bg-black h-8 flex items-center justify-center">
-              <div className="w-20 h-4 bg-black rounded-full" />
-            </div>
-            <div className="flex-1 p-4 flex flex-col gap-3">
-              <p className="text-gray-400 text-[10px]">Дуу хоолой → Бичвэр</p>
-              <div className="bg-[#1a2e1a] rounded-2xl p-3 flex-1">
-                <p className="text-green-400 text-[10px] leading-relaxed">Сайн байна уу? Өнөөдөр уулзалтын цаг тохиролцох гэж байна...</p>
+    <>
+      <style>{`
+        @media (max-width: 768px) {
+          .feature-voice-flex {
+            flex-direction: column !important;
+          }
+        }
+      `}</style>
+
+      <section style={{ background: "var(--surface-2)" }} className="w-full py-24 px-8 md:px-16">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row-reverse gap-16 items-center feature-voice-flex" style={{ display: "flex", flexDirection: "row-reverse", gap: "clamp(24px, 5vw, 48px)", alignItems: "center" }}>
+
+          {/* Phone mockup */}
+          <div className="flex-1 flex justify-center">
+            <div className="lphone" style={{ width: "clamp(160px, 30vw, 300px)" }}>
+              <div className="lphone-status" style={{ fontSize: "clamp(9px, 2vw, 12px)", padding: "clamp(4px, 2vw, 6px) clamp(10px, 3vw, 14px)" }}>
+                <span>9:41</span>
+                <span>●●●</span>
               </div>
-              <div className="bg-[#1a2e1a] rounded-xl p-2 flex items-center gap-2">
-                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                  <div className="w-2 h-2 bg-black rounded-full" />
+              <div className="lphone-nav" style={{ fontSize: "clamp(10px, 2vw, 13px)", padding: "clamp(4px, 1.5vw, 6px)" }}>ДОХИО</div>
+              <div className="lphone-cam">
+                <div className="lphone-scan" />
+                <div className="lphone-cap" style={{ padding: "clamp(8px, 2vw, 12px)" }}>
+                  <div className="cl" style={{ fontSize: "clamp(7px, 1.5vw, 9px)", marginBottom: "clamp(4px, 1vw, 6px)" }}>
+                    <span>●</span> Дуу хоолой → Бичвэр
+                  </div>
                 </div>
-                <div className="flex-1 h-1 bg-green-500/30 rounded-full">
-                  <div className="w-1/2 h-full bg-green-500 rounded-full" />
+              </div>
+              <div style={{ padding: "clamp(10px, 2vw, 12px)", display: "flex", flexDirection: "column", gap: "clamp(6px, 1.5vw, 8px)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "clamp(6px, 1.5vw, 8px)", background: "var(--olive-soft)", borderRadius: "14px", padding: "clamp(8px, 2vw, 10px) clamp(10px, 2.5vw, 14px)" }}>
+                  <div style={{ width: "clamp(18px, 4vw, 20px)", height: "clamp(18px, 4vw, 20px)", borderRadius: "50%", background: "var(--olive)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="clamp(8px, 2vw, 10px)" height="clamp(8px, 2vw, 10px)" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    </svg>
+                  </div>
+                  <div style={{ flex: 1, height: "4px", borderRadius: "999px", background: "var(--border-2)" }}>
+                    <div style={{ width: "55%", height: "100%", borderRadius: "999px", background: "var(--olive)" }} />
+                  </div>
+                  <span style={{ fontSize: "clamp(9px, 1.5vw, 10px)", fontWeight: 700, color: "var(--olive-deep)" }}>0.8s</span>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                  <span style={{ fontSize: "clamp(10px, 1.5vw, 11px)", fontWeight: 700, color: "var(--olive-bright)", background: "var(--olive-soft)", padding: "clamp(4px, 1vw, 5px) clamp(10px, 2vw, 12px)", borderRadius: "999px" }}>
+                    Сонсож байна...
+                  </span>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Text */}
+          <div className="flex-1">
+            <div className="ltag" style={{ fontSize: "clamp(11px, 2vw, 13px)" }}>02</div>
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 5vw, 42px)", fontWeight: 700, letterSpacing: "-1px", color: "var(--text)", marginBottom: "clamp(12px, 2vw, 16px)", lineHeight: 1.1 }}>
+              Дуу хоолой → Бичвэр
+            </h2>
+            <p style={{ fontSize: "clamp(14px, 3vw, 17px)", color: "var(--text-2)", lineHeight: 1.6, maxWidth: "480px" }}>
+              Яриаг бичвэр болгож харуулдаг тул дохионы хэлтнүүд бусдын яриаг бичгээр уншиж ойлгоно. Энэ нь хурдан бөгөөд алдаагүй ажилладаг.
+            </p>
+          </div>
+
         </div>
-        {/* Text */}
-        <div className="flex-1">
-          <span className="text-xs font-semibold tracking-widest text-green-600 uppercase mb-4 block">02</span>
-          <h2 className="text-4xl font-extrabold text-black leading-tight mb-6">Дуу хоолой → Бичвэр</h2>
-          <p className="text-gray-500 text-base leading-relaxed mb-8">
-            Яриаг бичвэр болгож харуулдаг тул дохионы хэлтнүүд бусдын яриаг бичгээр уншиж ойлгоно. Энэ нь хурдан бөгөөд алдаагүй ажилладаг.
-          </p>
-        
-        </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };

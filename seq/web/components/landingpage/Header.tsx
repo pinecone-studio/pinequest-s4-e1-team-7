@@ -1,72 +1,75 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "../Logo";
+import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
 
 export const Header = () => {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") as "light" | "dark" | null;
+    const initial = saved || "light";
+    setTheme(initial);
+    document.documentElement.setAttribute("data-theme", initial);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+  };
+
   return (
-    <header className="w-full flex justify-between items-center px-8 md:px-16 py-4 bg-white/10 backdrop-blur-md border-b border-white/20">
-      <div className="flex items-center gap-2">
-        <div className="bg-green-500 text-black flex justify-center items-center rounded-xl">
-          <Logo className="p-2" />
-        </div>
-        <span className="text-xl font-bold tracking-wide text-black">
+    <>
+      <style>{`
+        @media (max-width: 768px) {
+          .lnav-links {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      <header className="lnav" style={{ padding: "clamp(12px, 4vw, 16px) clamp(16px, 5vw, 32px)", gap: "clamp(12px, 3vw, 18px)" }}>
+        <div className="lnav-logo" style={{ fontSize: "clamp(16px, 4vw, 21px)", gap: "clamp(8px, 2vw, 11px)" }}>
+          <div className="m" style={{ width: "clamp(36px, 8vw, 40px)", height: "clamp(36px, 8vw, 40px)" }}>
+            <Logo />
+          </div>
           ДОХИО
-        </span>
-      </div>
+        </div>
+        <nav className="lnav-links">
+          {[
+            { label: "Боломжууд", href: "#features" },
+            { label: "Хэрхэн ажилладаг", href: "#how-it-works" },
+          ].map((item) => (
+            <a key={item.label} href={item.href}>
+              {item.label}
+            </a>
+          ))}
+        </nav>
 
-      <nav className="hidden md:flex items-center gap-8">
-        {[
-          { label: "Боломжууд", href: "#features" },
-          { label: "Хэрхэн ажилладаг", href: "#how-it-works" },
-        ].map((item) => (
-          <a
-            key={item.label}
-            href={item.href}
-            className="text-sm font-medium text-black/80 hover:text-black transition-colors"
-          >
-            {item.label}
-          </a>
-        ))}
-      </nav>
-
-      <div className="flex items-center gap-3">
-        <button className="w-9 h-9 rounded-full bg-black/15 border border-black/10 flex items-center justify-center hover:bg-black/25 transition-colors">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-          </svg>
-        </button>
-
-        {/* Register button */}
-        <Link href="/dashboard">
-          <button className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-black font-semibold text-sm px-5 py-2.5 rounded-full transition-colors">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="black"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            Бүртгүүлэх
+        <div className="lnav-right">
+          <button className="lnav-theme" onClick={toggleTheme} aria-label="Toggle theme" style={{ width: "clamp(40px, 10vw, 42px)", height: "clamp(40px, 10vw, 42px)" }}>
+            {theme === "light" ? (
+              <Sun size={17} />
+            ) : (
+              <Moon size={17} />
+            )}
           </button>
-        </Link>
-      </div>
-    </header>
+
+          <Link href="/dashboard">
+            <button className="db-pillbtn green lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              Бүртгүүлэх
+            </button>
+          </Link>
+        </div>
+      </header>
+    </>
   );
 };
