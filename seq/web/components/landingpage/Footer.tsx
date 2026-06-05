@@ -5,7 +5,6 @@ export const Footer = () => {
   return (
     <footer className="lfooter" style={{ padding: "50px 32px 32px", alignItems: "stretch", textAlign: "left" }}>
       <div style={{ width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
-        {/* Top grid */}
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
@@ -14,7 +13,6 @@ export const Footer = () => {
           borderBottom: "1px solid var(--border)"
         }}>
 
-          {/* Brand column */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px", minWidth: "160px" }}>
             <div className="lnav-logo">
               <div className="m"><Logo /></div>
@@ -39,7 +37,6 @@ export const Footer = () => {
             </div>
           </div>
 
-          {/* Бүтээгдэхүүн */}
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div className="ltag" style={{ marginBottom: "4px" }}>Бүтээгдэхүүн</div>
             {["Боломжууд", "Хэрхэн ажилладаг"].map((item) => (
@@ -49,7 +46,6 @@ export const Footer = () => {
             ))}
           </div>
 
-          {/* Дэмжлэг */}
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div className="ltag" style={{ marginBottom: "4px" }}>Дэмжлэг</div>
             {["Холбоо барих", "Нийтлэг асуулт"].map((item) => (
@@ -59,7 +55,6 @@ export const Footer = () => {
             ))}
           </div>
 
-          {/* Байгууллага */}
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div className="ltag" style={{ marginBottom: "4px" }}>Байгууллага</div>
             {["Бидний тухай", "Нууцлал", "Үйлчилгээний нөхцөл"].map((item) => (
@@ -70,7 +65,6 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom bar */}
         <div style={{ paddingTop: "24px", textAlign: "center" }}>
           <p className="lfoot-bot">© 2026 ДОХИО. Бүх эрх хуулиар хамгаалагдсан.</p>
         </div>

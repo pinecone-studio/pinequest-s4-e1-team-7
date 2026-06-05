@@ -28,7 +28,6 @@ export default function TranslateWidget() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // 1. Google Translate script
     window.googleTranslateElementInit = () => {
       new window.google.translate.TranslateElement(
         { pageLanguage: "en", autoDisplay: true },
@@ -45,7 +44,6 @@ export default function TranslateWidget() {
       document.body.appendChild(script);
     }
 
-    // 2. CSS — banner, tooltip нуух
     if (!document.querySelector("#gt-override")) {
       const style = document.createElement("style");
       style.id = "gt-override";
@@ -64,12 +62,10 @@ export default function TranslateWidget() {
       document.head.appendChild(style);
     }
 
-    // Avoid a body-wide MutationObserver on class/style: it runs on every React
-    // paint and mutating those nodes causes "removeChild: node is not a child"
-    // reconciliation errors. UI cleanup is handled by #gt-override CSS above.
+
   }, []);
 
-  // Гадна дарахад хаах
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -99,7 +95,6 @@ export default function TranslateWidget() {
       <div id="gt-hidden" className="hidden" />
 
       <div ref={ref} className="relative" translate="no">
-        {/* Trigger */}
         <button
           onClick={() => setOpen((v) => !v)}
           className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white/70 backdrop-blur transition hover:bg-white/10 hover:text-white"
@@ -123,7 +118,6 @@ export default function TranslateWidget() {
           </svg>
         </button>
 
-        {/* Dropdown */}
         {open && (
           <div className="absolute right-0 top-full z-50 mt-2 w-35 overflow-hidden rounded-xl border border-white/10 bg-slate-900/90 shadow-2xl backdrop-blur-xl">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/20 to-transparent" />
