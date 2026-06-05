@@ -1,34 +1,39 @@
-"use client";
-
+"use client"
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Logo } from "../Logo";
-import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
+import Switch from "./DarkLightButton";
+import { User } from "lucide-react";
 
 export const Header = () => {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const checkboxRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme") as "light" | "dark" | null;
-    const initial = saved || "light";
-    setTheme(initial);
-    document.documentElement.setAttribute("data-theme", initial);
+    const isDark = saved === "dark";
+    if (checkboxRef.current) checkboxRef.current.checked = isDark;
+    document.documentElement.setAttribute("data-theme", saved || "light");
   }, []);
 
-  const toggleTheme = () => {
-    const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem("theme", next);
-  };
+  useEffect(() => {
+    const checkbox = document.getElementById("input") as HTMLInputElement;
+    if (!checkbox) return;
+
+    const handleChange = () => {
+      const next = checkbox.checked ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("theme", next);
+    };
+
+    checkbox.addEventListener("change", handleChange);
+    return () => checkbox.removeEventListener("change", handleChange);
+  }, []);
 
   return (
     <>
       <style>{`
         @media (max-width: 768px) {
-          .lnav-links {
-            display: none !important;
-          }
+          .lnav-links { display: none !important; }
         }
       `}</style>
 
@@ -44,28 +49,16 @@ export const Header = () => {
             { label: "Боломжууд", href: "#features" },
             { label: "Хэрхэн ажилладаг", href: "#how-it-works" },
           ].map((item) => (
-            <a key={item.label} href={item.href}>
-              {item.label}
-            </a>
+            <a key={item.label} href={item.href}>{item.label}</a>
           ))}
         </nav>
 
         <div className="lnav-right">
-          <button className="lnav-theme" onClick={toggleTheme} aria-label="Toggle theme" style={{ width: "clamp(40px, 10vw, 42px)", height: "clamp(40px, 10vw, 42px)" }}>
-            {theme === "light" ? (
-              <Sun size={17} />
-            ) : (
-              <Moon size={17} />
-            )}
-          </button>
-
+          <Switch />
           <Link href="/dashboard">
-            <button className="db-pillbtn green lg">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              Бүртгүүлэх
+            <button className="db-pillbtn green sm">
+              <User style={{ marginRight: "4px" }} />
+              Эхлэх
             </button>
           </Link>
         </div>
