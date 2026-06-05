@@ -84,11 +84,20 @@ def build_model(n_classes: int):
     return model
 
 
-def class_weights(y: np.ndarray, n_classes: int) -> dict[int, float]:
+def class_weights(y: np.ndarray, n_classes: int, labels: list[str]) -> dict[int, float]:
     counts = np.bincount(y, minlength=n_classes).astype(np.float64)
     counts[counts == 0] = 1.0
     w = counts.sum() / (n_classes * counts)
-    return {i: float(w[i]) for i in range(n_classes)}
+    out = {i: float(w[i]) for i in range(n_classes)}
+    # Two-hand / motion signs — up-weight vs static letters.
+    for i, lbl in enumerate(labels):
+        if lbl == C.NEUTRAL_LABEL:
+            continue
+        if C.hand_mode_for(lbl) == 2:
+            out[i] *= 2.4
+        elif not C.is_static_sign(lbl):
+            out[i] *= 1.5
+    return out
 
 
 def evaluate(model, X_va, y_va, labels) -> str:
@@ -135,6 +144,7 @@ def export_tfjs(model, labels: list[str]) -> None:
         "rightPresentIdx": C.RIGHT_PRESENT_IDX,
         "liveWindow": C.LIVE_WINDOW,
         "liveStride": C.LIVE_STRIDE,
+        **C.live_metadata_extra(labels),
     }
     with open(os.path.join(C.WEB_MODEL_DIR, "metadata.json"), "w",
               encoding="utf-8") as f:
@@ -204,7 +214,7 @@ def main() -> None:
         validation_data=val_data,
         epochs=C.EPOCHS,
         batch_size=C.BATCH_SIZE,
-        class_weight=class_weights(y_tr, n_classes),
+        class_weight=class_weights(y_tr, n_classes, labels),
         callbacks=callbacks,
         verbose=2,
     )

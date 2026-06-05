@@ -46,6 +46,7 @@ def write_metadata(labels: list[str]) -> None:
         "rightPresentIdx": C.RIGHT_PRESENT_IDX,
         "liveWindow": C.LIVE_WINDOW,
         "liveStride": C.LIVE_STRIDE,
+        **C.live_metadata_extra(labels),
     }
     with open(os.path.join(C.WEB_MODEL_DIR, "metadata.json"), "w",
               encoding="utf-8") as f:

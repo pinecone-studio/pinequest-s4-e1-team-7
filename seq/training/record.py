@@ -1,15 +1,15 @@
 """
 Clip recorder — capture each sign as a short MOTION sequence (not a frozen
-frame). Each SPACE press records ~CLIP_SECONDS of landmarks and saves one clip.
+frame). Each SPACE / ENTER press records ~CLIP_SECONDS of landmarks and saves one clip.
 
 Record many clips per sign (15-30+), varying speed / position / distance so the
 temporal model generalizes.
 
 Controls:
-  SPACE  start / stop a clip
-  n / b  next / previous label
-  d      delete the most recent clip of the current label (undo)
-  q      quit
+  SPACE / ENTER  start / stop a clip
+  n / b          next / previous label
+  d              delete the most recent clip of the current label (undo)
+  q              quit
 
 Saved layout:
   data/raw/<safe_label>/<label>_<timestamp>.npy   shape (frames, FEATURE_DIM)
@@ -21,13 +21,54 @@ import csv
 import os
 import time
 from datetime import datetime
+from functools import lru_cache
 
 import cv2
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 import config as C
 from config import safe_name
 from landmarks import LandmarkExtractor
+
+# SPACE (32), Enter / Return (13), keypad Enter (10 on some platforms)
+_REC_KEYS = {ord(" "), 13, 10}
+
+
+@lru_cache(maxsize=8)
+def _load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    candidates = [
+        "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "/Library/Fonts/Arial Unicode.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+    ]
+    for path in candidates:
+        if os.path.isfile(path):
+            try:
+                return ImageFont.truetype(path, size)
+            except OSError:
+                continue
+    return ImageFont.load_default()
+
+
+def put_unicode_text(
+    frame_bgr: np.ndarray,
+    text: str,
+    xy: tuple[int, int],
+    *,
+    size: int = 24,
+    color: tuple[int, int, int] = (255, 255, 255),
+) -> None:
+    """Draw Unicode (Cyrillic) text on a BGR frame — cv2.putText cannot."""
+    if not text:
+        return
+    rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+    pil = Image.fromarray(rgb)
+    draw = ImageDraw.Draw(pil)
+    draw.text(xy, text, font=_load_font(size), fill=color)
+    frame_bgr[:] = cv2.cvtColor(np.asarray(pil), cv2.COLOR_RGB2BGR)
 
 
 def clip_count(label: str) -> int:
@@ -78,10 +119,20 @@ def draw_hud(frame, label, idx, total_labels, recording, n_clips, rec_frames):
     overlay = frame.copy()
     cv2.rectangle(overlay, (0, 0), (w, 70), (20, 20, 20), -1)
     cv2.addWeighted(overlay, 0.6, frame, 0.4, 0, frame)
-    cv2.putText(frame, f"[{idx+1}/{total_labels}] {label}", (12, 28),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-    cv2.putText(frame, f"clips: {n_clips}   SPACE rec  n/b label  d undo  q quit",
-                (12, 56), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
+    put_unicode_text(
+        frame,
+        f"[{idx + 1}/{total_labels}] {label}",
+        (12, 6),
+        size=26,
+        color=(255, 255, 255),
+    )
+    put_unicode_text(
+        frame,
+        f"clips: {n_clips}   SPACE/ENTER rec   n/b label   d undo   q quit",
+        (12, 38),
+        size=16,
+        color=(200, 200, 200),
+    )
     if recording:
         cv2.circle(frame, (w - 30, 30), 12, (0, 0, 255), -1)
         cv2.putText(frame, f"REC {rec_frames}", (w - 150, 36),
@@ -98,6 +149,24 @@ def draw_landmarks(frame, raw_vec):
             continue
         color = (0, 255, 255) if p < C.N_POSE else (255, 0, 200)
         cv2.circle(frame, (int(x * w), int(y * h)), 3, color, -1)
+
+
+def _finish_recording(label: str, frames: list[np.ndarray]) -> list[np.ndarray]:
+    path = save_clip(label, frames)
+    if path:
+        print(f"  ✓ {label}: clip {clip_count(label)} ({len(frames)} frame)")
+    return []
+
+
+def _toggle_recording(
+    recording: bool,
+    rec_start: float,
+    frames: list[np.ndarray],
+    label: str,
+) -> tuple[bool, float, list[np.ndarray]]:
+    if not recording:
+        return True, time.time(), []
+    return False, rec_start, _finish_recording(label, frames)
 
 
 def main() -> None:
@@ -131,11 +200,7 @@ def main() -> None:
                 frames.append(raw_vec.copy())
                 if time.time() - rec_start >= C.CLIP_SECONDS:
                     recording = False
-                    path = save_clip(labels[idx], frames)
-                    if path:
-                        print(f"  ✓ {labels[idx]}: clip {clip_count(labels[idx])} "
-                              f"({len(frames)} frame)")
-                    frames = []
+                    frames = _finish_recording(labels[idx], frames)
 
             draw_landmarks(frame, raw_vec)
             draw_hud(frame, labels[idx], idx, len(labels), recording,
@@ -145,18 +210,10 @@ def main() -> None:
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):
                 break
-            elif key == ord(" "):
-                if not recording:
-                    recording = True
-                    rec_start = time.time()
-                    frames = []
-                else:
-                    recording = False
-                    path = save_clip(labels[idx], frames)
-                    if path:
-                        print(f"  ✓ {labels[idx]}: clip {clip_count(labels[idx])} "
-                              f"({len(frames)} frame)")
-                    frames = []
+            elif key in _REC_KEYS:
+                recording, rec_start, frames = _toggle_recording(
+                    recording, rec_start, frames, labels[idx]
+                )
             elif key == ord("n"):
                 recording = False
                 frames = []

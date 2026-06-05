@@ -17,7 +17,7 @@ import landmarks as L
 
 rng = np.random.default_rng(C.SEED)
 
-AUG_PER_CLIP = 10    # augmented variants added per training clip
+# Per-label aug count comes from config.aug_per_clip() (motion vs static).
 
 
 # ----------------------------------------------------------------------- IO
@@ -189,15 +189,28 @@ def _translate(seq: np.ndarray, tx: float, ty: float) -> np.ndarray:
     return out
 
 
-def time_warp(raw_seq: np.ndarray) -> np.ndarray:
+def time_warp(raw_seq: np.ndarray, *, motion: bool = False) -> np.ndarray:
     """Randomly speed up / slow down by cropping a sub-window before resample."""
     f0 = raw_seq.shape[0]
     if f0 <= C.MIN_CLIP_FRAMES:
         return raw_seq
-    frac = rng.uniform(0.75, 1.0)
+    lo, hi = (0.55, 1.0) if motion else (0.75, 1.0)
+    frac = rng.uniform(lo, hi)
     win = max(C.MIN_CLIP_FRAMES, int(f0 * frac))
     start = rng.integers(0, f0 - win + 1)
     return raw_seq[start:start + win]
+
+
+def temporal_shift(raw_seq: np.ndarray) -> np.ndarray:
+    """Pad or trim start/end — simulates early/late sign onset in the clip."""
+    f0 = raw_seq.shape[0]
+    if f0 <= C.MIN_CLIP_FRAMES + 2:
+        return raw_seq
+    drop = rng.integers(1, max(2, f0 // 6))
+    side = rng.choice(["start", "end"])
+    if side == "start":
+        return raw_seq[drop:]
+    return raw_seq[:-drop]
 
 
 # ------------------------------------------------------------------- build
@@ -227,17 +240,22 @@ def build_dataset():
             X_va.append(norm)
             y_va.append(label_to_id[lbl])
 
+        motion = not C.is_static_sign(lbl)
+        two_hand = C.hand_mode_for(lbl) == 2
+        n_aug = C.aug_per_clip(lbl)
         for clip in train_clips:
             base = L.normalize(resample_time(clip, C.SEQ_LEN))
             X_tr.append(base)
             y_tr.append(label_to_id[lbl])
-            for i in range(AUG_PER_CLIP):
-                # Alternate between time_warp and speed_up for variety
-                if i % 2 == 0:
-                    warped = time_warp(clip)
+            for i in range(n_aug):
+                src = clip
+                if (motion or two_hand) and i % 3 == 0:
+                    src = temporal_shift(src)
+                elif i % 2 == 0:
+                    src = time_warp(src, motion=motion or two_hand)
                 else:
-                    warped = speed_up(clip)
-                norm = L.normalize(resample_time(warped, C.SEQ_LEN))
+                    src = speed_up(src)
+                norm = L.normalize(resample_time(src, C.SEQ_LEN))
                 X_tr.append(augment(norm))
                 y_tr.append(label_to_id[lbl])
 

@@ -10,6 +10,8 @@ import {
   SequenceRecognizer,
   emitterOptionsFromMeta,
   loadSequenceModelWithReason,
+  isPredictionVisible,
+  isStaticSign,
 } from "@/lib/sequence-runtime";
 
 const DIAL_RETRY_MS = 2500;
@@ -98,6 +100,7 @@ export function CallSession({ roomId }: Props) {
         result.model,
         result.meta
       );
+      recognizerRef.current.warmup();
       emitterRef.current = new SequenceEmitter(
         emitterOptionsFromMeta(result.meta)
       );
@@ -325,7 +328,7 @@ export function CallSession({ roomId }: Props) {
       const word = emitterRef.current.push(pred);
 
       const now = performance.now();
-      if (pred && now - lastLiveUiAtRef.current >= 250) {
+      if (pred && isPredictionVisible(pred) && now - lastLiveUiAtRef.current >= 250) {
         const st = emitterRef.current.getStatus(now);
         const next = {
           label: pred.label,
@@ -347,9 +350,11 @@ export function CallSession({ roomId }: Props) {
       }
 
       if (!word) return;
-      // Reset recognizer buffer to neutral after each emit so the NEXT sign
-      // fills a clean window instead of fighting 12 frames of the old sign.
-      recognizerRef.current?.resetWithNeutral();
+      if (isStaticSign(word)) {
+        rec.resetAfterStaticEmit();
+      } else {
+        rec.resetWithNeutral();
+      }
       setMyCaption((prev) => {
         const next = appendWord(prev, word);
         sendCaption(next);
@@ -364,7 +369,7 @@ export function CallSession({ roomId }: Props) {
     setLivePred(null);
     sendCaption("");
     emitterRef.current.reset();
-    recognizerRef.current?.reset();
+    recognizerRef.current?.resetWithNeutral();
   }, [sendCaption]);
 
   const shareLink = useMemo(() => {
@@ -421,8 +426,8 @@ export function CallSession({ roomId }: Props) {
             mirror
           />
           <p className="text-xs text-zinc-500">
-            Дохио хий → автоматаар таних. Сүүлийн 6 таамаглалын дийлэнх нь нэг дохио
-            байвал caption-д нэмнэ. Маш итгэлтэй (≥96%) бол шууд нэмнэ.
+            Дохио хий → автоматаар таних. 3 дараалсан таамаглал нэг дохио байвал
+            caption-д нэмнэ. Итгэлтэй (≥88%) бол шууд нэмнэ.
           </p>
           {modelReady && livePred && (
             <p className="font-mono text-xs text-zinc-400">

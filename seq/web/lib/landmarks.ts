@@ -104,13 +104,51 @@ function handCenter(lms: Pt[]): Pt {
   return { x: sx / Math.max(n, 1), y: sy / Math.max(n, 1) };
 }
 
+/** Min landmark points active in a hand block to count as "present". */
+const MIN_HAND_LM_ACTIVE = 8;
+
+function handBlockActive(raw: Float32Array, base: number): boolean {
+  let n = 0;
+  for (let j = 0; j < N_HAND; j++) {
+    const xi = base + j * N_COORDS;
+    if (raw[xi] !== 0 || raw[xi + 1] !== 0) n++;
+  }
+  return n >= MIN_HAND_LM_ACTIVE;
+}
+
+/**
+ * True only when MediaPipe sees 2 separate hands (not 1-hand sign + noise).
+ * Default inference mode is ONE hand — avoids masking out 1-hand labels.
+ */
+export function isTwoHandMode(lm: AllLandmarks, raw: Float32Array): boolean {
+  const hands = lm.hand?.landmarks as Pt[][] | undefined;
+  if (!hands || hands.length < 2) return false;
+  if (raw[LEFT_PRESENT_IDX] === 0 || raw[RIGHT_PRESENT_IDX] === 0) return false;
+
+  const leftBase = N_POSE * N_COORDS;
+  const rightBase = leftBase + N_HAND * N_COORDS;
+  if (!handBlockActive(raw, leftBase) || !handBlockActive(raw, rightBase)) {
+    return false;
+  }
+
+  const c0 = handCenter(hands[0]);
+  const c1 = handCenter(hands[1]);
+  return Math.hypot(c0.x - c1.x, c0.y - c1.y) >= 0.14;
+}
+
+/** Frame in buffer has two real hand blocks (not phantom flags). */
+export function frameIsTwoHand(raw: Float32Array): boolean {
+  if (raw[LEFT_PRESENT_IDX] === 0 || raw[RIGHT_PRESENT_IDX] === 0) return false;
+  const leftBase = N_POSE * N_COORDS;
+  const rightBase = leftBase + N_HAND * N_COORDS;
+  return handBlockActive(raw, leftBase) && handBlockActive(raw, rightBase);
+}
+
 /**
  * Live inference for clips recorded with the physical RIGHT hand after cv2.flip.
  *
- * Training vectors usually live in the LEFT hand block (indices 18–59) because
- * MediaPipe labels the mirrored right hand as "Left". Always take the
- * rightmost hand on screen (mirrored selfie) and write it into that block so
- * the live pose matches training — do not use the RIGHT block at inference.
+ * @deprecated Prefer packRawVector(lm, PACK_MIRROR_DETECT) — matches record.py
+ * (both hands). Kept for one-hand parity experiments.
  */
 export function packTrainingParityFrame(lm: AllLandmarks): Float32Array | null {
   if (!hasPose(lm)) return null;
@@ -203,6 +241,8 @@ function splitHands(
   const hands = lm.hand?.landmarks as Pt[][] | undefined;
   const handed = lm.hand?.handedness;
   if (!hands?.length) return { left, right };
+
+  // MUST match landmarks.py _split_hands (training clips use this layout).
   for (let i = 0; i < hands.length; i++) {
     let label = "Right";
     try {
