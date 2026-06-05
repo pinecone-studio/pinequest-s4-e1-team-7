@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { ClerkProvider } from "@clerk/nextjs";
 import { AppProvider } from "@/context/AppContext";
-import { ToastHost } from "@/components/ui/ToastHost";
+import { Toaster } from "@/components/ui/sonner";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -12,31 +13,25 @@ export const metadata: Metadata = {
   description: "Дохионы хэл ↔ текст бодит цагийн орчуулга",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="mn" className={cn("font-sans", geist.variable)}>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin=""
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Onest:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>
+const RootLayout = ({ children }: { children: React.ReactNode }) => (
+  <html lang="mn" data-theme="dark">
+    <head>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+    </head>
+    <body className={cn(geist.variable)}>
+      <ClerkProvider>
         <AppProvider>
           {children}
-          <ToastHost />
+          <Toaster />
         </AppProvider>
-      </body>
-    </html>
-  );
-}
+      </ClerkProvider>
+    </body>
+  </html>
+);
+
+export default RootLayout;

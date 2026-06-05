@@ -1,40 +1,47 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LogOut, Settings as Cog } from "lucide-react";
 import { useApp } from "@/context/AppContext";
-import { Icon } from "@/components/ui/Icon";
-import { cx, initial } from "@/lib/utils";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useClerk } from "@clerk/nextjs";
+import { initial } from "@/lib/utils";
 
-export function AvatarMenu({ onSettings }: { onSettings: () => void }) {
-  const { user, setUser } = useApp();
+export const AvatarMenu = () => {
+  const { user } = useApp();
+  const { signOut, user: clerkUser } = useClerk();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const close = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
-  }, []);
 
   const logout = () => {
-    setUser(null);
-    router.push("/");
+    signOut(() => router.push("/"));
   };
 
+  const displayName = clerkUser?.firstName ?? clerkUser?.emailAddresses?.[0]?.emailAddress ?? user?.name ?? "Х";
+  const displayEmail = clerkUser?.emailAddresses?.[0]?.emailAddress ?? user?.email ?? "";
+
   return (
-    <div className="dbava-wrap" ref={ref}>
-      <button className="dbava" onClick={() => setOpen((o) => !o)}>{initial(user?.name ?? "Х")}</button>
-      <div className={cx("dbmenu", open && "open")}>
-        <div className="u">
-          <div className="nm">{user?.name}</div>
-          <div className="em">{user?.email}</div>
-        </div>
-        <button onClick={() => { onSettings(); setOpen(false); }}><Icon name="settings" size={17} /> Тохиргоо</button>
-        <button className="danger" onClick={logout}><Icon name="log-out" size={17} /> Гарах</button>
-      </div>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Avatar className="cursor-pointer ring-2 ring-card">
+          <AvatarFallback>{initial(displayName)}</AvatarFallback>
+        </Avatar>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>
+          <div className="text-sm font-bold">{displayName}</div>
+          <div className="text-xs text-muted-foreground">{displayEmail}</div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => router.push("/dashboard/settings")}>
+          <Cog /> Тохиргоо
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
+          <LogOut /> Гарах
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
-}
+};

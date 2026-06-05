@@ -1,51 +1,50 @@
 "use client";
-
-import { useTheme } from "@/hooks/useTheme";
-import { Icon } from "@/components/ui/Icon";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Bell, FileQuestionMark, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NAV_ITEMS } from "@/lib/constants";
-import { cx } from "@/lib/utils";
 import { AvatarMenu } from "./AvatarMenu";
-import type { DashboardSection } from "@/lib/types";
 
-interface Props {
-  active: DashboardSection;
-  onSelect: (s: DashboardSection) => void;
-}
+export const TopNav = () => {
+  const pathname = usePathname();
+  const active = pathname.split("/")[2] ?? "overview";
 
-export function TopNav({ active, onSelect }: Props) {
-  const { theme, toggle } = useTheme();
   return (
-    <header className="dbnav">
-      <div className="dbnav-l">
-        <div className="dbnav-logo">
-          <Icon name="hand" size={22} />
-        </div>
-        <nav className="dbtabs">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              className={cx("dbtab", active === item.id && "active")}
-              onClick={() => onSelect(item.id)}
+    <header className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 md:px-6">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
+          <FileQuestionMark className="size-5" />
+        </span>
+        <nav className="flex items-center gap-1 overflow-x-auto rounded-full border bg-card p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
+            <Button
+              key={id}
+              size="sm"
+              variant={active === id ? "default" : "ghost"}
+              className="shrink-0"
+              asChild
             >
-              <Icon name={item.icon} size={17} /> {item.label}
-            </button>
+              <Link href={`/dashboard/${id}`}>
+                <Icon className="size-4" /> {label}
+              </Link>
+            </Button>
           ))}
         </nav>
       </div>
-      <div className="dbnav-r">
-        <div className="dbsearch">
-          <Icon name="search" size={17} />
-          <input placeholder="Хайх…" />
+      <div className="flex shrink-0 items-center gap-2.5">
+        <div className="relative hidden lg:block">
+          <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Хайх…" className="w-44 rounded-full pl-10" />
         </div>
-        <button className="dbic">
-          <Icon name="bell" size={19} />
-          <span className="badge" />
-        </button>
-        <button className="dbic" onClick={toggle}>
-          <Icon name={theme === "dark" ? "moon" : "sun"} size={19} />
-        </button>
-        <AvatarMenu onSettings={() => onSelect("settings")} />
+        <Button variant="outline" size="icon">
+          <Bell />
+        </Button>
+        <ThemeToggle />
+        <AvatarMenu />
       </div>
     </header>
   );
-}
+};

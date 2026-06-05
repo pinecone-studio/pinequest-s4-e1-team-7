@@ -4,7 +4,6 @@ interface Props extends LucideProps {
   name: string;
 }
 
-/** Render a lucide icon by kebab-case name (e.g. "arrow-right"). */
 export function Icon({ name, ...rest }: Props) {
   const key = name
     .split("-")

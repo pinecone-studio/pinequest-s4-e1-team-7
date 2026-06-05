@@ -10,9 +10,8 @@ import { HandyTranslator } from "@/components/landingpage/HandyTranslator";
 export default function HomePage() {
   return (
     <main>
-      <div className="sticky top-0 z-50">
-        <Header />
-      </div>
+      <Header />
+
       <ThreeModes />
       <FeatureSignToVoice />
       <FeatureVoiceToText />
