@@ -1,4 +1,5 @@
 "use client";
+
 import { useTheme } from "@/hooks/useTheme";
 import { Icon } from "@/components/ui/Icon";
 import { NAV_ITEMS } from "@/lib/constants";
@@ -16,7 +17,9 @@ export function TopNav({ active, onSelect }: Props) {
   return (
     <header className="dbnav">
       <div className="dbnav-l">
-        <div className="dbnav-logo"><Icon name="hand" size={22} /></div>
+        <div className="dbnav-logo">
+          <Icon name="hand" size={22} />
+        </div>
         <nav className="dbtabs">
           {NAV_ITEMS.map((item) => (
             <button
@@ -30,9 +33,17 @@ export function TopNav({ active, onSelect }: Props) {
         </nav>
       </div>
       <div className="dbnav-r">
-        <div className="dbsearch"><Icon name="search" size={17} /><input placeholder="Хайх…" /></div>
-        <button className="dbic"><Icon name="bell" size={19} /><span className="badge" /></button>
-        <button className="dbic" onClick={toggle}><Icon name={theme === "dark" ? "moon" : "sun"} size={19} /></button>
+        <div className="dbsearch">
+          <Icon name="search" size={17} />
+          <input placeholder="Хайх…" />
+        </div>
+        <button className="dbic">
+          <Icon name="bell" size={19} />
+          <span className="badge" />
+        </button>
+        <button className="dbic" onClick={toggle}>
+          <Icon name={theme === "dark" ? "moon" : "sun"} size={19} />
+        </button>
         <AvatarMenu onSettings={() => onSelect("settings")} />
       </div>
     </header>
