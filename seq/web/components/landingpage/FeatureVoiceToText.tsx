@@ -12,7 +12,6 @@ export const FeatureVoiceToText = () => {
       <section style={{ background: "var(--surface-2)" }} className="w-full py-24 px-8 md:px-16">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row-reverse gap-16 items-center feature-voice-flex" style={{ display: "flex", flexDirection: "row-reverse", gap: "clamp(24px, 5vw, 48px)", alignItems: "center" }}>
 
-          {/* Phone mockup */}
           <div className="flex-1 flex justify-center">
             <div className="lphone" style={{ width: "clamp(160px, 30vw, 300px)" }}>
               <div className="lphone-status" style={{ fontSize: "clamp(9px, 2vw, 12px)", padding: "clamp(4px, 2vw, 6px) clamp(10px, 3vw, 14px)" }}>
@@ -50,7 +49,6 @@ export const FeatureVoiceToText = () => {
             </div>
           </div>
 
-          {/* Text */}
           <div className="flex-1">
             <div className="ltag" style={{ fontSize: "clamp(11px, 2vw, 13px)" }}>02</div>
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 5vw, 42px)", fontWeight: 700, letterSpacing: "-1px", color: "var(--text)", marginBottom: "clamp(12px, 2vw, 16px)", lineHeight: 1.1 }}>

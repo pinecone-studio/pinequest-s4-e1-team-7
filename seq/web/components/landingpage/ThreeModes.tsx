@@ -12,7 +12,6 @@ export const ThreeModes = () => {
       <section style={{ background: "var(--surface-2)" }} className="w-full py-24 px-8 md:px-16" id="features">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-16 items-center three-modes-flex" style={{ display: "flex", flexDirection: "row", gap: "clamp(24px, 5vw, 48px)", alignItems: "center" }}>
 
-          {/* Left text */}
           <div className="flex-1">
             <div className="ltag" style={{ fontSize: "clamp(11px, 2vw, 13px)" }}>Үндсэн боломжууд</div>
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-1.5px", color: "var(--text)", lineHeight: 1.05, marginBottom: "clamp(16px, 3vw, 20px)" }}>
@@ -23,7 +22,6 @@ export const ThreeModes = () => {
             </p>
           </div>
 
-          {/* Right cards */}
           <div className="flex-1 flex flex-col gap-4" style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 2vw, 16px)" }}>
             {[
               { num: "01", title: "Дохио → Дуу хоолой", desc: "Дохионы хэлийг шууд монгол дуу хоолойд хөрвүүлнэ." },

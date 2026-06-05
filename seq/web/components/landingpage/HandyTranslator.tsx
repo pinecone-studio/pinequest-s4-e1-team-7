@@ -17,10 +17,10 @@ export const HandyTranslator = () => {
       <section style={{ background: "var(--bg)" }} className="w-full py-24 px-8 md:px-16">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-16 items-center handy-flex" style={{ display: "flex", flexDirection: "row", gap: "clamp(24px, 5vw, 48px)", alignItems: "center" }}>
 
-          {/* Devices mockup */}
+         
           <div className="handy-mockup flex-1 flex justify-center items-end" style={{ position: "relative", minHeight: "clamp(300px, 40vw, 420px)" }}>
 
-            {/* Laptop — behind, left-aligned */}
+         
             <div style={{ position: "absolute", left: 0, bottom: 0, zIndex: 1 }}>
               <div style={{ width: "clamp(240px, 35vw, 320px)", background: "#0d1a14", borderRadius: "14px 14px 0 0", padding: "12px", border: "2px solid #1e2e2b", boxShadow: "0 -4px 30px rgba(0,0,0,0.4)" }}>
                 <div style={{ background: "linear-gradient(160deg,#162418,#0e1714)", borderRadius: "8px", padding: "16px", minHeight: "190px", position: "relative", overflow: "hidden" }}>
@@ -58,7 +58,7 @@ export const HandyTranslator = () => {
               <div style={{ width: "clamp(265px, 38vw, 355px)", height: "10px", background: "#111c18", borderRadius: "0 0 8px 8px", margin: "0 auto", boxShadow: "0 6px 24px rgba(0,0,0,0.5)" }} />
             </div>
 
-            {/* Phone — front, right side, floating above laptop */}
+      
             <div style={{ position: "absolute", right: "10px", bottom: "24px", zIndex: 2, transform: "translateY(10px)" }}>
               <div className="lphone" style={{ width: "clamp(140px, 20vw, 180px)", boxShadow: "0 0 0 8px #1b2a26, 0 24px 48px rgba(0,0,0,0.5)" }}>
                 <div className="lphone-status" style={{ fontSize: "clamp(9px, 1.5vw, 10px)", padding: "5px 12px" }}>
@@ -81,7 +81,6 @@ export const HandyTranslator = () => {
 
           </div>
 
-          {/* Text */}
           <div className="flex-1">
             <div className="ltag" style={{ fontSize: "clamp(11px, 2vw, 13px)" }}>Тав тухтай хэрэглэх</div>
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 5vw, 42px)", fontWeight: 700, letterSpacing: "-1px", color: "var(--text)", marginBottom: "16px", lineHeight: 1.1 }}>
