@@ -4,10 +4,10 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { getLandmarkers, type AllLandmarks } from "@/lib/mediapipe";
 
 /** MediaPipe + TF target rate (lower = less CPU). */
-const DETECT_HZ = 12;
+const DETECT_HZ = 24;
 const DETECT_INTERVAL_MS = 1000 / DETECT_HZ;
 /** Downscale width for landmark detection (normalized coords unchanged). */
-const DETECT_MAX_WIDTH = 384;
+const DETECT_MAX_WIDTH = 480;
 const MAX_DISPLAY_DPR = 1.25;
 
 type Props = {
@@ -77,7 +77,7 @@ export function CameraView({
           video: {
             width: { ideal: width },
             height: { ideal: height },
-            frameRate: { ideal: 15, max: 20 },
+            frameRate: { ideal: 20, max: 24 },
           },
           audio: false,
         });
@@ -190,26 +190,93 @@ export function CameraView({
   }
 
   return (
-    <div
-      ref={wrapRef}
-      className="relative w-full overflow-hidden rounded-2xl bg-black"
-      style={{ aspectRatio }}
-    >
-      <video
-        ref={videoRef}
-        playsInline
-        muted
-        className="pointer-events-none absolute h-px w-px opacity-0"
-        aria-hidden
-      />
-      <canvas ref={canvasRef} className="block h-full w-full" />
-      {status && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-sm text-zinc-200">
-          {status}
-        </div>
-      )}
-      {overlay && <div className="absolute inset-0">{overlay}</div>}
+    <div className="flex flex-col gap-2">
+      <div
+        ref={wrapRef}
+        className="relative w-full overflow-hidden rounded-2xl bg-black"
+        style={{ aspectRatio }}
+      >
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          className="pointer-events-none absolute h-px w-px opacity-0"
+          aria-hidden
+        />
+        <canvas ref={canvasRef} className="block h-full w-full" />
+        {status && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-sm text-zinc-200">
+            {status}
+          </div>
+        )}
+        {overlay && <div className="absolute inset-0">{overlay}</div>}
+      </div>
+      <CameraCountdown />
     </div>
+  );
+}
+
+const TIMER_SECONDS = 5;
+
+/** Камерын доор — дарахад 5 секунд тоолно. */
+function CameraCountdown() {
+  const [running, setRunning] = useState(false);
+  const [remaining, setRemaining] = useState(TIMER_SECONDS);
+  const [progress, setProgress] = useState(0);
+  const startedAtRef = useRef(0);
+  const rafRef = useRef(0);
+
+  const start = () => {
+    if (running) return;
+    setRunning(true);
+    setRemaining(TIMER_SECONDS);
+    setProgress(0);
+    startedAtRef.current = performance.now();
+  };
+
+  useEffect(() => {
+    if (!running) return;
+
+    const tick = (now: number) => {
+      const elapsed = (now - startedAtRef.current) / 1000;
+      if (elapsed >= TIMER_SECONDS) {
+        setRunning(false);
+        setRemaining(TIMER_SECONDS);
+        setProgress(0);
+        return;
+      }
+      setRemaining(TIMER_SECONDS - elapsed);
+      setProgress((elapsed / TIMER_SECONDS) * 100);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [running]);
+
+  const display = running ? Math.max(1, Math.ceil(remaining)) : TIMER_SECONDS;
+
+  return (
+    <button
+      type="button"
+      onClick={start}
+      disabled={running}
+      className="flex w-full items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-left transition-colors hover:bg-zinc-800/60 disabled:cursor-default disabled:hover:bg-zinc-900/50"
+      aria-label={running ? `${display} секунд үлдлээ` : "5 секундын тоолуур эхлүүлэх"}
+    >
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-800">
+        <div
+          className="h-full rounded-full bg-violet-500 transition-none"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <span className="w-8 text-right font-mono text-lg tabular-nums text-violet-300">
+        {display}
+      </span>
+      <span className="min-w-[3.5rem] text-xs text-zinc-500">
+        {running ? "сек" : "Эхлэх"}
+      </span>
+    </button>
   );
 }
 

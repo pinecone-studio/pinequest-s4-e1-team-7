@@ -73,7 +73,7 @@ async function build(): Promise<LandmarkBundle> {
         delegate: gpuOrCpu,
       },
       runningMode: "VIDEO",
-      numHands: 1,
+      numHands: 2,
     }),
   ]);
 

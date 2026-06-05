@@ -2,5 +2,6 @@
 # tensorflowjs БҮТИЙ — export deps тусдаа requirements-export.txt дотор.
 mediapipe>=0.10.18
 opencv-python>=4.9
+Pillow>=10.0
 numpy>=1.26,<2.0
 tensorflow>=2.15,<2.20

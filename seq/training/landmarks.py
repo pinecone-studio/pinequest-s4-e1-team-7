@@ -96,7 +96,10 @@ def pack_raw_vector(pose_res, hand_res) -> tuple[np.ndarray, bool]:
 
 
 def _split_hands(hand_res):
-    """Return (left_landmarks, right_landmarks) by handedness label."""
+    """Return (left_landmarks, right_landmarks) by handedness label.
+
+    MUST match seq/web/lib/landmarks.ts splitHands() — training/live parity.
+    """
     left = right = None
     if not hand_res.hand_landmarks:
         return left, right
