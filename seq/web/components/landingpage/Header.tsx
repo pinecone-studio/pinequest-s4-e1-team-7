@@ -1,16 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Hand, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import Switch from "./DarkLightButton";
 import { Show, UserButton } from "@clerk/nextjs";
-
+import Switch from "./DarkLightButton";
 
 const LINKS = [
-  { href: "#features", label: "Боломжууд" },
-  { href: "#how", label: "Хэрхэн ажилладаг" },
+  { href: "#features", label: "Онцлог" },
+  { href: "#how", label: "Апп ашиглах заавар" },
 ];
 
 export const Header = () => (
@@ -19,10 +18,8 @@ export const Header = () => (
       href="#top"
       className="flex items-center font-display text-xl font-bold"
     >
-
-      <img src="/zurag.png"  width={47}  height={47} />
-      Хэлмэрч
-     
+      <img src="/zurag.png" width={47} height={47} />
+      Sing Bridge
     </Link>
 
     <div className="hidden gap-1 md:flex">
@@ -41,8 +38,15 @@ export const Header = () => (
       <Switch />
 
       <Show when="signed-out">
-        <Button asChild variant="outline" size="sm">
-          <Link href="/auth/login">Нэвтрэх</Link>
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="hidden sm:inline-flex"
+        >
+          <Link href="/auth/login" className="text-md">
+            Нэвтрэх
+          </Link>
         </Button>
         <Button asChild size="sm">
           <Link href="/auth/register">
@@ -52,9 +56,9 @@ export const Header = () => (
       </Show>
 
       <Show when="signed-in">
-        <Button asChild size="sm" className="rounded-lg">
-          <Link href="/dashboard">
-            Эхлэх <ArrowRight className="size-4" />
+        <Button asChild size="sm" className="rounded-full">
+          <Link href="/dashboard" className="text-md">
+            Эхлэх
           </Link>
         </Button>
         <UserButton />

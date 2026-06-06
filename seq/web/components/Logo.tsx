@@ -1,11 +1,7 @@
-import { Hand } from "lucide-react";
-
-export const Logo = ({ className }: { className?: string }) => {
-    return (
-        
-            <div className={className} >
-                <Hand />
-            </div>
-       
-    );
+export const Logo = () => {
+  return (
+    <div >
+      <img src="/images/logo.png" alt="" className="w-full h-full" />
+    </div>
+  );
 };
