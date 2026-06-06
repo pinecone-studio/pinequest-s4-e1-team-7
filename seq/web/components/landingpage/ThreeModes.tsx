@@ -1,51 +1,42 @@
-export const ThreeModes = () => {
-  return (
-    <>
-      <style>{`
-        @media (max-width: 768px) {
-          .three-modes-flex {
-            flex-direction: column !important;
-          }
-        }
-      `}</style>
+const ITEMS = [
+  { num: "1.", title: "Дохио хэл - Яриа", desc: "Монгол дохионы хэлийг хөрвүүлж яриа болгоно." },
+  { num: "2.", title: "Яриа - Бичвэр", desc: "Яриаг бичвэр болгож, дохионы хэлтэн уншина." },
+  { num: "3.", title: "Видео дуудлага", desc: "Видео дуудлага дээр дохионы хэлийг шууд хөрвүүлэн уншина." },
+];
 
-      <section style={{ background: "var(--surface-2)" }} className="w-full py-24 px-8 md:px-16" id="features">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-16 items-center three-modes-flex" style={{ display: "flex", flexDirection: "row", gap: "clamp(24px, 5vw, 48px)", alignItems: "center" }}>
+export const ThreeModes = () => (
+  <section className="w-full py-20 px-4 md:px-16" style={{ background: "var(--surface-2)" }} id="features">
+    <div className="mx-auto flex max-w-5xl flex-col items-center gap-12 md:flex-row md:gap-16">
+      <div className="flex-1">
+        <span className="ltag">Онцлог</span>
+        <h2
+          className="font-display text-3xl font-bold leading-tight tracking-tight md:text-5xl"
+          style={{ color: "var(--text)" }}
+        >
+          Харилцааны гүүр
+        </h2>
+        <p className="mt-4 max-w-[420px] text-base leading-relaxed md:text-lg" style={{ color: "var(--text-2)" }}>
+          Sign Bridge нь монгол дохионы хэлийг шууд хөрвүүлэн, хүн хоорондын харилцааны гүүр болох платформ.
+        </p>
+      </div>
 
-          <div className="flex-1">
-            <div className="ltag" style={{ fontSize: "clamp(11px, 2vw, 13px)" }}>Үндсэн боломжууд</div>
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-1.5px", color: "var(--text)", lineHeight: 1.05, marginBottom: "clamp(16px, 3vw, 20px)" }}>
-              Гурван горим, нэг зорилго — харилцаа
-            </h2>
-            <p style={{ fontSize: "clamp(14px, 3vw, 17px)", color: "var(--text-2)", lineHeight: 1.6, maxWidth: "420px" }}>
-              Дохио нь tap-тай нэмэлт хэрэгсэлгүйгээр дохионы хэлийг шууд монгол дуу хоолой болгон, хүн бүрийг ойлголцоход тусалдаг платформ.
-            </p>
+      <div className="flex w-full flex-1 flex-col gap-3">
+        {ITEMS.map(({ num, title, desc }) => (
+          <div
+            key={num}
+            className="flex items-start gap-4 rounded-[18px] border p-4 transition hover:shadow-sm md:p-5"
+            style={{ background: "var(--surface)", borderColor: "var(--border-c)" }}
+          >
+            <span className="mt-0.5 shrink-0 text-xs font-bold" style={{ color: "var(--olive)" }}>
+              {num}
+            </span>
+            <div>
+              <h3 className="text-sm font-semibold" style={{ color: "var(--text)" }}>{title}</h3>
+              <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--text-2)" }}>{desc}</p>
+            </div>
           </div>
-
-          <div className="flex-1 flex flex-col gap-4" style={{ display: "flex", flexDirection: "column", gap: "clamp(12px, 2vw, 16px)" }}>
-            {[
-              { num: "01", title: "Дохио → Дуу хоолой", desc: "Дохионы хэлийг шууд монгол дуу хоолойд хөрвүүлнэ." },
-              { num: "02", title: "Дуу хоолой → Бичвэр", desc: "Яриаг бичвэр болгож, дохионы хэлтнүүдэд харуулна." },
-              { num: "03", title: "Видео дуудлага", desc: "Видео дуудлага дээр шууд хэлмэрчилнэ." },
-            ].map((item) => (
-              <div key={item.num} className="lfeat" style={{ padding: "clamp(14px, 3vw, 18px) clamp(16px, 3vw, 22px)", display: "flex", gap: "clamp(12px, 2vw, 16px)", alignItems: "flex-start", borderRadius: "18px", background: "var(--surface)", border: "1px solid var(--border)" }}>
-                <span style={{ fontSize: "clamp(11px, 2vw, 12px)", fontWeight: 700, color: "var(--olive)", marginTop: "2px", minWidth: "24px", flexShrink: 0 }}>
-                  {item.num}
-                </span>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(13px, 2.5vw, 15px)", fontWeight: 600, color: "var(--text)", marginBottom: "clamp(4px, 1vw, 6px)" }}>
-                    {item.title}
-                  </h3>
-                  <p style={{ fontSize: "clamp(12px, 2vw, 13px)", color: "var(--text-2)", lineHeight: 1.6 }}>
-                    {item.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
-    </>
-  );
-};
+        ))}
+      </div>
+    </div>
+  </section>
+);

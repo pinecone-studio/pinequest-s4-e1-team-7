@@ -1,11 +1,9 @@
 "use client";
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
-import type { HistoryKind, Settings, Stats, Toast, ToastKind, User } from "@/lib/types";
+import type { HistoryKind, Settings, Stats, Toast, ToastKind } from "@/lib/types";
 import { countWords } from "@/lib/utils";
 
 interface AppValue {
-  user: User | null;
-  setUser: (u: User | null) => void;
   settings: Settings;
   updateSettings: (patch: Partial<Settings>) => void;
   stats: Stats;
@@ -18,7 +16,6 @@ const AppContext = createContext<AppValue | null>(null);
 const EMPTY_STATS: Stats = { words: 0, sessions: 0, history: [] };
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
   const [settings, setSettings] = useState<Settings>({ gender: "female", rate: 1, autoSpeak: true });
   const [stats, setStats] = useState<Stats>(EMPTY_STATS);
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -35,6 +32,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       sessions: s.sessions + 1,
       history: [{ kind, text, time: "Дөнгөж сая" }, ...s.history].slice(0, 30),
     }));
+    // TODO: await recordTranslation({ userId, kind, text }) from lib/api.ts
   }, []);
 
   const toast = useCallback((kind: ToastKind, message: string, icon = "info") => {
@@ -44,8 +42,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, setUser, settings, updateSettings, stats, pushHistory, toasts, toast }),
-    [user, settings, updateSettings, stats, pushHistory, toasts, toast],
+    () => ({ settings, updateSettings, stats, pushHistory, toasts, toast }),
+    [settings, updateSettings, stats, pushHistory, toasts, toast],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

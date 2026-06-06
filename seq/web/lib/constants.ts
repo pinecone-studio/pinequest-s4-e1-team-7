@@ -2,6 +2,22 @@ import { LayoutDashboard, Hand, Mic, Video, BookOpen } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { DashboardSection } from "./types";
 
+export type DictCategory = "alphabet" | "numbers";
+
+export const DICT_CATEGORIES: { id: DictCategory; label: string; sub: string }[] = [
+  { id: "alphabet", label: "Хурууны үсэг", sub: "Цагаан толгойн 35 үсэг" },
+  { id: "numbers",  label: "Тоо",          sub: "0 – 9 тооны дохио" },
+];
+
+export const MN_ALPHABET: string[] = [
+  "А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И",
+  "Й", "К", "Л", "М", "Н", "О", "Ö", "П", "Р", "С",
+  "Т", "У", "Ü", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ",
+  "Ы", "Ь", "Э", "Ю", "Я",
+];
+
+export const MN_NUMBERS: string[] = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
 export const SIGN_PHRASES = [
   "Сайн байна уу",
   "Баярлалаа",

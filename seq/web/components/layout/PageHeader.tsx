@@ -12,8 +12,11 @@ export function PageHeader({ backHref = "/", title, subtitle, right }: Props) {
     <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-4">
         {backHref && (
-          <Link href={backHref} className="text-sm text-zinc-400 hover:text-white">
-            ← Буцах
+          <Link
+            href={backHref}
+            className="text-sm text-zinc-400 hover:text-white"
+          >
+            Буцах
           </Link>
         )}
         <div>

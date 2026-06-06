@@ -1,13 +1,7 @@
-import { Icon } from "@/components/ui/Icon";
+import Link from "next/link";
 import { initial } from "@/lib/utils";
-import type { DashboardSection } from "@/lib/types";
 
-interface Props {
-  name: string;
-  onGo: (s: DashboardSection) => void;
-}
-
-export function ProfileCard({ name, onGo }: Props) {
+export function ProfileCard({ name }: { name: string }) {
   return (
     <div className="ov-prof">
       <div>
@@ -17,8 +11,12 @@ export function ProfileCard({ name, onGo }: Props) {
         <div className="chip"><span className="d" /> Идэвхтэй</div>
       </div>
       <div className="acts">
-        <button className="g" onClick={() => onGo("translator")}><Icon name="hand" size={17} /> Эхлэх</button>
-        <button className="o" onClick={() => onGo("call")}><Icon name="video" size={17} /></button>
+        <Link href="/dashboard/translator" className="g">Эхлэх</Link>
+        <Link href="/dashboard/call" className="o">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.34 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+        </Link>
       </div>
     </div>
   );
