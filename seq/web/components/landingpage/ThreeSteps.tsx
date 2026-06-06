@@ -44,7 +44,7 @@ export const ThreeSteps = () => {
         }
       `}</style>
 
-      <section className="lhow lsec" id="how-it-works" style={{ padding: "clamp(40px, 8vw, 80px) clamp(16px, 5vw, 32px)" }}>
+      <section className="lhow lsec" id="how" style={{ padding: "clamp(40px, 8vw, 80px) clamp(16px, 5vw, 32px)" }}>
         <div className="lsec-head" style={{ marginBottom: "clamp(32px, 6vw, 50px)" }}>
           <div className="ltag" style={{ fontSize: "clamp(11px, 2vw, 13px)" }}>Гурван амжилт</div>
           <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 5vw, 42px)", fontWeight: 700, letterSpacing: "-1px", color: "var(--text)", marginTop: "clamp(12px, 2vw, 16px)", marginBottom: "clamp(10px, 2vw, 14px)" }}>
