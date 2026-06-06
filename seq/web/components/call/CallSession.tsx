@@ -5,14 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { CameraView } from "@/components/CameraView";
 import { TypewriterCaption } from "@/components/TypewriterCaption";
 import type { AllLandmarks } from "@/lib/mediapipe";
-import {
-  SequenceEmitter,
-  SequenceRecognizer,
-  emitterOptionsFromMeta,
-  loadSequenceModelWithReason,
-  isPredictionVisible,
-  isStaticSign,
-} from "@/lib/sequence-runtime";
+import type { SequenceEmitter, SequenceRecognizer } from "@/lib/sequence-runtime";
 
 const DIAL_RETRY_MS = 2500;
 const DIAL_MAX_ATTEMPTS = 24;
@@ -46,6 +39,7 @@ export function CallSession({ roomId }: Props) {
   const [linkCopied, setLinkCopied] = useState(false);
   const [modelReady, setModelReady] = useState(false);
   const [modelError, setModelError] = useState("");
+  const [modelLoading, setModelLoading] = useState(false);
   const [livePred, setLivePred] = useState<{
     label: string;
     confidence: number;
@@ -62,7 +56,7 @@ export function CallSession({ roomId }: Props) {
   const dialAttemptsRef = useRef(0);
 
   const recognizerRef = useRef<SequenceRecognizer | null>(null);
-  const emitterRef = useRef<SequenceEmitter>(new SequenceEmitter());
+  const emitterRef = useRef<SequenceEmitter | null>(null);
   const livePredRef = useRef<{
     label: string;
     confidence: number;
@@ -70,19 +64,39 @@ export function CallSession({ roomId }: Props) {
     locked: boolean;
   } | null>(null);
   const lastLiveUiAtRef = useRef(0);
+  const modelLoadStartedRef = useRef(false);
+  const runtimeRef = useRef<typeof import("@/lib/sequence-runtime") | null>(
+    null
+  );
 
   const hostId = hostPeerId(roomId);
 
-  // ---- load TFJS sequence model (client-side) ----
-  useEffect(() => {
+  const startModelLoad = useCallback(() => {
+    if (modelLoadStartedRef.current) return;
+    modelLoadStartedRef.current = true;
+    setModelLoading(true);
+
     let cancelled = false;
-    (async () => {
-      const result = await loadSequenceModelWithReason();
+    const loadTimeout = setTimeout(() => {
       if (cancelled) return;
+      setModelError(
+        "Загвар ачаалах удаан байна. Хуудсыг refresh хийж, browser console (F12) шалгана уу."
+      );
+      setModelLoading(false);
+    }, 45_000);
+
+    void (async () => {
+      await new Promise((r) => setTimeout(r, 100));
+      const runtime = await import("@/lib/sequence-runtime");
+      runtimeRef.current = runtime;
+      const result = await runtime.loadSequenceModelWithReason();
+      if (cancelled) return;
+      clearTimeout(loadTimeout);
+      setModelLoading(false);
       if (!result.ok) {
         if (result.reason === "missing_files") {
           setModelError(
-            "Загварын файл олдсонгүй. seq/training дотор: python3 train.py && python3 export_model.py, дараа нь seq/web-ээс npm run dev."
+            "Загварын файл олдсонгүй. seq/training дотор: python3 train.py && python3 export_model.py"
           );
         } else if (result.reason === "feature_mismatch") {
           setModelError(
@@ -90,26 +104,38 @@ export function CallSession({ roomId }: Props) {
           );
         } else {
           setModelError(
-            "Загвар ачаалахад алдаа. Дахин export: cd seq/training && python3 export_model.py"
+            "Загвар ачаалахад алдаа. cd seq/training && python3 export_model.py"
           );
           if (result.detail) console.error(result.detail);
         }
         return;
       }
-      recognizerRef.current = new SequenceRecognizer(
+      recognizerRef.current = new runtime.SequenceRecognizer(
         result.model,
         result.meta
       );
-      recognizerRef.current.warmup();
-      emitterRef.current = new SequenceEmitter(
-        emitterOptionsFromMeta(result.meta)
+      emitterRef.current = new runtime.SequenceEmitter(
+        runtime.emitterOptionsFromMeta(result.meta)
       );
+      console.info("[seq] model ready → detect эхэлж байна");
       setModelReady(true);
+      const warmup = () => recognizerRef.current?.warmup();
+      if (typeof requestIdleCallback !== "undefined") {
+        requestIdleCallback(warmup, { timeout: 3000 });
+      } else {
+        setTimeout(warmup, 800);
+      }
     })();
+
     return () => {
       cancelled = true;
+      clearTimeout(loadTimeout);
     };
   }, []);
+
+  const handleMediaPipeReady = useCallback(() => {
+    startModelLoad();
+  }, [startModelLoad]);
 
   const attachConn = useCallback((conn: import("peerjs").DataConnection) => {
     connRef.current = conn;
@@ -274,13 +300,22 @@ export function CallSession({ roomId }: Props) {
           void setupGuest();
           return;
         }
+        if (type === "peer-unavailable") return;
+        setPeerStatus("error");
+        setPeerMessage("PeerJS серверт холбогдож чадсангүй. Интернет шалгаад дахин орно уу.");
       });
     };
+
+    const peerTimeout = setTimeout(() => {
+      if (stopped || peerRef.current) return;
+      setPeerMessage("Peer холболт удаан байна — хуудсыг refresh хийнэ үү.");
+    }, 12_000);
 
     void setupHost();
 
     return () => {
       stopped = true;
+      clearTimeout(peerTimeout);
       stopDialRetry();
       connRef.current?.close();
       callRef.current?.close();
@@ -323,13 +358,19 @@ export function CallSession({ roomId }: Props) {
   const handleLandmarks = useCallback(
     (lm: AllLandmarks) => {
       const rec = recognizerRef.current;
-      if (!rec) return;
+      const emitter = emitterRef.current;
+      const runtime = runtimeRef.current;
+      if (!rec || !emitter || !runtime) return;
       const pred = rec.push(lm);
-      const word = emitterRef.current.push(pred);
+      const word = emitter.push(pred);
 
       const now = performance.now();
-      if (pred && isPredictionVisible(pred) && now - lastLiveUiAtRef.current >= 250) {
-        const st = emitterRef.current.getStatus(now);
+      if (
+        pred &&
+        runtime.isPredictionVisible(pred) &&
+        now - lastLiveUiAtRef.current >= 250
+      ) {
+        const st = emitter.getStatus(now);
         const next = {
           label: pred.label,
           confidence: pred.confidence,
@@ -350,7 +391,7 @@ export function CallSession({ roomId }: Props) {
       }
 
       if (!word) return;
-      if (isStaticSign(word)) {
+      if (runtime.isStaticSign(word)) {
         rec.resetAfterStaticEmit();
       } else {
         rec.resetWithNeutral();
@@ -368,7 +409,7 @@ export function CallSession({ roomId }: Props) {
     setMyCaption("");
     setLivePred(null);
     sendCaption("");
-    emitterRef.current.reset();
+    emitterRef.current?.reset();
     recognizerRef.current?.resetWithNeutral();
   }, [sendCaption]);
 
@@ -391,9 +432,9 @@ export function CallSession({ roomId }: Props) {
           {modelError}
         </div>
       )}
-      {!modelReady && !modelError && (
+      {!modelReady && !modelError && modelLoading && (
         <div className="mb-4 rounded-xl border border-zinc-700 bg-zinc-900/60 p-3 text-sm text-zinc-400">
-          Temporal загвар ачаалж байна…
+          Temporal загвар ачаалж байна… (10–20 сек)
         </div>
       )}
 
@@ -420,6 +461,9 @@ export function CallSession({ roomId }: Props) {
           <CameraView
             onLandmarks={handleLandmarks}
             onStreamReady={onStreamReady}
+            onMediaPipeReady={handleMediaPipeReady}
+            inferenceActive={modelReady}
+            manualStart
             drawSkeleton={false}
             width={480}
             height={360}

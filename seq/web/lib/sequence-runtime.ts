@@ -1,6 +1,7 @@
 "use client";
 
 import * as tf from "@tensorflow/tfjs";
+import { setWasmPaths } from "@tensorflow/tfjs-backend-wasm";
 import {
   FEATURE_DIM,
   LEFT_PRESENT_IDX,
@@ -132,22 +133,52 @@ export function isOneHandWord(
 const MODEL_DIR = "/models/seq";
 
 let tfReady: Promise<void> | null = null;
+let wasmPathsSet = false;
 
-/** WebGL → WASM → CPU priority. WASM is often faster than WebGL for small TCN. */
+async function tryTfBackend(name: string, timeoutMs: number): Promise<boolean> {
+  try {
+    await Promise.race([
+      tf.setBackend(name).then((ok) => {
+        if (!ok) throw new Error(`${name} setBackend → false`);
+        return tf.ready();
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`${name} timeout`)), timeoutMs)
+      ),
+    ]);
+    return tf.getBackend() === name;
+  } catch (e) {
+    console.warn(`[TF] backend ${name} unavailable`, e);
+    return false;
+  }
+}
+
+/**
+ * WASM (SIMD) эхэнд — main thread-ийг блоклохгүй, GPU шаардахгүй, бүх
+ * төхөөрөмж дээр найдвартай, жижиг TCN-ийг ~3-8ms-д ажиллуулна.
+ * WebGL зарим Mac GPU дээр гацдаг, "cpu" (цэвэр JS) main thread-ийг түгжинэ
+ * → хоёулаа зөвхөн fallback.
+ */
 export function ensureTfBackend(): Promise<void> {
   if (!tfReady) {
     tfReady = (async () => {
-      const backends = ["webgl", "wasm", "cpu"];
-      for (const b of backends) {
-        try {
-          await tf.setBackend(b);
-          await tf.ready();
-          console.info(`[TF] backend: ${b}`);
-          return;
-        } catch {
-          // try next
-        }
+      if (!wasmPathsSet) {
+        setWasmPaths("/tfjs-wasm/");
+        wasmPathsSet = true;
       }
+      if (await tryTfBackend("wasm", 15_000)) {
+        console.info("[TF] backend: wasm");
+        return;
+      }
+      if (await tryTfBackend("webgl", 5_000)) {
+        console.info("[TF] backend: webgl");
+        return;
+      }
+      if (await tryTfBackend("cpu", 12_000)) {
+        console.warn("[TF] backend: cpu (fallback — удаан байж болзошгүй)");
+        return;
+      }
+      throw new Error("TensorFlow.js backend ачаалахгүй байна");
     })();
   }
   return tfReady;
@@ -191,7 +222,9 @@ export async function loadSequenceModelWithReason(): Promise<
   | { ok: true; model: tf.LayersModel; meta: SeqMetadata }
   | { ok: false; reason: ModelLoadError; detail?: string }
 > {
+  console.info("[seq] ensureTfBackend…");
   await ensureTfBackend();
+  console.info("[seq] fetch metadata…");
   const metaRes = await fetch(`${MODEL_DIR}/metadata.json`, {
     cache: "no-store",
   });
@@ -207,9 +240,12 @@ export async function loadSequenceModelWithReason(): Promise<
     return { ok: false, reason: "feature_mismatch" };
   }
   try {
+    console.info("[seq] loadLayersModel… (backend=" + tf.getBackend() + ")");
+    const t0 = performance.now();
     const model = await tf.loadLayersModel(`${MODEL_DIR}/model.json`);
-    const recognizer = new SequenceRecognizer(model, meta);
-    recognizer.warmup();
+    console.info(
+      `[seq] loadLayersModel done in ${Math.round(performance.now() - t0)}ms`
+    );
     return { ok: true, model, meta };
   } catch (e) {
     const detail = e instanceof Error ? e.message : String(e);
@@ -345,8 +381,12 @@ export class SequenceRecognizer {
 
   /** TF compile + buffer бэлэн. */
   warmup(): void {
+    const t0 = performance.now();
     this.resetWithNeutral();
     this.infer(false);
+    console.info(
+      `[seq] warmup done in ${Math.round(performance.now() - t0)}ms`
+    );
   }
 
   /** Returns a prediction only on stride frames once the window is full. */
@@ -414,7 +454,7 @@ export class SequenceRecognizer {
     return pairs > 0 ? total / pairs : 0;
   }
 
-  private _neutralPred(): Omit<SeqPrediction, "bothHands"> {
+  private _neutralPred(): Omit<SeqPrediction, "bothHands" | "handMotion"> {
     return {
       label: this.meta.neutralLabel,
       confidence: 0,
@@ -470,7 +510,9 @@ export class SequenceRecognizer {
     return out;
   }
 
-  private infer(bothHands: boolean): Omit<SeqPrediction, "bothHands"> {
+  private infer(
+    bothHands: boolean
+  ): Omit<SeqPrediction, "bothHands" | "handMotion"> {
     const motion = this._windowHandMotion();
     const chestZone = detectChestZone(this._latestFrame());
 
