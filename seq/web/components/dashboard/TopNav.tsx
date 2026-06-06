@@ -15,11 +15,9 @@ export const TopNav = () => {
 
   return (
     <header className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 md:px-6">
-      <div className="flex min-w-0 flex-1 items-center gap-4">
+      <div className="flex min-w-0 flex-1 items-center gap-1">
         <Link href="/">
-          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
-            <Hand className="size-5" />
-          </span>
+          <img src="/zurag.png"  width={47} height={47} />
         </Link>
         <nav className="flex items-center gap-1 overflow-x-auto rounded-full border bg-card p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
