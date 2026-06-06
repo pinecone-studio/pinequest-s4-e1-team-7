@@ -28,6 +28,29 @@ def _walk_config(obj: Any) -> Any:
     return out
 
 
+def _collect_tensor_refs(arg: Any, kwargs: dict, out: list[Any]) -> None:
+    """Recursively collect __keras_tensor__ refs from a call arg.
+
+    Merge layers (Add, Concatenate, Multiply, …) are called with a *list* of
+    tensors as a single positional arg, e.g. ``Add()([x, res])``. Keras 3
+    serializes that as ``args: [[{kt x}, {kt res}]]`` — a list inside args.
+    The previous version only looked at dict args and silently dropped the
+    list case, leaving merge layers with empty inbound_nodes → a disconnected
+    graph that hangs tfjs ``loadLayersModel``.
+    """
+    if isinstance(arg, list):
+        for item in arg:
+            _collect_tensor_refs(item, kwargs, out)
+        return
+    if not isinstance(arg, dict):
+        return
+    if arg.get("class_name") != "__keras_tensor__":
+        return
+    hist = (arg.get("config") or {}).get("keras_history")
+    if hist and len(hist) >= 3:
+        out.append([hist[0], hist[1], hist[2], kwargs])
+
+
 def _convert_inbound_nodes(nodes: Any) -> list[Any]:
     if not nodes:
         return []
@@ -42,13 +65,7 @@ def _convert_inbound_nodes(nodes: Any) -> list[Any]:
         node_data: list[Any] = []
         kwargs = node.get("kwargs") or {}
         for arg in node.get("args", []):
-            if not isinstance(arg, dict):
-                continue
-            if arg.get("class_name") != "__keras_tensor__":
-                continue
-            hist = (arg.get("config") or {}).get("keras_history")
-            if hist and len(hist) >= 3:
-                node_data.append([hist[0], hist[1], hist[2], kwargs])
+            _collect_tensor_refs(arg, kwargs, node_data)
         if node_data:
             converted.append(node_data)
     return converted

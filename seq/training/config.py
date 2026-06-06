@@ -111,6 +111,9 @@ CLIP_SECONDS = 1.8            # nominal clip length while recording
 MIN_CLIP_FRAMES = 5           # clips shorter than this are dropped
 
 # Live inference window (web): slide over the most recent frames.
+# Live detect runs ~10fps (CameraView DETECT_HZ) → 20 frames ≈ 2.0s, which
+# matches the ~1.8s training clip temporal scale. With the WASM backend each
+# inference is ~3-8ms, so stride=1 (infer every detected frame) is cheap.
 LIVE_WINDOW = SEQ_LEN
 LIVE_STRIDE = 1               # run the model every N frames (stride=1 → every frame)
 

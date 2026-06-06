@@ -21,6 +21,13 @@ export type LandmarkBundle = {
   close: () => void;
 };
 
+export type MediaPipeProgress = (stage: string) => void;
+
+/** Local WASM — CDN биш, илүү хурдан/найдвартай. */
+const WASM_PATH = "/mediapipe-wasm";
+/** 3 GPU delegate зэрэг = Mac дээр CPU 100% + гацалт. Зөвхөн CPU. */
+const DELEGATE = "CPU" as const;
+
 let cached: Promise<LandmarkBundle> | null = null;
 
 let consoleFiltered = false;
@@ -43,48 +50,52 @@ function silenceBenignLogs(): void {
   console.warn = (...a: unknown[]) => (isBenign(a) ? undefined : w(...a));
 }
 
-async function build(): Promise<LandmarkBundle> {
-  silenceBenignLogs();
-  const wasm = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm"
-  );
-  const gpuOrCpu = ((): "GPU" | "CPU" => {
-    try {
-      const canvas = document.createElement("canvas");
-      const gl =
-        canvas.getContext("webgl2") ?? canvas.getContext("webgl");
-      return gl ? "GPU" : "CPU";
-    } catch {
-      return "CPU";
-    }
-  })();
+function yieldToBrowser(ms = 50): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
-  const [pose, hand, face] = await Promise.all([
-    PoseLandmarker.createFromOptions(wasm, {
-      baseOptions: {
-        modelAssetPath: "/models/pose_landmarker_lite.task",
-        delegate: gpuOrCpu,
-      },
-      runningMode: "VIDEO",
-      numPoses: 1,
-    }),
-    HandLandmarker.createFromOptions(wasm, {
-      baseOptions: {
-        modelAssetPath: "/models/hand_landmarker.task",
-        delegate: gpuOrCpu,
-      },
-      runningMode: "VIDEO",
-      numHands: 2,
-    }),
-    FaceLandmarker.createFromOptions(wasm, {
-      baseOptions: {
-        modelAssetPath: "/models/face_landmarker.task",
-        delegate: gpuOrCpu,
-      },
-      runningMode: "VIDEO",
-      numFaces: 1,
-    }),
-  ]);
+async function build(onProgress?: MediaPipeProgress): Promise<LandmarkBundle> {
+  silenceBenignLogs();
+  onProgress?.("WASM");
+  console.info("[MediaPipe] WASM ачаалж байна...");
+  const wasm = await FilesetResolver.forVisionTasks(WASM_PATH);
+  await yieldToBrowser();
+
+  onProgress?.("pose");
+  console.info("[MediaPipe] pose...");
+  const pose = await PoseLandmarker.createFromOptions(wasm, {
+    baseOptions: {
+      modelAssetPath: "/models/pose_landmarker_lite.task",
+      delegate: DELEGATE,
+    },
+    runningMode: "VIDEO",
+    numPoses: 1,
+  });
+  await yieldToBrowser();
+
+  onProgress?.("hand");
+  console.info("[MediaPipe] hand...");
+  const hand = await HandLandmarker.createFromOptions(wasm, {
+    baseOptions: {
+      modelAssetPath: "/models/hand_landmarker.task",
+      delegate: DELEGATE,
+    },
+    runningMode: "VIDEO",
+    numHands: 2,
+  });
+  await yieldToBrowser();
+
+  onProgress?.("face");
+  console.info("[MediaPipe] face...");
+  const face = await FaceLandmarker.createFromOptions(wasm, {
+    baseOptions: {
+      modelAssetPath: "/models/face_landmarker.task",
+      delegate: DELEGATE,
+    },
+    runningMode: "VIDEO",
+    numFaces: 1,
+  });
+  console.info("[MediaPipe] бэлэн");
 
   return {
     detect(source, ts): AllLandmarks {
@@ -107,7 +118,14 @@ async function build(): Promise<LandmarkBundle> {
   };
 }
 
-export function getLandmarkers(): Promise<LandmarkBundle> {
-  if (!cached) cached = build();
+export function getLandmarkers(
+  onProgress?: MediaPipeProgress
+): Promise<LandmarkBundle> {
+  if (!cached) cached = build(onProgress);
   return cached;
+}
+
+/** Test/dev: дахин ачаалах. */
+export function resetLandmarkersCache(): void {
+  cached = null;
 }

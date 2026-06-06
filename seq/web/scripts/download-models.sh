@@ -33,5 +33,27 @@ download_if_missing \
   "$BASE/face_landmarker/face_landmarker/float16/latest/face_landmarker.task" \
   "$MODELS_DIR/face_landmarker.task"
 
+# MediaPipe WASM — CDN-ээс биш local (илүү хурдан)
+WASM_SRC="$(dirname "$0")/../node_modules/@mediapipe/tasks-vision/wasm"
+WASM_DEST="$(dirname "$0")/../public/mediapipe-wasm"
+if [ -d "$WASM_SRC" ]; then
+  mkdir -p "$WASM_DEST"
+  cp -f "$WASM_SRC"/* "$WASM_DEST/" 2>/dev/null || true
+  echo "✓ mediapipe-wasm ($(ls "$WASM_DEST" | wc -l | tr -d ' ') файл)"
+else
+  echo "⚠ @mediapipe/tasks-vision wasm олдсонгүй — npm install ажиллуулна уу"
+fi
+
+# TensorFlow.js WASM backend binaries — local (SIMD, GPU шаардахгүй, хурдан)
+TFJS_WASM_SRC="$(dirname "$0")/../node_modules/@tensorflow/tfjs-backend-wasm/dist"
+TFJS_WASM_DEST="$(dirname "$0")/../public/tfjs-wasm"
+if [ -d "$TFJS_WASM_SRC" ]; then
+  mkdir -p "$TFJS_WASM_DEST"
+  cp -f "$TFJS_WASM_SRC"/*.wasm "$TFJS_WASM_DEST/" 2>/dev/null || true
+  echo "✓ tfjs-wasm ($(ls "$TFJS_WASM_DEST" | wc -l | tr -d ' ') файл)"
+else
+  echo "⚠ @tensorflow/tfjs-backend-wasm олдсонгүй — npm install ажиллуулна уу"
+fi
+
 echo ""
 echo "✓ Бүх model бэлэн: $MODELS_DIR"
