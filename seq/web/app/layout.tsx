@@ -17,7 +17,6 @@ export const metadata: Metadata = {
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
   <html lang="mn" suppressHydrationWarning>
     <head>
-      {/* Inline script prevents dark/light flash on first load */}
       <script
         dangerouslySetInnerHTML={{
           __html: `(function(){var t=localStorage.getItem('dohio-theme');if(!t){t=window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';}document.documentElement.setAttribute('data-theme',t);})();`,
