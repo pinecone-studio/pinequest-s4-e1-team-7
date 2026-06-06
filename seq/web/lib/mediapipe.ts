@@ -2,8 +2,10 @@
 
 import {
   FilesetResolver,
+  FaceLandmarker,
   HandLandmarker,
   PoseLandmarker,
+  type FaceLandmarkerResult,
   type HandLandmarkerResult,
   type PoseLandmarkerResult,
 } from "@mediapipe/tasks-vision";
@@ -11,6 +13,7 @@ import {
 export type AllLandmarks = {
   pose: PoseLandmarkerResult | null;
   hand: HandLandmarkerResult | null;
+  face: FaceLandmarkerResult | null;
 };
 
 export type LandmarkBundle = {
@@ -45,8 +48,6 @@ async function build(): Promise<LandmarkBundle> {
   const wasm = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm"
   );
-  // GPU delegate cuts per-frame detection from ~25ms to ~6ms.
-  // pose_landmarker_lite (6 MB) is ~3x faster than full with negligible accuracy loss.
   const gpuOrCpu = ((): "GPU" | "CPU" => {
     try {
       const canvas = document.createElement("canvas");
@@ -58,7 +59,7 @@ async function build(): Promise<LandmarkBundle> {
     }
   })();
 
-  const [pose, hand] = await Promise.all([
+  const [pose, hand, face] = await Promise.all([
     PoseLandmarker.createFromOptions(wasm, {
       baseOptions: {
         modelAssetPath: "/models/pose_landmarker_lite.task",
@@ -75,6 +76,14 @@ async function build(): Promise<LandmarkBundle> {
       runningMode: "VIDEO",
       numHands: 2,
     }),
+    FaceLandmarker.createFromOptions(wasm, {
+      baseOptions: {
+        modelAssetPath: "/models/face_landmarker.task",
+        delegate: gpuOrCpu,
+      },
+      runningMode: "VIDEO",
+      numFaces: 1,
+    }),
   ]);
 
   return {
@@ -83,15 +92,17 @@ async function build(): Promise<LandmarkBundle> {
         return {
           pose: pose.detectForVideo(source, ts),
           hand: hand.detectForVideo(source, ts),
+          face: face.detectForVideo(source, ts),
         };
       } catch (e) {
         console.warn("detect error", e);
-        return { pose: null, hand: null };
+        return { pose: null, hand: null, face: null };
       }
     },
     close() {
       pose.close();
       hand.close();
+      face.close();
     },
   };
 }

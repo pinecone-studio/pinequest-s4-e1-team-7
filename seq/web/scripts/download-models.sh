@@ -29,5 +29,9 @@ download_if_missing \
   "$BASE/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task" \
   "$MODELS_DIR/hand_landmarker.task"
 
+download_if_missing \
+  "$BASE/face_landmarker/face_landmarker/float16/latest/face_landmarker.task" \
+  "$MODELS_DIR/face_landmarker.task"
+
 echo ""
 echo "✓ Бүх model бэлэн: $MODELS_DIR"

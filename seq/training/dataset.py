@@ -87,6 +87,13 @@ def _build_flip_index() -> np.ndarray:
     block = C.N_HAND * C.N_COORDS
     for k in range(block):
         idx[lh + k], idx[rh + k] = rh + k, lh + k
+    # face symmetric pairs (curated order)
+    fb = (C.N_POSE + C.N_HAND + C.N_HAND) * C.N_COORDS
+    face_pairs = [(1, 2), (3, 4), (5, 6), (7, 8)]
+    for a, b in face_pairs:
+        for c in range(C.N_COORDS):
+            ac, bc = fb + a * C.N_COORDS + c, fb + b * C.N_COORDS + c
+            idx[ac], idx[bc] = bc, ac
     # swap presence flags
     idx[C.LEFT_PRESENT_IDX], idx[C.RIGHT_PRESENT_IDX] = (
         C.RIGHT_PRESENT_IDX, C.LEFT_PRESENT_IDX
@@ -96,7 +103,7 @@ def _build_flip_index() -> np.ndarray:
 
 _FLIP_IDX = _build_flip_index()
 _X_MASK = np.zeros(C.FEATURE_DIM, dtype=bool)
-for _p in range(C.N_POSE + C.N_HAND + C.N_HAND):
+for _p in range(C.N_POSE + C.N_HAND + C.N_HAND + C.N_FACE):
     _X_MASK[_p * C.N_COORDS] = True   # x coordinate columns
 
 
@@ -111,7 +118,7 @@ def _rotate(seq: np.ndarray, deg: float) -> np.ndarray:
     th = np.deg2rad(deg)
     cos, sin = np.cos(th), np.sin(th)
     out = seq.copy()
-    n_points = C.N_POSE + C.N_HAND + C.N_HAND
+    n_points = C.N_POSE + C.N_HAND + C.N_HAND + C.N_FACE
     for p in range(n_points):
         xi, yi = p * C.N_COORDS, p * C.N_COORDS + 1
         x, y = seq[:, xi], seq[:, yi]
@@ -155,7 +162,7 @@ def augment(seq_norm: np.ndarray) -> np.ndarray:
     out = _translate(out, tx, ty)
     # landmark jitter (whole body)
     noise = rng.normal(0, 0.010, size=out.shape).astype(np.float32)
-    noise[:, [C.LEFT_PRESENT_IDX, C.RIGHT_PRESENT_IDX]] = 0
+    noise[:, [C.LEFT_PRESENT_IDX, C.RIGHT_PRESENT_IDX, C.FACE_PRESENT_IDX]] = 0
     out = out + noise
     # additional hand noise ~50%
     if rng.random() < 0.5:
@@ -170,7 +177,7 @@ def _coord_mask() -> np.ndarray:
     global _COORD_MASK
     if _COORD_MASK is None:
         m = np.zeros(C.FEATURE_DIM, dtype=bool)
-        for p in range(C.N_POSE + C.N_HAND + C.N_HAND):
+        for p in range(C.N_POSE + C.N_HAND + C.N_HAND + C.N_FACE):
             m[p * C.N_COORDS] = True
             m[p * C.N_COORDS + 1] = True
         _COORD_MASK = m
@@ -179,7 +186,7 @@ def _coord_mask() -> np.ndarray:
 
 def _translate(seq: np.ndarray, tx: float, ty: float) -> np.ndarray:
     out = seq.copy()
-    n_points = C.N_POSE + C.N_HAND + C.N_HAND
+    n_points = C.N_POSE + C.N_HAND + C.N_HAND + C.N_FACE
     for p in range(n_points):
         xi, yi = p * C.N_COORDS, p * C.N_COORDS + 1
         x, y = seq[:, xi], seq[:, yi]

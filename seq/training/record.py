@@ -29,7 +29,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 import config as C
 from config import safe_name
-from landmarks import LandmarkExtractor
+from landmarks import LandmarkExtractor, detect_chest_zone, CHEST_ZONE_NAMES
 
 # SPACE (32), Enter / Return (13), keypad Enter (10 on some platforms)
 _REC_KEYS = {ord(" "), 13, 10}
@@ -114,11 +114,17 @@ def delete_last_clip(label: str) -> None:
     print(f"  ↩ устгалаа: {npys[-1]}")
 
 
-def draw_hud(frame, label, idx, total_labels, recording, n_clips, rec_frames):
+def draw_hud(frame, label, idx, total_labels, recording, n_clips, rec_frames, raw_vec):
     h, w = frame.shape[:2]
     overlay = frame.copy()
-    cv2.rectangle(overlay, (0, 0), (w, 70), (20, 20, 20), -1)
+    cv2.rectangle(overlay, (0, 0), (w, 90), (20, 20, 20), -1)
     cv2.addWeighted(overlay, 0.6, frame, 0.4, 0, frame)
+    zone = detect_chest_zone(raw_vec)
+    zone_name = CHEST_ZONE_NAMES[zone] if 0 <= zone < len(CHEST_ZONE_NAMES) else "?"
+    hand_mode = C.hand_mode_for(label)
+    hand_txt = {0: "?", 1: "1 гар", 2: "2 гар"}.get(hand_mode, "?")
+    pos_mode = C.position_mode_for(label)
+    pos_txt = {0: "аль ч", 1: "дээш", 2: "мөрөн", 3: "доош"}.get(pos_mode, "?")
     put_unicode_text(
         frame,
         f"[{idx + 1}/{total_labels}] {label}",
@@ -128,10 +134,17 @@ def draw_hud(frame, label, idx, total_labels, recording, n_clips, rec_frames):
     )
     put_unicode_text(
         frame,
-        f"clips: {n_clips}   SPACE/ENTER rec   n/b label   d undo   q quit",
+        f"clips: {n_clips}   гар:{hand_txt}   sign:{pos_txt}   одоо:{zone_name}",
         (12, 38),
         size=16,
         color=(200, 200, 200),
+    )
+    put_unicode_text(
+        frame,
+        "SPACE/ENTER rec   n/b label   d undo   q quit",
+        (12, 62),
+        size=14,
+        color=(160, 160, 160),
     )
     if recording:
         cv2.circle(frame, (w - 30, 30), 12, (0, 0, 255), -1)
@@ -141,13 +154,18 @@ def draw_hud(frame, label, idx, total_labels, recording, n_clips, rec_frames):
 
 def draw_landmarks(frame, raw_vec):
     h, w = frame.shape[:2]
-    n_points = C.N_POSE + C.N_HAND + C.N_HAND
-    for p in range(n_points):
+    n_body = C.N_POSE + C.N_HAND + C.N_HAND + C.N_FACE
+    for p in range(n_body):
         x = raw_vec[p * C.N_COORDS]
         y = raw_vec[p * C.N_COORDS + 1]
         if x == 0 and y == 0:
             continue
-        color = (0, 255, 255) if p < C.N_POSE else (255, 0, 200)
+        if p < C.N_POSE:
+            color = (0, 255, 255)
+        elif p < C.N_POSE + C.N_HAND + C.N_HAND:
+            color = (255, 0, 200)
+        else:
+            color = (0, 200, 255)
         cv2.circle(frame, (int(x * w), int(y * h)), 3, color, -1)
 
 
@@ -182,7 +200,8 @@ def main() -> None:
     frames: list[np.ndarray] = []
 
     print("=" * 56)
-    print(f"CLIP RECORDER — {len(labels)} label")
+    print(f"CLIP RECORDER — {len(labels)} label, FEATURE_DIM={C.FEATURE_DIM}")
+    print("  Хуучин clip (104 dim) ашиглахгүй — бүгдийг шинээр бичнэ.")
     for i, l in enumerate(labels):
         print(f"  {i}: {l}  ({clip_count(l)} clips)")
     print("=" * 56)
@@ -204,7 +223,7 @@ def main() -> None:
 
             draw_landmarks(frame, raw_vec)
             draw_hud(frame, labels[idx], idx, len(labels), recording,
-                     clip_count(labels[idx]), len(frames))
+                     clip_count(labels[idx]), len(frames), raw_vec)
             cv2.imshow("Clip Recorder", frame)
 
             key = cv2.waitKey(1) & 0xFF

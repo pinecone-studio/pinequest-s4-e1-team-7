@@ -2,23 +2,42 @@ import type { AllLandmarks } from "./mediapipe";
 
 /**
  * Feature layout — MUST stay identical to seq/training/config.py.
- * Per-frame vector (FEATURE_DIM = 104):
+ * Per-frame vector (FEATURE_DIM = 125):
  *   pose:  N_POSE * 2 (x,y)        indices 0..17
  *   left:  N_HAND * 2              indices 18..59
  *   right: N_HAND * 2              indices 60..101
- *   flags: left_present, right_present   indices 102, 103
+ *   face:  N_FACE * 2              indices 102..121
+ *   flags: left_present, right_present, face_present   indices 122..124
  */
 export const POSE_KEYPOINTS = [0, 11, 12, 13, 14, 15, 16, 23, 24] as const;
+export const FACE_KEYPOINTS = [1, 61, 291, 33, 263, 13, 14, 78, 308, 152] as const;
 export const N_POSE = POSE_KEYPOINTS.length; // 9
 export const N_HAND = 21;
+export const N_FACE = FACE_KEYPOINTS.length; // 10
 export const N_COORDS = 2;
-export const FEATURE_DIM = (N_POSE + N_HAND + N_HAND) * N_COORDS + 2; // 104
-export const LEFT_PRESENT_IDX = (N_POSE + N_HAND + N_HAND) * N_COORDS; // 102
-export const RIGHT_PRESENT_IDX = LEFT_PRESENT_IDX + 1; // 103
+export const FEATURE_DIM =
+  (N_POSE + N_HAND + N_HAND + N_FACE) * N_COORDS + 3; // 125
+export const LEFT_PRESENT_IDX = (N_POSE + N_HAND + N_HAND + N_FACE) * N_COORDS; // 122
+export const RIGHT_PRESENT_IDX = LEFT_PRESENT_IDX + 1; // 123
+export const FACE_PRESENT_IDX = RIGHT_PRESENT_IDX + 1; // 124
+export const LONG_VOWEL_BASES = ["А", "Э", "О", "У", "Ө", "Ү"] as const;
+export const LONG_VOWEL_SUFFIX = " урт";
+
 const MIN_SHOULDER_WIDTH = 1e-3;
-const N_POINTS = N_POSE + N_HAND + N_HAND;
+const N_POINTS = N_POSE + N_HAND + N_HAND + N_FACE;
+
+export const CHEST_HIGH_MARGIN = 0.06;
+export const CHEST_MID_FRAC = 0.15;
+export const CHEST_LOW_EXTRA = 0.10;
 
 type Pt = { x: number; y: number };
+
+export function isLongVowelSign(label: string): boolean {
+  const s = label.trim();
+  if (!s.endsWith(LONG_VOWEL_SUFFIX)) return false;
+  const base = s.slice(0, -LONG_VOWEL_SUFFIX.length);
+  return (LONG_VOWEL_BASES as readonly string[]).includes(base);
+}
 
 /** Pose present is required to anchor normalization. */
 export function hasPose(lm: AllLandmarks): boolean {
@@ -52,6 +71,22 @@ function buildFlipPermutation(): number[] {
     const tmp = idx[lh + k];
     idx[lh + k] = idx[rh + k];
     idx[rh + k] = tmp;
+  }
+  const faceBase = (N_POSE + N_HAND + N_HAND) * N_COORDS;
+  const facePairs = [
+    [1, 2],
+    [3, 4],
+    [5, 6],
+    [7, 8],
+  ];
+  for (const [a, b] of facePairs) {
+    for (let c = 0; c < N_COORDS; c++) {
+      const ac = faceBase + a * N_COORDS + c;
+      const bc = faceBase + b * N_COORDS + c;
+      const tmp = idx[ac];
+      idx[ac] = idx[bc];
+      idx[bc] = tmp;
+    }
   }
   const lp = idx[LEFT_PRESENT_IDX];
   idx[LEFT_PRESENT_IDX] = idx[RIGHT_PRESENT_IDX];
@@ -90,6 +125,7 @@ export type SigningHand = "left" | "right";
 const HAND_BLOCK = N_HAND * N_COORDS;
 const LEFT_BASE = N_POSE * N_COORDS;
 const RIGHT_BASE = LEFT_BASE + HAND_BLOCK;
+const FACE_BASE = (N_POSE + N_HAND + N_HAND) * N_COORDS;
 
 function handCenter(lms: Pt[]): Pt {
   let sx = 0;
@@ -115,6 +151,53 @@ function handBlockActive(raw: Float32Array, base: number): boolean {
   }
   return n >= MIN_HAND_LM_ACTIVE;
 }
+
+function activeHandY(raw: Float32Array): number | null {
+  for (const [base, presentIdx] of [
+    [LEFT_BASE, LEFT_PRESENT_IDX],
+    [RIGHT_BASE, RIGHT_PRESENT_IDX],
+  ] as const) {
+    if (raw[presentIdx] === 0) continue;
+    let sy = 0;
+    let n = 0;
+    for (let j = 0; j < N_HAND; j++) {
+      const xi = base + j * N_COORDS;
+      if (raw[xi] !== 0 || raw[xi + 1] !== 0) {
+        sy += raw[xi + 1];
+        n++;
+      }
+    }
+    if (n > 0) return sy / n;
+  }
+  for (const yi of [11, 13]) {
+    if (raw[yi - 1] !== 0 || raw[yi] !== 0) return raw[yi];
+  }
+  return null;
+}
+
+/** 1=above chest, 2=at chest, 3=below, 0=unknown. Mirrors landmarks.detect_chest_zone. */
+export function detectChestZone(raw: Float32Array): number {
+  const lsY = raw[3];
+  const rsY = raw[5];
+  if (lsY === 0 && rsY === 0) return 0;
+  const shoulderY = (lsY + rsY) * 0.5;
+  const lhY = raw[15];
+  const rhY = raw[17];
+  const hipY = lhY > 0 && rhY > 0 ? (lhY + rhY) * 0.5 : shoulderY + 0.35;
+
+  const handY = activeHandY(raw);
+  if (handY === null) return 0;
+
+  const chestLow = shoulderY + CHEST_MID_FRAC * (hipY - shoulderY);
+  const highThresh = shoulderY - CHEST_HIGH_MARGIN;
+  const lowThresh = chestLow + CHEST_LOW_EXTRA;
+
+  if (handY < highThresh) return 1;
+  if (handY > lowThresh) return 3;
+  return 2;
+}
+
+export const CHEST_ZONE_NAMES = ["?", "дээш", "мөрөн", "доош"] as const;
 
 /**
  * True only when MediaPipe sees 2 separate hands (not 1-hand sign + noise).
@@ -142,45 +225,6 @@ export function frameIsTwoHand(raw: Float32Array): boolean {
   const leftBase = N_POSE * N_COORDS;
   const rightBase = leftBase + N_HAND * N_COORDS;
   return handBlockActive(raw, leftBase) && handBlockActive(raw, rightBase);
-}
-
-/**
- * Live inference for clips recorded with the physical RIGHT hand after cv2.flip.
- *
- * @deprecated Prefer packRawVector(lm, PACK_MIRROR_DETECT) — matches record.py
- * (both hands). Kept for one-hand parity experiments.
- */
-export function packTrainingParityFrame(lm: AllLandmarks): Float32Array | null {
-  if (!hasPose(lm)) return null;
-
-  const hands = lm.hand?.landmarks as Pt[][] | undefined;
-  if (!hands?.length) return null;
-
-  let pickIdx = 0;
-  let pickX = handCenter(hands[0]).x;
-  for (let i = 1; i < hands.length; i++) {
-    const x = handCenter(hands[i]).x;
-    if (x > pickX) {
-      pickX = x;
-      pickIdx = i;
-    }
-  }
-
-  if (pickX < 0.45) return null;
-
-  const pose = lm.pose?.landmarks?.[0] as Pt[];
-  const vec = new Float32Array(FEATURE_DIM);
-  for (let i = 0; i < N_POSE; i++) {
-    const kp = POSE_KEYPOINTS[i];
-    const p = pose[kp];
-    if (!p) continue;
-    vec[i * N_COORDS] = p.x;
-    vec[i * N_COORDS + 1] = p.y;
-  }
-
-  writeHand(vec, LEFT_BASE, hands[pickIdx]);
-  vec[LEFT_PRESENT_IDX] = 1;
-  return vec;
 }
 
 export type PackRawOptions = {
@@ -229,6 +273,19 @@ function packRawVectorFromImage(
     writeHand(vec, poseBlock + N_HAND * N_COORDS, right);
     vec[RIGHT_PRESENT_IDX] = 1;
   }
+
+  const face = lm.face?.faceLandmarks?.[0] as Pt[] | undefined;
+  if (face) {
+    for (let i = 0; i < N_FACE; i++) {
+      const kp = FACE_KEYPOINTS[i];
+      const p = face[kp];
+      if (!p) continue;
+      vec[FACE_BASE + i * N_COORDS] = p.x;
+      vec[FACE_BASE + i * N_COORDS + 1] = p.y;
+    }
+    vec[FACE_PRESENT_IDX] = 1;
+  }
+
   return vec;
 }
 
@@ -272,7 +329,6 @@ function writeHand(vec: Float32Array, base: number, lms: Pt[]): void {
 /**
  * Normalize one raw frame in place into `out`: shoulder midpoint -> origin,
  * shoulder width -> unit scale. Mirrors landmarks.normalize() in Python.
- * Curated pose order: 0=nose, 1=L_shoulder, 2=R_shoulder, ...
  */
 export function normalizeFrame(raw: Float32Array, out: Float32Array): void {
   const lsx = raw[2];
@@ -292,4 +348,5 @@ export function normalizeFrame(raw: Float32Array, out: Float32Array): void {
   }
   out[LEFT_PRESENT_IDX] = raw[LEFT_PRESENT_IDX];
   out[RIGHT_PRESENT_IDX] = raw[RIGHT_PRESENT_IDX];
+  out[FACE_PRESENT_IDX] = raw[FACE_PRESENT_IDX];
 }
