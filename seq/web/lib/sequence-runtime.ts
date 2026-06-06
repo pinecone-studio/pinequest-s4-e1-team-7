@@ -1,7 +1,6 @@
 "use client";
 
 import * as tf from "@tensorflow/tfjs";
-import { setWasmPaths } from "@tensorflow/tfjs-backend-wasm";
 import {
   FEATURE_DIM,
   LEFT_PRESENT_IDX,
@@ -163,8 +162,18 @@ export function ensureTfBackend(): Promise<void> {
   if (!tfReady) {
     tfReady = (async () => {
       if (!wasmPathsSet) {
-        setWasmPaths("/tfjs-wasm/");
-        wasmPathsSet = true;
+        if (typeof window !== "undefined") {
+          try {
+            const wasmModule = await import("@tensorflow/tfjs-backend-wasm");
+            // setWasmPaths points to the static files in `public/tfjs-wasm/`
+            wasmModule.setWasmPaths("/tfjs-wasm/");
+            wasmPathsSet = true;
+          } catch (e) {
+            console.warn("@tensorflow/tfjs-backend-wasm dynamic import failed:", e);
+          }
+        } else {
+          // server-side: skip setting wasm paths
+        }
       }
       if (await tryTfBackend("wasm", 15_000)) {
         console.info("[TF] backend: wasm");

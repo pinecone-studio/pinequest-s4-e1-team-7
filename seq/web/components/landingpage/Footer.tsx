@@ -66,7 +66,7 @@ export const Footer = () => {
         </div>
 
         <div style={{ paddingTop: "24px", textAlign: "center" }}>
-          <p className="lfoot-bot">© 2026 ДОХИО. Бүх эрх хуулиар хамгаалагдсан.</p>
+          <p className="lfoot-bot">© 2026 ХЭЛМЭРЧ. Бүх эрх хуулиар хамгаалагдсан.</p>
         </div>
       </div>
     </footer>
