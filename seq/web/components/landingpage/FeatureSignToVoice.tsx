@@ -1,130 +1,53 @@
-export const FeatureSignToVoice = () => {
-  return (
-    <>
-      <style>{`
-        @media (max-width: 768px) {
-          .feature-flex {
-            flex-direction: column !important;
-          }
-        }
-      `}</style>
-
-      <section
-        style={{ background: "var(--bg)" }}
-        className="w-full py-24 px-8 md:px-16"
-      >
-        <div
-          className="max-w-5xl mx-auto flex flex-col md:flex-row gap-16 items-center feature-flex"
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            gap: "clamp(24px, 5vw, 48px)",
-            alignItems: "center",
-          }}
-        >
-          <div className="flex-1 flex justify-center">
-            <div
-              className="lphone"
-              style={{ width: "clamp(160px, 30vw, 300px)" }}
-            >
-              <div
-                className="lphone-status"
-                style={{
-                  fontSize: "clamp(9px, 2vw, 12px)",
-                  padding: "clamp(4px, 2vw, 6px) clamp(10px, 3vw, 14px)",
-                }}
-              >
-                <span>9:41</span>
-                <span>●●●</span>
-              </div>
-              <div
-                className="lphone-nav"
-                style={{
-                  fontSize: "clamp(10px, 2vw, 13px)",
-                  padding: "clamp(4px, 1.5vw, 6px)",
-                }}
-              >
-                ДОХИО
-              </div>
-              <div className="lphone-cam">
-                <div className="lphone-scan" />
-                <div
-                  className="lphone-cap"
-                  style={{ padding: "clamp(8px, 2vw, 12px)" }}
-                >
-                  <div
-                    className="cl"
-                    style={{
-                      fontSize: "clamp(7px, 1.5vw, 9px)",
-                      marginBottom: "clamp(4px, 1vw, 6px)",
-                    }}
-                  >
-                    <span>●</span> Дохио → Дуу хоолой
-                  </div>
-                </div>
-              </div>
-              <div
-                style={{
-                  padding: "clamp(10px, 2vw, 12px)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "clamp(6px, 1.5vw, 8px)",
-                }}
-              >
-                <button
-                  style={{
-                    background: "var(--olive)",
-                    borderRadius: "14px",
-                    padding: "clamp(10px, 2vw, 12px)",
-                    textAlign: "center",
-                    color: "#fff",
-                    fontSize: "clamp(12px, 2vw, 13px)",
-                    fontWeight: 700,
-                    border: "none",
-                    cursor: "pointer",
-                    width: "100%",
-                  }}
-                >
-                  Дуудлага эхлүүлэх
-                </button>
+export const FeatureSignToVoice = () => (
+  <section
+    className="w-full py-20 px-4 md:px-16"
+    style={{ background: "var(--bg)" }}
+  >
+    <div className="mx-auto flex max-w-5xl flex-col items-center gap-12 md:flex-row md:gap-16">
+      <div className="flex flex-1 justify-center">
+        <div className="lphone w-[200px] sm:w-[240px]">
+          <div className="lphone-status">
+            <span>9:41</span>
+            <span>●●●</span>
+          </div>
+          <div className="lphone-nav">Sign Bridge</div>
+          <div className="lphone-cam">
+            <div className="lphone-scan" />
+            <div className="lphone-cap">
+              <div className="cl">
+                <span /> Дохионы хэл - Яриа
               </div>
             </div>
           </div>
-
-          <div className="flex-1">
-            <div
-              className="ltag"
-              style={{ fontSize: "clamp(11px, 2vw, 13px)" }}
+          <div
+            className="flex flex-col gap-2 p-3"
+            style={{ background: "var(--surface)" }}
+          >
+            <button
+              className="w-full rounded-2xl py-2.5 text-center text-sm font-bold text-white"
+              style={{ background: "var(--olive)" }}
             >
-              01
-            </div>
-            <h2
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "clamp(24px, 5vw, 42px)",
-                fontWeight: 700,
-                letterSpacing: "-1px",
-                color: "var(--text)",
-                marginBottom: "clamp(12px, 2vw, 16px)",
-                lineHeight: 1.1,
-              }}
-            >
-              Дохио → Дуу хоолой
-            </h2>
-            <p
-              style={{
-                fontSize: "clamp(14px, 3vw, 17px)",
-                color: "var(--text-2)",
-                lineHeight: 1.6,
-                maxWidth: "480px",
-              }}
-            >
-              Дохиолох үед шууд монголоор чанга яриулна. Ярианы бэрхшээлтэй
-              хүмүүст зориулсан хурдан, нарийвчлалтай орчуулга.
-            </p>
+              Яриаг сонсох
+            </button>
           </div>
         </div>
-      </section>
-    </>
-  );
-};
+      </div>
+
+      <div className="flex-1 text-center md:text-left">
+        <span className="ltag">01</span>
+        <h2
+          className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl"
+          style={{ color: "var(--text)" }}
+        >
+          Дохионы хэл - Яриа
+        </h2>
+        <p
+          className="mt-4 max-w-[480px] text-base leading-relaxed md:text-lg"
+          style={{ color: "var(--text-2)" }}
+        >
+         Видео дуудлага дээр дохионы хэлийг шууд хөрвүүлэн уншина.
+        </p>
+      </div>
+    </div>
+  </section>
+);

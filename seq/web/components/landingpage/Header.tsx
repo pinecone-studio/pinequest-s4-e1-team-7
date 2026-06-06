@@ -3,38 +3,35 @@
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+
 import { Show, UserButton } from "@clerk/nextjs";
 import Switch from "./DarkLightButton";
+import { Logo } from "../Logo";
 
-const LINKS = [
+const NAV_LINKS = [
   { href: "#features", label: "Онцлог" },
   { href: "#how", label: "Апп ашиглах заавар" },
 ];
 
 export const Header = () => (
-  <nav className="sticky top-0 z-50 flex items-center justify-between border-b bg-background/80 px-4 py-4 backdrop-blur md:px-8">
-    <Link
-      href="#top"
-      className="flex items-center font-display text-xl font-bold"
-    >
-      <img src="/zurag.png" width={47} height={47} />
-      Sing Bridge
+  <nav className="sticky top-0 z-50 flex items-center justify-between border-b bg-background/80 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/75 md:px-8">
+    <Link href="/" className="flex overflow-hidden">
+      <img src="/images/logo.png" width={200} height={80} />
     </Link>
 
-    <div className="hidden gap-1 md:flex">
-      {LINKS.map((l) => (
+    <div className="hidden items-center gap-1 md:flex">
+      {NAV_LINKS.map((l) => (
         <a
           key={l.href}
           href={l.href}
-          className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="rounded-full px-4 py-2 text-md font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
           {l.label}
         </a>
       ))}
     </div>
 
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2">
       <Switch />
 
       <Show when="signed-out">
@@ -48,7 +45,7 @@ export const Header = () => (
             Нэвтрэх
           </Link>
         </Button>
-        <Button asChild size="sm">
+        <Button asChild size="sm" className="rounded-full">
           <Link href="/auth/register">
             <UserPlus className="size-4" /> Бүртгүүлэх
           </Link>

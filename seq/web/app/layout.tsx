@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ClerkProvider } from "@clerk/nextjs";
 import { AppProvider } from "@/context/AppContext";
 import { Toaster } from "@/components/ui/sonner";
+import { MobileNav } from "@/components/mobile/mobile-nav";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -14,16 +15,13 @@ export const metadata: Metadata = {
 };
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
-  <html lang="mn" data-theme="dark">
+  <html lang="mn" suppressHydrationWarning>
     <head>
-<<<<<<< HEAD
-=======
       <script
         dangerouslySetInnerHTML={{
           __html: `(function(){var t=localStorage.getItem('dohio-theme');if(!t){t=window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';}document.documentElement.setAttribute('data-theme',t);})();`,
         }}
       />
->>>>>>> 7c0cf63 (mobile navbar)
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       <link
@@ -33,8 +31,11 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
     </head>
     <body className={cn(geist.variable)}>
       <ClerkProvider>
+        <MobileNav />
         <AppProvider>
-          {children}
+          <div className="pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+            {children}
+          </div>
           <Toaster />
         </AppProvider>
       </ClerkProvider>
