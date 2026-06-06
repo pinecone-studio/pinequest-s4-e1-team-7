@@ -5,6 +5,7 @@ Reuses rf/analysis/models if present (avoids re-downloading), else downloads.
 import os
 import shutil
 import urllib.request
+import zipfile
 
 import config as C
 
@@ -26,20 +27,36 @@ URLS = {
 RF_MODELS = os.path.join(C.SEQ_DIR, "..", "rf", "analysis", "models")
 
 
+def is_valid_task(path: str) -> bool:
+    if not os.path.isfile(path) or os.path.getsize(path) <= 100_000:
+        return False
+    if not zipfile.is_zipfile(path):
+        return False
+    try:
+        with zipfile.ZipFile(path) as zf:
+            return bool(zf.namelist()) and zf.testzip() is None
+    except zipfile.BadZipFile:
+        return False
+
+
 def main() -> None:
     os.makedirs(C.MODELS_DIR, exist_ok=True)
     for name, url in URLS.items():
         dest = os.path.join(C.MODELS_DIR, name)
-        if os.path.isfile(dest) and os.path.getsize(dest) > 100_000:
+        if is_valid_task(dest):
             print(f"✓ {name} (бэлэн)")
             continue
         src = os.path.join(RF_MODELS, name)
-        if os.path.isfile(src) and os.path.getsize(src) > 100_000:
+        if is_valid_task(src):
             shutil.copy(src, dest)
             print(f"✓ {name} (rf-ээс хууллаа)")
             continue
         print(f"↓ {name} татаж байна...")
-        urllib.request.urlretrieve(url, dest)
+        tmp = f"{dest}.download"
+        urllib.request.urlretrieve(url, tmp)
+        if not is_valid_task(tmp):
+            raise RuntimeError(f"{name} татагдсан боловч valid .task zip биш байна")
+        os.replace(tmp, dest)
         print(f"✓ {name} ({os.path.getsize(dest)//1024} KB)")
     print("Бэлэн.")
 
