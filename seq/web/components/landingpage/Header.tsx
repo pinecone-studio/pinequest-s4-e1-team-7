@@ -37,7 +37,6 @@ export const Header = () => (
     </div>
 
     <div className="flex items-center gap-2.5">
-      <ThemeToggle />
       <Switch />
 
       <Show when="signed-out">
@@ -52,7 +51,7 @@ export const Header = () => (
       </Show>
 
       <Show when="signed-in">
-        <Button asChild size="sm">
+        <Button asChild size="sm" className="rounded-lg">
           <Link href="/dashboard">
             Эхлэх <ArrowRight className="size-4" />
           </Link>
