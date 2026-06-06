@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import Switch from "./DarkLightButton";
 import { Show, UserButton } from "@clerk/nextjs";
 
+
 const LINKS = [
   { href: "#features", label: "Боломжууд" },
   { href: "#how", label: "Хэрхэн ажилладаг" },
@@ -16,12 +17,12 @@ export const Header = () => (
   <nav className="sticky top-0 z-50 flex items-center justify-between border-b bg-background/80 px-4 py-4 backdrop-blur md:px-8">
     <Link
       href="#top"
-      className="flex items-center gap-3 font-display text-xl font-bold"
+      className="flex items-center font-display text-xl font-bold"
     >
-      <span className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground">
-        <Hand className="size-5" />
-      </span>
-      Sign-Bridge
+
+      <img src="/zurag.png"  width={47}  height={47} />
+      Хэлмэрч
+     
     </Link>
 
     <div className="hidden gap-1 md:flex">
