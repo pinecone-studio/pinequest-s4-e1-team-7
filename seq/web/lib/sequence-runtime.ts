@@ -8,7 +8,9 @@ import {
   N_HAND,
   N_POSE,
   RIGHT_PRESENT_IDX,
+  detectChestZone,
   hasPose,
+  isLongVowelSign,
   isTwoHandMode,
   frameIsTwoHand,
   normalizeFrame,
@@ -66,6 +68,12 @@ export type SeqMetadata = {
   motionMinMargin?: number;
   /** Per label: 0=neutral/any, 1=one-hand only, 2=two-hand only (see hand_modes.json). */
   handModes?: number[];
+  /** Per label: 0=any, 1=above chest, 2=at chest, 3=below (see position_modes.json). */
+  positionModes?: number[];
+  longVowelMinStreak?: number;
+  longVowelMinConfidence?: number;
+  longVowelMinMargin?: number;
+  maxConsecutiveLongVowels?: number;
   twoHandMinConfidence?: number;
   twoHandMinMargin?: number;
   twoHandMinStreak?: number;
@@ -90,9 +98,10 @@ export type SeqPrediction = {
   handMotion: number;
 };
 
-/** Single Cyrillic/Latin letter (А, В, …) — not words like "би". */
+/** Single Cyrillic/Latin letter (А, В, …) or long vowel — not words like "би". */
 export function isStaticSign(label: string, neutralLabel = "neutral"): boolean {
   if (label === neutralLabel) return false;
+  if (isLongVowelSign(label)) return true;
   const s = label.trim().replace(/_/g, " ");
   return s.length === 1 && /^[\p{L}]$/u.test(s);
 }
@@ -216,6 +225,11 @@ export function emitterOptionsFromMeta(
     neutralLabel:        meta.neutralLabel,
     labels:              meta.labels,
     handModes:           meta.handModes,
+    positionModes:       meta.positionModes,
+    longVowelMinStreak:  meta.longVowelMinStreak ?? 2,
+    longVowelMinConfidence: meta.longVowelMinConfidence ?? 0.80,
+    longVowelMinMargin:  meta.longVowelMinMargin ?? 0.18,
+    maxConsecutiveLongVowels: meta.maxConsecutiveLongVowels ?? 2,
     minConfidence:       meta.minLiveConfidence ?? 0.68,
     minStreak:           meta.minStreak ?? 3,
     streakMinAvgConf:    meta.streakMinAvgConf ?? 0.72,
@@ -422,22 +436,30 @@ export class SequenceRecognizer {
     return both / n;
   }
 
-  /** Mask softmax: зөвхөн одоогийн гарын тоонд тохирох class-ууд үлдэнэ. */
-  private _maskProbs(probs: Float32Array, bothHands: boolean): Float32Array {
+  /** Mask softmax: гарын тоо + цээжний байрлалд тохирох class-ууд үлдэнэ. */
+  private _maskProbs(
+    probs: Float32Array,
+    bothHands: boolean,
+    chestZone: number
+  ): Float32Array {
     const modes = this.meta.handModes;
+    const posModes = this.meta.positionModes;
     if (!modes || modes.length !== probs.length) return probs;
 
-    const want = bothHands ? 2 : 1;
+    const wantHand = bothHands ? 2 : 1;
     const out = new Float32Array(probs.length);
     let sum = 0;
     for (let i = 0; i < probs.length; i++) {
       const m = modes[i];
-      const ok = m === 0 || m === want;
+      const handOk = m === 0 || m === wantHand;
+      const pm = posModes?.[i] ?? 0;
+      const posOk =
+        pm === 0 || chestZone === 0 || pm === chestZone;
+      const ok = handOk && posOk;
       out[i] = ok ? probs[i] : 0;
       sum += out[i];
     }
 
-    // 1-гар: зөвхөн hand-mode mask (motion split хассан — renormalize буруу class-ийг өсгөдөг байсан)
     if (sum <= 1e-8) {
       const ni = this.meta.labels.indexOf(this.meta.neutralLabel);
       out.fill(0);
@@ -450,6 +472,7 @@ export class SequenceRecognizer {
 
   private infer(bothHands: boolean): Omit<SeqPrediction, "bothHands"> {
     const motion = this._windowHandMotion();
+    const chestZone = detectChestZone(this._latestFrame());
 
     if (!bothHands) {
       const idleMax = this.meta.idleMaxMotion ?? 0.002;
@@ -482,7 +505,7 @@ export class SequenceRecognizer {
       const out = this.model.predict(input) as tf.Tensor;
       return out.dataSync() as Float32Array;
     });
-    const probs = this._maskProbs(rawProbs, bothHands);
+    const probs = this._maskProbs(rawProbs, bothHands, chestZone);
 
     let bestId = 0;
     let best = -1;
@@ -576,6 +599,11 @@ export type SeqEmitterOptions = {
   neutralLabel?: string;
   labels?: string[];
   handModes?: number[];
+  positionModes?: number[];
+  longVowelMinStreak?: number;
+  longVowelMinConfidence?: number;
+  longVowelMinMargin?: number;
+  maxConsecutiveLongVowels?: number;
   twoHandMinConfidence?: number;
   twoHandMinMargin?: number;
   twoHandMinStreak?: number;
@@ -642,6 +670,13 @@ const DEFAULTS: Required<SeqEmitterOptions> = {
   twoHandPostEmitBlockMs: 120,
   twoHandGapMs:         150,
   twoHandSameLabelCooldownMs: 2500,
+  labels: [],
+  handModes: [],
+  positionModes: [],
+  longVowelMinStreak: 2,
+  longVowelMinConfidence: 0.80,
+  longVowelMinMargin: 0.18,
+  maxConsecutiveLongVowels: 2,
 };
 
 export type SeqEmitterStatus = {
@@ -664,6 +699,7 @@ export class SequenceEmitter {
   private suppressUntil = 0;
   private staticAnyLetterUntil = 0;
   private oneHandWordAnyUntil = 0;
+  private consecutiveLongVowels = 0;
   private fragileSet: Set<string>;
 
   constructor(options?: SeqEmitterOptions) {
@@ -689,6 +725,15 @@ export class SequenceEmitter {
   }
 
   private _bar(label: string): LabelBar {
+    if (isLongVowelSign(label)) {
+      return {
+        minConfidence: this.opts.longVowelMinConfidence,
+        minMargin: this.opts.longVowelMinMargin,
+        minStreak: this.opts.longVowelMinStreak,
+        streakMinAvgConf: this.opts.longVowelMinConfidence,
+        earlyExitConfidence: this.opts.staticEarlyExitConfidence + 0.03,
+      };
+    }
     if (isStaticSign(label, this.opts.neutralLabel)) {
       return {
         minConfidence: this.opts.staticMinConfidence,
@@ -826,6 +871,14 @@ export class SequenceEmitter {
       return null;
     }
 
+    if (
+      isLongVowelSign(pred.label) &&
+      this.consecutiveLongVowels >= this.opts.maxConsecutiveLongVowels
+    ) {
+      this._resetStreak();
+      return null;
+    }
+
     const sinceEmit = now - this.lastEmitAt;
     const instantConf = this._instantThreshold(pred.label);
     const instantBlock = this._instantBlockMs(pred.label);
@@ -925,6 +978,7 @@ export class SequenceEmitter {
     this.suppressUntil = 0;
     this.staticAnyLetterUntil = 0;
     this.oneHandWordAnyUntil = 0;
+    this.consecutiveLongVowels = 0;
   }
 
   private _resetStreak(): void {
@@ -950,6 +1004,12 @@ export class SequenceEmitter {
     this.lastEmittedLabel = label;
     this.lastEmitWasTwoHand = twoHand;
     this.lastEmitWasStatic = isStatic;
+
+    if (isLongVowelSign(label)) {
+      this.consecutiveLongVowels++;
+    } else {
+      this.consecutiveLongVowels = 0;
+    }
 
     this.suppressUntil = now + this._sameLabelCooldownMs(label);
 

@@ -32,6 +32,7 @@ MODELS_DIR = os.path.join(BASE_DIR, "models")             # MediaPipe .task file
 ARTIFACTS_DIR = os.path.join(BASE_DIR, "artifacts")       # trained keras model + reports
 LABELS_FILE = os.path.join(BASE_DIR, "labels.txt")
 HAND_MODES_FILE = os.path.join(BASE_DIR, "hand_modes.json")
+POSITION_MODES_FILE = os.path.join(BASE_DIR, "position_modes.json")
 
 # Where the exported TFJS model is written (served by the web app).
 WEB_MODEL_DIR = os.path.join(SEQ_DIR, "web", "public", "models", "seq")
@@ -39,6 +40,7 @@ WEB_MODEL_DIR = os.path.join(SEQ_DIR, "web", "public", "models", "seq")
 # MediaPipe task files (shared with rf/ — same models).
 POSE_TASK = os.path.join(MODELS_DIR, "pose_landmarker_full.task")
 HAND_TASK = os.path.join(MODELS_DIR, "hand_landmarker.task")
+FACE_TASK = os.path.join(MODELS_DIR, "face_landmarker.task")
 
 # =========================================================================
 # FEATURE LAYOUT  (mirror in landmarks.ts)
@@ -58,17 +60,44 @@ POSE_KEYPOINTS = [
 N_POSE = len(POSE_KEYPOINTS)          # 9
 N_HAND = 21                           # MediaPipe hand landmarks per hand
 
+# Curated face points (mouth, eyes, jaw) for expression cues.
+FACE_KEYPOINTS = [
+    1,    # nose tip
+    61,   # left mouth corner
+    291,  # right mouth corner
+    33,   # left eye outer
+    263,  # right eye outer
+    13,   # left cheek
+    14,   # right cheek
+    78,   # upper lip
+    308,  # lower lip
+    152,  # chin
+]
+N_FACE = len(FACE_KEYPOINTS)          # 10
+
 # Per-frame feature vector:
 #   pose:  N_POSE * 2 (x,y)
 #   left:  N_HAND * 2
 #   right: N_HAND * 2
-#   flags: left_present, right_present
+#   face:  N_FACE * 2
+#   flags: left_present, right_present, face_present
 N_COORDS = 2
-FEATURE_DIM = (N_POSE + N_HAND + N_HAND) * N_COORDS + 2   # 9*2+21*2+21*2+2 = 104
+_BODY_POINTS = N_POSE + N_HAND + N_HAND + N_FACE
+FEATURE_DIM = _BODY_POINTS * N_COORDS + 3   # 125
 
 # Index of presence flags inside the per-frame vector.
-LEFT_PRESENT_IDX = (N_POSE + N_HAND + N_HAND) * N_COORDS       # 102
-RIGHT_PRESENT_IDX = LEFT_PRESENT_IDX + 1                       # 103
+LEFT_PRESENT_IDX = (N_POSE + N_HAND + N_HAND + N_FACE) * N_COORDS       # 122
+RIGHT_PRESENT_IDX = LEFT_PRESENT_IDX + 1                                # 123
+FACE_PRESENT_IDX = RIGHT_PRESENT_IDX + 1                              # 124
+
+# Chest zone thresholds (raw image coords, y grows downward).
+CHEST_HIGH_MARGIN = 0.06
+CHEST_MID_FRAC = 0.15
+CHEST_LOW_EXTRA = 0.10
+
+# Short vowels that also have a trained long variant ("X урт").
+LONG_VOWEL_BASES = ("А", "Э", "О", "У", "Ө", "Ү")
+LONG_VOWEL_SUFFIX = " урт"
 
 # Normalization: shoulder midpoint = origin, shoulder width = unit scale.
 MIN_SHOULDER_WIDTH = 1e-3
@@ -134,6 +163,12 @@ LIVE_STATIC_RESET_CLEAR_FRAC = 0.55
 LIVE_STATIC_LIVE_INFER_FRAMES = 6
 LIVE_STATIC_INSTANT_SAME_LABEL_COOLDOWN_MS = 1800
 
+# Long vowel signs ("А урт", …) — hold slightly longer; max 2 in a row in caption.
+LIVE_LONG_VOWEL_MIN_STREAK = 2
+LIVE_LONG_VOWEL_MIN_CONFIDENCE = 0.80
+LIVE_LONG_VOWEL_MIN_MARGIN = 0.18
+LIVE_MAX_CONSECUTIVE_LONG_VOWELS = 2
+
 # 1-hand motion words — илүү хатуу (миний/Ганхөлөг false positive).
 LIVE_ONE_HAND_WORD_MIN_CONFIDENCE = 0.78
 LIVE_ONE_HAND_WORD_MIN_MARGIN = 0.16
@@ -159,10 +194,25 @@ LIVE_TWO_HAND_WINDOW_FRAC = 0.50
 LIVE_TWO_HAND_MOTION_MIN = 0.0035
 
 
+def is_long_vowel_sign(label: str) -> bool:
+    """Trained long vowel class, e.g. 'А урт'."""
+    s = label.strip()
+    if not s.endswith(LONG_VOWEL_SUFFIX):
+        return False
+    base = s[: -len(LONG_VOWEL_SUFFIX)]
+    return base in LONG_VOWEL_BASES
+
+
+def long_vowel_label(base: str) -> str:
+    return f"{base}{LONG_VOWEL_SUFFIX}"
+
+
 def is_static_sign(label: str) -> bool:
-    """Single Cyrillic/Latin letter (А, В, …) vs motion/word signs."""
+    """Single Cyrillic/Latin letter (А, В, …) or long vowel vs motion/word signs."""
     if label == NEUTRAL_LABEL:
         return False
+    if is_long_vowel_sign(label):
+        return True
     s = label.strip().replace("_", " ")
     # One grapheme only — not words like "би" (2 letters).
     return len(s) == 1 and s.isalpha()
@@ -209,6 +259,40 @@ def hand_modes_for_labels(labels: list[str]) -> list[int]:
     """Parallel to model label list — for metadata.json / live class mask."""
     modes = load_hand_modes()
     return [hand_mode_for(lbl, modes) for lbl in labels]
+
+
+def load_position_modes() -> dict[str, int]:
+    """label → 0 (any), 1 (above chest), 2 (at chest), 3 (below chest)."""
+    modes: dict[str, int] = {NEUTRAL_LABEL: 0}
+    if not os.path.isfile(POSITION_MODES_FILE):
+        return modes
+    with open(POSITION_MODES_FILE, encoding="utf-8") as f:
+        raw = json.load(f)
+    for key, val in raw.items():
+        if key.startswith("_"):
+            continue
+        if val in (0, 1, 2, 3):
+            modes[key.strip()] = int(val)
+    return modes
+
+
+def position_mode_for(label: str, modes: dict[str, int] | None = None) -> int:
+    """Default 0 (any position) when label missing from position_modes.json."""
+    if label == NEUTRAL_LABEL:
+        return 0
+    m = modes if modes is not None else load_position_modes()
+    s = label.strip()
+    if s in m:
+        return m[s]
+    for human, mode in m.items():
+        if safe_name(human) == s:
+            return mode
+    return 0
+
+
+def position_modes_for_labels(labels: list[str]) -> list[int]:
+    modes = load_position_modes()
+    return [position_mode_for(lbl, modes) for lbl in labels]
 
 
 def live_metadata_extra(labels: list[str] | None = None) -> dict:
@@ -262,9 +346,21 @@ def live_metadata_extra(labels: list[str] | None = None) -> dict:
         "twoHandSameLabelCooldownMs": LIVE_TWO_HAND_SAME_LABEL_COOLDOWN_MS,
         "twoHandWindowFrac": LIVE_TWO_HAND_WINDOW_FRAC,
         "twoHandMotionMin": LIVE_TWO_HAND_MOTION_MIN,
+        "longVowelMinStreak": LIVE_LONG_VOWEL_MIN_STREAK,
+        "longVowelMinConfidence": LIVE_LONG_VOWEL_MIN_CONFIDENCE,
+        "longVowelMinMargin": LIVE_LONG_VOWEL_MIN_MARGIN,
+        "maxConsecutiveLongVowels": LIVE_MAX_CONSECUTIVE_LONG_VOWELS,
+        "longVowelBases": list(LONG_VOWEL_BASES),
+        "faceKeypoints": FACE_KEYPOINTS,
+        "nFace": N_FACE,
+        "facePresentIdx": FACE_PRESENT_IDX,
+        "chestHighMargin": CHEST_HIGH_MARGIN,
+        "chestMidFrac": CHEST_MID_FRAC,
+        "chestLowExtra": CHEST_LOW_EXTRA,
     }
     if labels:
         extra["handModes"] = hand_modes_for_labels(labels)
+        extra["positionModes"] = position_modes_for_labels(labels)
     return extra
 
 
