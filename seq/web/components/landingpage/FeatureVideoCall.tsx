@@ -20,10 +20,7 @@ export const FeatureVideoCall = () => (
               </div>
             </div>
           </div>
-          <div
-            className="flex flex-col gap-3 p-3"
-            style={{ background: "var(--surface)" }}
-          >
+          <div className="flex flex-col gap-3 p-3">
             <div className="flex justify-center gap-3">
               <button
                 className="flex h-11 w-11 items-center justify-center rounded-full border-none"
