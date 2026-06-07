@@ -1,12 +1,8 @@
-"use client";
-
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
 import { Show, UserButton } from "@clerk/nextjs";
 import Switch from "./DarkLightButton";
-import { Logo } from "../Logo";
 
 const NAV_LINKS = [
   { href: "#features", label: "Онцлог" },
@@ -16,7 +12,7 @@ const NAV_LINKS = [
 export const Header = () => (
   <nav className="sticky top-0 z-50 flex items-center justify-between border-b bg-background/80 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/75 md:px-8">
     <Link href="/" className="flex overflow-hidden">
-      <img src="/images/logo.png" width={200} height={80} />
+      <img src="/images/logo.png" width={150} height={80} />
     </Link>
 
     <div className="hidden items-center gap-1 md:flex">
@@ -39,9 +35,9 @@ export const Header = () => (
           asChild
           variant="ghost"
           size="sm"
-          className="hidden sm:inline-flex"
+          className="hidden hover:rounded-full sm:inline-flex"
         >
-          <Link href="/auth/login" className="text-md">
+          <Link href="/auth/login" className="text-sm">
             Нэвтрэх
           </Link>
         </Button>
@@ -54,7 +50,7 @@ export const Header = () => (
 
       <Show when="signed-in">
         <Button asChild size="sm" className="rounded-full">
-          <Link href="/dashboard" className="text-md">
+          <Link href="/dashboard" className="text-sm">
             Эхлэх
           </Link>
         </Button>

@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { ClerkProvider } from "@clerk/nextjs";
 import { AppProvider } from "@/context/AppContext";
 import { Toaster } from "@/components/ui/sonner";
-import { MobileNav } from "@/components/mobile/mobile-nav";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -31,11 +30,8 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
     </head>
     <body className={cn(geist.variable)}>
       <ClerkProvider>
-        <MobileNav />
         <AppProvider>
-          <div className="pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
-            {children}
-          </div>
+          {children}
           <Toaster />
         </AppProvider>
       </ClerkProvider>
