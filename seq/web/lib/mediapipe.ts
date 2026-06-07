@@ -34,6 +34,8 @@ function silenceBenignLogs(): void {
     "inference_feedback_manager.cc",
     "landmark_projection_calculator.cc",
     "gl_context.cc",
+    "Aborted(",
+    "Packet timestamp mismatch",
   ];
   const isBenign = (a: unknown[]) =>
     a.length > 0 &&
@@ -80,16 +82,38 @@ async function build(onProgress?: MediaPipeProgress): Promise<LandmarkBundle> {
   });
   console.info("[MediaPipe] бэлэн (pose + hand)");
 
+  // VIDEO mode: timestamps must be strictly monotonically increasing (ms).
+  let lastTs = 0;
+  let busy = false;
+
+  function nextTs(requested: number): number {
+    const t = Math.max(lastTs + 1, Math.floor(requested));
+    lastTs = t;
+    return t;
+  }
+
   return {
     detect(source, ts): AllLandmarks {
+      if (busy) return { pose: null, hand: null };
+      busy = true;
       try {
-        return {
-          pose: pose.detectForVideo(source, ts),
-          hand: hand.detectForVideo(source, ts),
-        };
-      } catch (e) {
-        console.warn("detect error", e);
-        return { pose: null, hand: null };
+        const poseTs = nextTs(ts);
+        const handTs = nextTs(ts);
+        let poseResult: PoseLandmarkerResult | null = null;
+        let handResult: HandLandmarkerResult | null = null;
+        try {
+          poseResult = pose.detectForVideo(source, poseTs);
+        } catch (e) {
+          console.warn("[MediaPipe] pose detect", e);
+        }
+        try {
+          handResult = hand.detectForVideo(source, handTs);
+        } catch (e) {
+          console.warn("[MediaPipe] hand detect", e);
+        }
+        return { pose: poseResult, hand: handResult };
+      } finally {
+        busy = false;
       }
     },
     close() {

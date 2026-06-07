@@ -3,12 +3,10 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { getLandmarkers, type AllLandmarks } from "@/lib/mediapipe";
 
-/** MediaPipe + TF target rate (lower = less CPU). */
-const DETECT_HZ = 10;
+/** MediaPipe only — preview is live rAF from <video>. */
+const DETECT_HZ = 8;
 const DETECT_INTERVAL_MS = 1000 / DETECT_HZ;
-/** Downscale width for landmark detection (normalized coords unchanged). */
-const DETECT_MAX_WIDTH = 480;
-const MAX_DISPLAY_DPR = 1.25;
+const DETECT_MAX_WIDTH = 288;
 
 type Props = {
   onLandmarks?: (lm: AllLandmarks) => void;
@@ -18,15 +16,10 @@ type Props = {
   mirror?: boolean;
   onStreamReady?: (stream: MediaStream) => void;
   drawSkeleton?: boolean;
-  /** When false, only runs camera + landmarks (no canvas preview). */
   showPreview?: boolean;
-  /** true = хэрэглэгч товч дарж камер асаана (macOS зөвшөөрөл + user gesture). */
   manualStart?: boolean;
-  /** Камер амжилттай асахад дуудагдана. */
   onStarted?: () => void;
-  /** MediaPipe bundle бэлэн — TF загвар ачаалахад detect зогсоно. */
   onMediaPipeReady?: () => void;
-  /** true бол л MediaPipe detect + onLandmarks (TF-тай зэрэгцэхгүй). */
   inferenceActive?: boolean;
 };
 
@@ -48,9 +41,8 @@ export function CameraView({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const workRef = useRef<HTMLCanvasElement | null>(null);
-  const rafRef = useRef<number | null>(null);
+  const liveRafRef = useRef<number | null>(null);
   const lastLmRef = useRef<AllLandmarks | null>(null);
-  const lastDetectAtRef = useRef(0);
   const onLandmarksRef = useRef(onLandmarks);
   onLandmarksRef.current = onLandmarks;
   const onStreamReadyRef = useRef(onStreamReady);
@@ -92,26 +84,84 @@ export function CameraView({
     return () => v.removeEventListener("loadedmetadata", onMeta);
   }, []);
 
+  /** Live camera preview — rAF, шууд <video> → canvas (MediaPipe-ээс тусдаа). */
   useEffect(() => {
-    const detecting = bundleReady && inferenceActive;
-    if (!cameraOn || detecting) return;
+    if (!cameraOn || !showPreview) return;
 
-    const preview = () => {
+    let stopped = false;
+
+    const drawLive = () => {
+      if (stopped) return;
       const v = videoRef.current;
       const c = canvasRef.current;
+      const box = wrapRef.current;
+      if (v && c && box && v.readyState >= 2) {
+        const vw = v.videoWidth;
+        const vh = v.videoHeight;
+        if (vw > 0 && vh > 0) {
+          const displayW = box.clientWidth;
+          const displayH = box.clientHeight;
+          if (displayW > 0 && displayH > 0) {
+            const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+            const bw = Math.round(displayW * dpr);
+            const bh = Math.round(displayH * dpr);
+            if (c.width !== bw) c.width = bw;
+            if (c.height !== bh) c.height = bh;
+            const ctx = c.getContext("2d", { alpha: false });
+            if (ctx) {
+              ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+              ctx.fillStyle = "#000";
+              ctx.fillRect(0, 0, displayW, displayH);
+              ctx.save();
+              if (mirror) {
+                ctx.translate(displayW, 0);
+                ctx.scale(-1, 1);
+              }
+              ctx.drawImage(v, 0, 0, vw, vh, 0, 0, displayW, displayH);
+              ctx.restore();
+              if (drawSkeleton && lastLmRef.current) {
+                drawSkeletonOverlay(ctx, displayW, displayH, lastLmRef.current);
+              }
+            }
+          }
+        }
+      }
+      liveRafRef.current = requestAnimationFrame(drawLive);
+    };
+
+    liveRafRef.current = requestAnimationFrame(drawLive);
+    return () => {
+      stopped = true;
+      if (liveRafRef.current !== null) {
+        cancelAnimationFrame(liveRafRef.current);
+        liveRafRef.current = null;
+      }
+    };
+  }, [cameraOn, drawSkeleton, mirror, showPreview]);
+
+  /** MediaPipe + inference — preview-ийг блоклохгүй, TF дараагийн frame-д. */
+  useEffect(() => {
+    if (!bundleReady || !inferenceActive) return;
+
+    let stopped = false;
+    let detectBusy = false;
+
+    const captureForDetect = (): boolean => {
+      const v = videoRef.current;
       const work = workRef.current;
-      if (!v || !c || !work || v.readyState < 2) return;
+      if (!v || !work || v.readyState < 2) return false;
       const vw = v.videoWidth;
       const vh = v.videoHeight;
-      if (vw <= 0 || vh <= 0) return;
+      if (vw <= 0 || vh <= 0) return false;
 
       const scale = Math.min(1, DETECT_MAX_WIDTH / vw);
       const dw = Math.max(1, Math.round(vw * scale));
       const dh = Math.max(1, Math.round(vh * scale));
       if (work.width !== dw) work.width = dw;
       if (work.height !== dh) work.height = dh;
+
       const wctx = work.getContext("2d", { alpha: false });
-      if (!wctx) return;
+      if (!wctx) return false;
       wctx.setTransform(1, 0, 0, 1, 0, 0);
       wctx.clearRect(0, 0, dw, dh);
       wctx.save();
@@ -121,114 +171,34 @@ export function CameraView({
       }
       wctx.drawImage(v, 0, 0, vw, vh, 0, 0, dw, dh);
       wctx.restore();
-
-      const box = wrapRef.current;
-      const displayW = box?.clientWidth ?? c.clientWidth;
-      const displayH = box?.clientHeight ?? c.clientHeight;
-      if (displayW <= 0 || displayH <= 0) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DISPLAY_DPR);
-      const bw = Math.round(displayW * dpr);
-      const bh = Math.round(displayH * dpr);
-      if (c.width !== bw) c.width = bw;
-      if (c.height !== bh) c.height = bh;
-      const ctx = c.getContext("2d", { alpha: false });
-      if (!ctx) return;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0, 0, displayW, displayH);
-      ctx.drawImage(work, 0, 0, dw, dh, 0, 0, displayW, displayH);
+      return true;
     };
 
-    preview();
-    const id = window.setInterval(preview, 200);
-    return () => clearInterval(id);
-  }, [bundleReady, cameraOn, inferenceActive, mirror]);
-
-  useEffect(() => {
-    if (!bundleReady || !inferenceActive) return;
-
-    let stopped = false;
-
-    const tick = (now: number) => {
-      if (stopped || !videoRef.current) return;
-      const work = workRef.current;
+    const runDetect = () => {
+      if (stopped || document.visibilityState === "hidden" || detectBusy) return;
       const bundle = bundleRef.current;
-      if (!work || !bundle) {
-        rafRef.current = requestAnimationFrame(tick);
-        return;
+      if (!bundle || !captureForDetect()) return;
+      detectBusy = true;
+      const ts = performance.now();
+      try {
+        const lm = bundle.detect(workRef.current!, ts);
+        lastLmRef.current = lm;
+        // TF inference дараагийн frame — preview rAF түрүүлнэ.
+        requestAnimationFrame(() => {
+          if (!stopped) onLandmarksRef.current?.(lm);
+          detectBusy = false;
+        });
+      } catch {
+        detectBusy = false;
       }
-      if (document.visibilityState === "hidden") {
-        rafRef.current = requestAnimationFrame(tick);
-        return;
-      }
-
-      const v = videoRef.current;
-      const vw = v.videoWidth;
-      const vh = v.videoHeight;
-      if (v.readyState < 2 || vw <= 0 || vh <= 0) {
-        rafRef.current = requestAnimationFrame(tick);
-        return;
-      }
-
-      const scale = Math.min(1, DETECT_MAX_WIDTH / vw);
-      const dw = Math.max(1, Math.round(vw * scale));
-      const dh = Math.max(1, Math.round(vh * scale));
-      if (work.width !== dw) work.width = dw;
-      if (work.height !== dh) work.height = dh;
-
-      const shouldDetect = now - lastDetectAtRef.current >= DETECT_INTERVAL_MS;
-      if (shouldDetect) {
-        lastDetectAtRef.current = now;
-        const wctx = work.getContext("2d", { alpha: false });
-        if (wctx) {
-          wctx.setTransform(1, 0, 0, 1, 0, 0);
-          wctx.clearRect(0, 0, dw, dh);
-          wctx.save();
-          if (mirror) {
-            wctx.translate(dw, 0);
-            wctx.scale(-1, 1);
-          }
-          wctx.drawImage(v, 0, 0, vw, vh, 0, 0, dw, dh);
-          wctx.restore();
-        }
-        lastLmRef.current = bundle.detect(work, now);
-        onLandmarksRef.current?.(lastLmRef.current);
-      }
-
-      if (showPreview && canvasRef.current) {
-        const c = canvasRef.current;
-        const box = wrapRef.current;
-        const displayW = box?.clientWidth ?? c.clientWidth;
-        const displayH = box?.clientHeight ?? c.clientHeight;
-        if (displayW > 0 && displayH > 0) {
-          const dpr = Math.min(window.devicePixelRatio || 1, MAX_DISPLAY_DPR);
-          const bw = Math.round(displayW * dpr);
-          const bh = Math.round(displayH * dpr);
-          if (c.width !== bw) c.width = bw;
-          if (c.height !== bh) c.height = bh;
-          const ctx = c.getContext("2d", { alpha: false });
-          if (ctx) {
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            ctx.fillStyle = "#000";
-            ctx.fillRect(0, 0, displayW, displayH);
-            ctx.drawImage(work, 0, 0, dw, dh, 0, 0, displayW, displayH);
-            if (drawSkeleton && lastLmRef.current) {
-              drawSkeletonOverlay(ctx, displayW, displayH, lastLmRef.current);
-            }
-          }
-        }
-      }
-
-      rafRef.current = requestAnimationFrame(tick);
     };
 
-    rafRef.current = requestAnimationFrame(tick);
-
+    const detectId = window.setInterval(runDetect, DETECT_INTERVAL_MS);
     return () => {
       stopped = true;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      clearInterval(detectId);
     };
-  }, [bundleReady, drawSkeleton, inferenceActive, mirror, showPreview]);
+  }, [bundleReady, inferenceActive, mirror]);
 
   const startCamera = useCallback(async () => {
     if (streamRef.current) return;
@@ -240,7 +210,7 @@ export function CameraView({
         video: {
           width: { ideal: width },
           height: { ideal: height },
-          frameRate: { ideal: 20, max: 24 },
+          frameRate: { ideal: 30, max: 30 },
         },
         audio: false,
       });
@@ -249,8 +219,10 @@ export function CameraView({
         return;
       }
       streamRef.current = stream;
-      videoRef.current.srcObject = stream;
-      await videoRef.current.play();
+      const v = videoRef.current;
+      v.srcObject = stream;
+      v.playsInline = true;
+      await v.play();
       onStreamReadyRef.current?.(stream);
       setStatus("MediaPipe: WASM...");
 
@@ -294,7 +266,7 @@ export function CameraView({
 
   useEffect(() => {
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (liveRafRef.current !== null) cancelAnimationFrame(liveRafRef.current);
       streamRef.current?.getTracks().forEach((t) => t.stop());
       bundleRef.current?.close();
     };
@@ -373,7 +345,6 @@ export function CameraView({
 
 const TIMER_SECONDS = 5;
 
-/** Камерын доор — дарахад 5 секунд тоолно. */
 function CameraCountdown() {
   const [running, setRunning] = useState(false);
   const [remaining, setRemaining] = useState(TIMER_SECONDS);

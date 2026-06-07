@@ -228,6 +228,34 @@ def temporal_shift(raw_seq: np.ndarray) -> np.ndarray:
     return raw_seq[:-drop]
 
 
+def live_zero_prefix(raw_seq: np.ndarray) -> np.ndarray:
+    """Simulate post-emit buffer: zero prefix on RAW, then normalize (live parity)."""
+    resampled = resample_time(raw_seq, C.SEQ_LEN)
+    k = int(rng.integers(1, C.SEQ_LEN // 2 + 1))
+    out = resampled.copy()
+    out[:k] = 0.0
+    return L.normalize(out)
+
+
+def _synthetic_neutral_clips(all_clips: list[np.ndarray]) -> list[np.ndarray]:
+    """Edge segments + zero windows → neutral (live transition / idle)."""
+    out: list[np.ndarray] = []
+    zero = np.zeros((C.SEQ_LEN, C.FEATURE_DIM), dtype=np.float32)
+    for _ in range(120):
+        out.append(zero.copy())
+    for clip in all_clips:
+        f0 = clip.shape[0]
+        if f0 < 8:
+            continue
+        edge = max(C.MIN_CLIP_FRAMES, f0 // 3)
+        for sub in (clip[:edge], clip[-edge:]):
+            norm = L.normalize(resample_time(sub, C.SEQ_LEN))
+            out.append(norm)
+            if rng.random() < 0.6:
+                out.append(live_zero_prefix(sub))
+    return out
+
+
 # ------------------------------------------------------------------- build
 def build_dataset():
     seqs, labels = load_clips()
@@ -273,6 +301,16 @@ def build_dataset():
                 norm = L.normalize(resample_time(src, C.SEQ_LEN))
                 X_tr.append(augment(norm))
                 y_tr.append(label_to_id[lbl])
+                if rng.random() < 0.40:
+                    X_tr.append(augment(live_zero_prefix(src)))
+                    y_tr.append(label_to_id[lbl])
+
+    if C.NEUTRAL_LABEL in label_to_id:
+        nid = label_to_id[C.NEUTRAL_LABEL]
+        all_raw = [s for clips in by_label.values() for s in clips]
+        for norm in _synthetic_neutral_clips(all_raw):
+            X_tr.append(norm)
+            y_tr.append(nid)
 
     X_tr = np.asarray(X_tr, dtype=np.float32)
     y_tr = np.asarray(y_tr, dtype=np.int64)

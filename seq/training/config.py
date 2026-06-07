@@ -91,11 +91,9 @@ CLIP_SECONDS = 1.8            # nominal clip length while recording
 MIN_CLIP_FRAMES = 5           # clips shorter than this are dropped
 
 # Live inference window (web): slide over the most recent frames.
-# Live detect runs ~10fps (CameraView DETECT_HZ) → 20 frames ≈ 2.0s, which
-# matches the ~1.8s training clip temporal scale. With the WASM backend each
-# inference is ~3-8ms, so stride=1 (infer every detected frame) is cheap.
+# Live detect ~10fps × stride 1 → TF ~10/sec; buffer zero-prefilled at start.
 LIVE_WINDOW = SEQ_LEN
-LIVE_STRIDE = 1               # run the model every N frames (stride=1 → every frame)
+LIVE_STRIDE = 1               # ~8 TF/sec @8fps detect
 
 # =========================================================================
 # TRAINING
@@ -114,67 +112,106 @@ AUG_PER_CLIP_MOTION = 18
 AUG_PER_CLIP_TWO_HAND = 26
 
 # Live emitter tuning (exported → metadata.json → web client).
-LIVE_MIN_CONFIDENCE = 0.68
-LIVE_MIN_STREAK = 3
-LIVE_STREAK_MIN_AVG_CONF = 0.72
-LIVE_EARLY_EXIT_CONFIDENCE = 0.88
-LIVE_POST_EMIT_BLOCK_MS = 80
-LIVE_GAP_BETWEEN_WORDS_MS = 80
-LIVE_SAME_LABEL_COOLDOWN_MS = 1500
-LIVE_STATIC_SAME_LABEL_COOLDOWN_MS = 1800
-LIVE_ONE_HAND_WORD_SAME_LABEL_COOLDOWN_MS = 2000
+LIVE_MIN_CONFIDENCE = 0.66
+LIVE_MIN_STREAK = 1
+LIVE_STREAK_MIN_AVG_CONF = 0.68
+LIVE_EARLY_EXIT_CONFIDENCE = 0.76
+LIVE_POST_EMIT_BLOCK_MS = 35
+LIVE_GAP_BETWEEN_WORDS_MS = 40
+LIVE_POST_RESET_WARM_FRAMES = 0
+LIVE_POST_STATIC_WARM_FRAMES = 0
+LIVE_POST_RESET_CLEAR_FRAC = 0.35
+LIVE_LOW_CONF_NEUTRAL = 0.60
+LIVE_LOW_MARGIN_NEUTRAL = 0.08
+LIVE_DISARM_MS = 30
+LIVE_REARM_NEUTRAL_STREAK = 1
+LIVE_SAME_LABEL_COOLDOWN_MS = 450
+LIVE_STATIC_SAME_LABEL_COOLDOWN_MS = 550
+LIVE_ONE_HAND_WORD_SAME_LABEL_COOLDOWN_MS = 700
 
-# ≥95% confidence → streak/gap алгасаж шууд emit.
-LIVE_INSTANT_EMIT_CONFIDENCE = 0.95
-LIVE_INSTANT_POST_EMIT_BLOCK_MS = 50
-LIVE_INSTANT_SAME_LABEL_COOLDOWN_MS = 1500
+# ≥78% confidence → streak/gap алгасаж шууд emit.
+LIVE_INSTANT_EMIT_CONFIDENCE = 0.78
+LIVE_INSTANT_POST_EMIT_BLOCK_MS = 25
+LIVE_INSTANT_SAME_LABEL_COOLDOWN_MS = 450
 LIVE_IDLE_MAX_MOTION = 0.0020
 
-# Static letters — хурдан emit; cross-letter gap бага, same-label урт.
-LIVE_STATIC_MIN_CONFIDENCE = 0.78
-LIVE_STATIC_MIN_MARGIN = 0.16
-LIVE_STATIC_STREAK_MIN_AVG_CONF = 0.76
-LIVE_STATIC_EARLY_EXIT_CONFIDENCE = 0.85
+# Static letters — streak 2, moderate margin (А, Н, Р, Ө гэх мэт).
+LIVE_STATIC_MIN_CONFIDENCE = 0.68
+LIVE_STATIC_MIN_MARGIN = 0.10
+LIVE_STATIC_STREAK_MIN_AVG_CONF = 0.66
+LIVE_STATIC_EARLY_EXIT_CONFIDENCE = 0.74
 LIVE_STATIC_MIN_STREAK = 1
-LIVE_STATIC_HOLD_MIN_MOTION = 0.0005
-LIVE_STATIC_MAX_MOTION = 0.0045
-LIVE_STATIC_ANY_LETTER_COOLDOWN_MS = 0
+LIVE_STATIC_HOLD_MIN_MOTION = 0.0003
+LIVE_STATIC_MAX_MOTION = 0.032
+LIVE_STATIC_ANY_LETTER_COOLDOWN_MS = 45
 LIVE_STATIC_POST_EMIT_BLOCK_MS = 12
-LIVE_STATIC_INSTANT_EMIT_CONFIDENCE = 0.85
+LIVE_STATIC_TRANSITION_BLOCK_MS = 50
+LIVE_STATIC_INSTANT_EMIT_CONFIDENCE = 0.72
 LIVE_STATIC_INSTANT_POST_EMIT_BLOCK_MS = 8
 LIVE_STATIC_RESET_CLEAR_FRAC = 0.55
 LIVE_STATIC_LIVE_INFER_FRAMES = 6
-LIVE_STATIC_INSTANT_SAME_LABEL_COOLDOWN_MS = 1800
+LIVE_STATIC_INSTANT_SAME_LABEL_COOLDOWN_MS = 550
 
 # Long vowel signs ("А урт", …) — hold slightly longer; max 2 in a row in caption.
-LIVE_LONG_VOWEL_MIN_STREAK = 2
-LIVE_LONG_VOWEL_MIN_CONFIDENCE = 0.80
-LIVE_LONG_VOWEL_MIN_MARGIN = 0.18
+LIVE_LONG_VOWEL_MIN_STREAK = 1
+LIVE_LONG_VOWEL_MIN_CONFIDENCE = 0.72
+LIVE_LONG_VOWEL_MIN_MARGIN = 0.10
 LIVE_MAX_CONSECUTIVE_LONG_VOWELS = 2
 
-# 1-hand motion words — илүү хатуу (миний/Ганхөлөг false positive).
-LIVE_ONE_HAND_WORD_MIN_CONFIDENCE = 0.78
-LIVE_ONE_HAND_WORD_MIN_MARGIN = 0.16
-LIVE_ONE_HAND_WORD_MIN_STREAK = 5
-LIVE_ONE_HAND_WORD_STREAK_MIN_AVG_CONF = 0.80
-LIVE_ONE_HAND_WORD_MIN_MOTION = 0.0042
-LIVE_ONE_HAND_WORD_ANY_COOLDOWN_MS = 220
-LIVE_ONE_HAND_WORD_EARLY_EXIT_CONFIDENCE = 0.95
-LIVE_FRAGILE_ONE_HAND_LABELS = ("миний", "Ганхөлөг")
-LIVE_FRAGILE_EXTRA_CONF = 0.06
-LIVE_FRAGILE_EXTRA_MARGIN = 0.08
+# 1-hand words — core (би, миний) fast path; бусад streak 3.
+LIVE_ONE_HAND_WORD_MIN_CONFIDENCE = 0.66
+LIVE_ONE_HAND_WORD_MIN_MARGIN = 0.10
+LIVE_ONE_HAND_WORD_MIN_STREAK = 1
+LIVE_ONE_HAND_WORD_STREAK_MIN_AVG_CONF = 0.64
+LIVE_ONE_HAND_WORD_MIN_MOTION = 0.0015
+LIVE_ONE_HAND_WORD_ANY_COOLDOWN_MS = 45
+LIVE_ONE_HAND_WORD_EARLY_EXIT_CONFIDENCE = 0.74
+LIVE_ONE_HAND_WORD_INSTANT_CONFIDENCE = 0.68
+LIVE_CORE_FAST_LABELS = (
+    "би",
+    "миний",
+    "нэрийг",
+    "сурагч",
+    "орох",
+    "сонсох",
+    "А", "А урт", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "Й", "К",
+    "Л", "М", "Н", "О", "О урт", "П", "Р", "С", "Т", "Ф", "Х", "Ц", "Ч",
+    "Ш", "Ъ", "Ы", "Ь", "Э", "Э урт", "Ю", "Я", "Ө", "Ө урт", "У", "У урт",
+    "Ү", "Ү урт",
+)
+LIVE_CORE_FAST_MIN_CONFIDENCE = 0.60
+LIVE_CORE_FAST_MIN_MARGIN = 0.05
+LIVE_CORE_FAST_MIN_STREAK = 1
+LIVE_CORE_FAST_STREAK_MIN_AVG_CONF = 0.60
+LIVE_CORE_FAST_EARLY_EXIT = 0.68
+LIVE_CORE_FAST_INSTANT_CONFIDENCE = 0.66
+LIVE_NOISE_PRONE_LABELS = (
+    "та",
+    "сайхан",
+    "гарах",
+    "зүгээр",
+)
+LIVE_NOISE_PRONE_EXTRA_CONF = 0.06
+LIVE_NOISE_PRONE_EXTRA_MARGIN = 0.10
+LIVE_FRAGILE_ONE_HAND_LABELS = (
+    "Ганхөлөг гэдэг",
+    "сайн байна уу ?",
+)
+LIVE_FRAGILE_EXTRA_CONF = 0.05
+LIVE_FRAGILE_EXTRA_MARGIN = 0.10
 
 # Two-hand signs — motion gate blocks idle spam; thresholds tuned for real signs.
-LIVE_TWO_HAND_MIN_CONFIDENCE = 0.74
-LIVE_TWO_HAND_MIN_MARGIN = 0.10
-LIVE_TWO_HAND_MIN_STREAK = 3
-LIVE_TWO_HAND_STREAK_MIN_AVG_CONF = 0.78
-LIVE_TWO_HAND_EARLY_EXIT_CONFIDENCE = 0.90
-LIVE_TWO_HAND_POST_EMIT_BLOCK_MS = 120
-LIVE_TWO_HAND_GAP_MS = 150
-LIVE_TWO_HAND_SAME_LABEL_COOLDOWN_MS = 2500
-LIVE_TWO_HAND_WINDOW_FRAC = 0.50
-LIVE_TWO_HAND_MOTION_MIN = 0.0035
+LIVE_TWO_HAND_MIN_CONFIDENCE = 0.70
+LIVE_TWO_HAND_MIN_MARGIN = 0.08
+LIVE_TWO_HAND_MIN_STREAK = 1
+LIVE_TWO_HAND_STREAK_MIN_AVG_CONF = 0.68
+LIVE_TWO_HAND_EARLY_EXIT_CONFIDENCE = 0.74
+LIVE_TWO_HAND_POST_EMIT_BLOCK_MS = 40
+LIVE_TWO_HAND_GAP_MS = 45
+LIVE_TWO_HAND_SAME_LABEL_COOLDOWN_MS = 1200
+LIVE_TWO_HAND_WINDOW_FRAC = 0.45
+LIVE_TWO_HAND_MOTION_MIN = 0.0018
+LIVE_TWO_HAND_INSTANT_CONFIDENCE = 0.72
 
 
 def is_long_vowel_sign(label: str) -> bool:
@@ -281,10 +318,29 @@ def live_metadata_extra(labels: list[str] | None = None) -> dict:
         "oneHandWordMinMotion": LIVE_ONE_HAND_WORD_MIN_MOTION,
         "oneHandWordAnyCooldownMs": LIVE_ONE_HAND_WORD_ANY_COOLDOWN_MS,
         "oneHandWordEarlyExitConfidence": LIVE_ONE_HAND_WORD_EARLY_EXIT_CONFIDENCE,
+        "oneHandWordInstantConfidence": LIVE_ONE_HAND_WORD_INSTANT_CONFIDENCE,
         "fragileOneHandLabels": list(LIVE_FRAGILE_ONE_HAND_LABELS),
         "fragileExtraConf": LIVE_FRAGILE_EXTRA_CONF,
         "fragileExtraMargin": LIVE_FRAGILE_EXTRA_MARGIN,
         "motionMinMargin": LIVE_ONE_HAND_WORD_MIN_MARGIN,
+        "postResetWarmFrames": LIVE_POST_RESET_WARM_FRAMES,
+        "postStaticWarmFrames": LIVE_POST_STATIC_WARM_FRAMES,
+        "postResetClearFrac": LIVE_POST_RESET_CLEAR_FRAC,
+        "lowConfNeutral": LIVE_LOW_CONF_NEUTRAL,
+        "lowMarginNeutral": LIVE_LOW_MARGIN_NEUTRAL,
+        "disarmMs": LIVE_DISARM_MS,
+        "rearmNeutralStreak": LIVE_REARM_NEUTRAL_STREAK,
+        "coreFastLabels": list(LIVE_CORE_FAST_LABELS),
+        "coreFastMinConfidence": LIVE_CORE_FAST_MIN_CONFIDENCE,
+        "coreFastMinMargin": LIVE_CORE_FAST_MIN_MARGIN,
+        "coreFastMinStreak": LIVE_CORE_FAST_MIN_STREAK,
+        "coreFastStreakMinAvgConf": LIVE_CORE_FAST_STREAK_MIN_AVG_CONF,
+        "coreFastEarlyExit": LIVE_CORE_FAST_EARLY_EXIT,
+        "coreFastInstantConfidence": LIVE_CORE_FAST_INSTANT_CONFIDENCE,
+        "noiseProneLabels": list(LIVE_NOISE_PRONE_LABELS),
+        "noiseProneExtraConf": LIVE_NOISE_PRONE_EXTRA_CONF,
+        "noiseProneExtraMargin": LIVE_NOISE_PRONE_EXTRA_MARGIN,
+        "staticTransitionBlockMs": LIVE_STATIC_TRANSITION_BLOCK_MS,
         "twoHandMinConfidence": LIVE_TWO_HAND_MIN_CONFIDENCE,
         "twoHandMinMargin": LIVE_TWO_HAND_MIN_MARGIN,
         "twoHandMinStreak": LIVE_TWO_HAND_MIN_STREAK,
@@ -295,6 +351,7 @@ def live_metadata_extra(labels: list[str] | None = None) -> dict:
         "twoHandSameLabelCooldownMs": LIVE_TWO_HAND_SAME_LABEL_COOLDOWN_MS,
         "twoHandWindowFrac": LIVE_TWO_HAND_WINDOW_FRAC,
         "twoHandMotionMin": LIVE_TWO_HAND_MOTION_MIN,
+        "twoHandInstantConfidence": LIVE_TWO_HAND_INSTANT_CONFIDENCE,
         "longVowelMinStreak": LIVE_LONG_VOWEL_MIN_STREAK,
         "longVowelMinConfidence": LIVE_LONG_VOWEL_MIN_CONFIDENCE,
         "longVowelMinMargin": LIVE_LONG_VOWEL_MIN_MARGIN,
