@@ -21,6 +21,24 @@ rng = np.random.default_rng(C.SEED)
 
 
 # ----------------------------------------------------------------------- IO
+def _coerce_clip(arr: np.ndarray) -> np.ndarray | None:
+    """Accept current (104) or legacy face-augmented (125) clip layouts."""
+    if arr.ndim != 2:
+        return None
+    d = arr.shape[1]
+    if d == C.FEATURE_DIM:
+        return arr.astype(np.float32)
+    if d == C.LEGACY_FEATURE_DIM:
+        # pose+hands unchanged; drop face block; remap presence flags.
+        body = (C.N_POSE + C.N_HAND + C.N_HAND) * C.N_COORDS
+        out = np.zeros((arr.shape[0], C.FEATURE_DIM), dtype=np.float32)
+        out[:, :body] = arr[:, :body]
+        out[:, C.LEFT_PRESENT_IDX] = arr[:, C.LEGACY_LEFT_PRESENT_IDX]
+        out[:, C.RIGHT_PRESENT_IDX] = arr[:, C.LEGACY_RIGHT_PRESENT_IDX]
+        return out
+    return None
+
+
 def load_clips() -> tuple[list[np.ndarray], list[str]]:
     seqs: list[np.ndarray] = []
     labels: list[str] = []
@@ -33,13 +51,11 @@ def load_clips() -> tuple[list[np.ndarray], list[str]]:
         for name in sorted(os.listdir(d)):
             if not name.endswith(".npy"):
                 continue
-            arr = np.load(os.path.join(d, name)).astype(np.float32)
-            if arr.ndim != 2 or arr.shape[1] != C.FEATURE_DIM:
+            arr = _coerce_clip(np.load(os.path.join(d, name)))
+            if arr is None:
                 continue
             if arr.shape[0] < C.MIN_CLIP_FRAMES:
                 continue
-            # Recover the human label from the manifest dir name is lossy;
-            # use the original label stored alongside via folder mapping.
             seqs.append(arr)
             labels.append(_label_from_dir(label_dir))
     return seqs, labels
@@ -87,14 +103,6 @@ def _build_flip_index() -> np.ndarray:
     block = C.N_HAND * C.N_COORDS
     for k in range(block):
         idx[lh + k], idx[rh + k] = rh + k, lh + k
-    # face symmetric pairs (curated order)
-    fb = (C.N_POSE + C.N_HAND + C.N_HAND) * C.N_COORDS
-    face_pairs = [(1, 2), (3, 4), (5, 6), (7, 8)]
-    for a, b in face_pairs:
-        for c in range(C.N_COORDS):
-            ac, bc = fb + a * C.N_COORDS + c, fb + b * C.N_COORDS + c
-            idx[ac], idx[bc] = bc, ac
-    # swap presence flags
     idx[C.LEFT_PRESENT_IDX], idx[C.RIGHT_PRESENT_IDX] = (
         C.RIGHT_PRESENT_IDX, C.LEFT_PRESENT_IDX
     )
@@ -103,7 +111,7 @@ def _build_flip_index() -> np.ndarray:
 
 _FLIP_IDX = _build_flip_index()
 _X_MASK = np.zeros(C.FEATURE_DIM, dtype=bool)
-for _p in range(C.N_POSE + C.N_HAND + C.N_HAND + C.N_FACE):
+for _p in range(C.N_POSE + C.N_HAND + C.N_HAND):
     _X_MASK[_p * C.N_COORDS] = True   # x coordinate columns
 
 
@@ -118,7 +126,7 @@ def _rotate(seq: np.ndarray, deg: float) -> np.ndarray:
     th = np.deg2rad(deg)
     cos, sin = np.cos(th), np.sin(th)
     out = seq.copy()
-    n_points = C.N_POSE + C.N_HAND + C.N_HAND + C.N_FACE
+    n_points = C.N_POSE + C.N_HAND + C.N_HAND
     for p in range(n_points):
         xi, yi = p * C.N_COORDS, p * C.N_COORDS + 1
         x, y = seq[:, xi], seq[:, yi]
@@ -162,7 +170,7 @@ def augment(seq_norm: np.ndarray) -> np.ndarray:
     out = _translate(out, tx, ty)
     # landmark jitter (whole body)
     noise = rng.normal(0, 0.010, size=out.shape).astype(np.float32)
-    noise[:, [C.LEFT_PRESENT_IDX, C.RIGHT_PRESENT_IDX, C.FACE_PRESENT_IDX]] = 0
+    noise[:, [C.LEFT_PRESENT_IDX, C.RIGHT_PRESENT_IDX]] = 0
     out = out + noise
     # additional hand noise ~50%
     if rng.random() < 0.5:
@@ -177,7 +185,7 @@ def _coord_mask() -> np.ndarray:
     global _COORD_MASK
     if _COORD_MASK is None:
         m = np.zeros(C.FEATURE_DIM, dtype=bool)
-        for p in range(C.N_POSE + C.N_HAND + C.N_HAND + C.N_FACE):
+        for p in range(C.N_POSE + C.N_HAND + C.N_HAND):
             m[p * C.N_COORDS] = True
             m[p * C.N_COORDS + 1] = True
         _COORD_MASK = m
@@ -186,7 +194,7 @@ def _coord_mask() -> np.ndarray:
 
 def _translate(seq: np.ndarray, tx: float, ty: float) -> np.ndarray:
     out = seq.copy()
-    n_points = C.N_POSE + C.N_HAND + C.N_HAND + C.N_FACE
+    n_points = C.N_POSE + C.N_HAND + C.N_HAND
     for p in range(n_points):
         xi, yi = p * C.N_COORDS, p * C.N_COORDS + 1
         x, y = seq[:, xi], seq[:, yi]

@@ -44,9 +44,6 @@ def write_metadata(labels: list[str]) -> None:
         "nCoords": C.N_COORDS,
         "leftPresentIdx": C.LEFT_PRESENT_IDX,
         "rightPresentIdx": C.RIGHT_PRESENT_IDX,
-        "faceKeypoints": C.FACE_KEYPOINTS,
-        "nFace": C.N_FACE,
-        "facePresentIdx": C.FACE_PRESENT_IDX,
         "liveWindow": C.LIVE_WINDOW,
         "liveStride": C.LIVE_STRIDE,
         **C.live_metadata_extra(labels),
@@ -114,6 +111,20 @@ def export_h5_to_tfjs(h5_path: str, out_dir: str) -> None:
     print("→ Patched model.json for TensorFlow.js (Keras 3 compat)")
 
 
+def _load_keras_model(path: str):
+    """Load model.keras saved by train.py (Keras 3 or legacy tf_keras)."""
+    import tensorflow as tf
+
+    try:
+        return tf.keras.models.load_model(path)
+    except TypeError:
+        os.environ["TF_USE_LEGACY_KERAS"] = "1"
+        import importlib
+
+        importlib.reload(tf)
+        return tf.keras.models.load_model(path)
+
+
 def main() -> None:
     keras_path = os.path.join(C.ARTIFACTS_DIR, "model.keras")
     if not os.path.isfile(keras_path):
@@ -122,11 +133,8 @@ def main() -> None:
     labels = _labels_from_dataset()
     write_metadata(labels)
 
-    # Keras 3 .keras / .h5 — compatible with TFJS after export_model.py patch.
-    import tensorflow as tf
-
     print("→ Loading model...")
-    model = tf.keras.models.load_model(keras_path)
+    model = _load_keras_model(keras_path)
 
     h5_path = os.path.join(C.ARTIFACTS_DIR, "model.h5")
     print(f"→ Saving {h5_path}...")
