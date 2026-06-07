@@ -19,10 +19,7 @@ export const FeatureSignToVoice = () => (
               </div>
             </div>
           </div>
-          <div
-            className="flex flex-col gap-2 p-3"
-            style={{ background: "var(--surface)" }}
-          >
+          <div className="flex flex-col gap-2 p-3">
             <button
               className="w-full rounded-2xl py-2.5 text-center text-sm font-bold text-white"
               style={{ background: "var(--olive)" }}
@@ -45,7 +42,7 @@ export const FeatureSignToVoice = () => (
           className="mt-4 max-w-[480px] text-base leading-relaxed md:text-lg"
           style={{ color: "var(--text-2)" }}
         >
-         Видео дуудлага дээр дохионы хэлийг шууд хөрвүүлэн уншина.
+          Видео дуудлага дээр дохионы хэлийг шууд хөрвүүлэн уншина.
         </p>
       </div>
     </div>

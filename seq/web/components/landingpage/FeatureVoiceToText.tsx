@@ -20,10 +20,7 @@ export const FeatureVoiceToText = () => (
               </div>
             </div>
           </div>
-          <div
-            className="flex flex-col gap-2 p-3"
-            style={{ background: "var(--surface)" }}
-          >
+          <div className="flex flex-col gap-2 p-3">
             <div
               className="flex items-center gap-2 rounded-2xl px-3 py-2.5"
               style={{ background: "var(--olive-soft)" }}

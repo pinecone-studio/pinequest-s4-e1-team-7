@@ -33,7 +33,6 @@ export const ResponsiveDesign = () => {
             alignItems: "center",
           }}
         >
-          {/* LEFT: Devices mockup */}
           <div
             className="handy-mockup"
             style={{
@@ -43,7 +42,6 @@ export const ResponsiveDesign = () => {
               height: "clamp(320px, 42vw, 460px)",
             }}
           >
-            {/* Laptop — behind, left-aligned, bottom */}
             <div
               style={{
                 position: "absolute",
@@ -105,16 +103,7 @@ export const ResponsiveDesign = () => {
                     >
                       <Logo />
                     </div>
-                    <span
-                      style={{
-                        fontSize: "clamp(10px, 2vw, 12px)",
-                        fontWeight: 700,
-                        color: "#eef4f0",
-                        fontFamily: "var(--font-display)",
-                      }}
-                    >
-                      ДОХИО
-                    </span>
+
                     <div
                       style={{
                         marginLeft: "auto",
@@ -139,7 +128,7 @@ export const ResponsiveDesign = () => {
                           animation: "pulse 1.2s infinite",
                         }}
                       />
-                      Хэлмэрчилж байна
+                      Хөрвүүлж байна
                     </div>
                   </div>
                   <div
@@ -172,7 +161,7 @@ export const ResponsiveDesign = () => {
                           display: "inline-block",
                         }}
                       />
-                      Дохио → Дуу хоолой
+                      Дохио → Яриа
                     </div>
                     <div
                       style={{
@@ -210,7 +199,7 @@ export const ResponsiveDesign = () => {
                   </div>
                 </div>
               </div>
-              {/* Laptop base */}
+
               <div
                 style={{
                   width: "clamp(260px, 38vw, 360px)",
@@ -245,7 +234,6 @@ export const ResponsiveDesign = () => {
               />
             </div>
 
-            {/* Phone — front, center-right, overlapping laptop */}
             <div
               style={{
                 position: "absolute",
@@ -264,7 +252,6 @@ export const ResponsiveDesign = () => {
                   border: "2px solid #1e2e2b",
                 }}
               >
-                {/* Status bar */}
                 <div
                   style={{
                     display: "flex",
@@ -291,7 +278,7 @@ export const ResponsiveDesign = () => {
                     letterSpacing: "0.08em",
                   }}
                 >
-                  ДОХИО
+                  Sign Bridge
                 </div>
                 {/* Camera / screen area */}
                 <div
@@ -337,10 +324,10 @@ export const ResponsiveDesign = () => {
                         animation: "pulse 1.2s infinite",
                       }}
                     />
-                    Дохио → Дуу хоолой
+                    Дохио → Яриа
                   </div>
                 </div>
-                {/* Message bubble */}
+
                 <div style={{ padding: "10px" }}>
                   <div
                     style={{
@@ -371,7 +358,7 @@ export const ResponsiveDesign = () => {
                           display: "inline-block",
                         }}
                       />
-                      Дохио → Дуу хоолой
+                      Дохио → Яриа
                     </div>
                   </div>
                   <button
