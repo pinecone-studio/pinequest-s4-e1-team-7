@@ -506,7 +506,7 @@ export function CallSession({ roomId }: Props) {
               Цэвэрлэх
             </button>
           </div>
-          <TypewriterCaption instant text={myCaption || "..."} />
+          <TypewriterCaption text={myCaption} />
         </section>
 
         <section className="space-y-3">
@@ -547,7 +547,7 @@ export function CallSession({ roomId }: Props) {
               </div>
             )}
           </div>
-          <TypewriterCaption instant text={theirCaption || "..."} />
+          <TypewriterCaption text={theirCaption} />
         </section>
       </div>
 
