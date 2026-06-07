@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Hand } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ResponsiveDesign } from "./ResponsiveDesign";
 
 export const Hero = () => (
   <section
@@ -32,56 +32,7 @@ export const Hero = () => (
         </div>
       </div>
 
-      <div className="flex-shrink-0">
-        <div className="lphone w-[220px] sm:w-[260px]">
-          <div className="lphone-status">
-            <span>9:41</span>
-            <span className="tracking-widest">●●●</span>
-          </div>
-          <div className="lphone-nav">Sign Bridge</div>
-          <div className="lphone-cam">
-            <div className="lphone-scan" />
-            <div className="lphone-cap">
-              <div className="cl mb-2">
-                <span /> Дохио хэл → Дуудлага
-              </div>
-              <p className="text-sm font-semibold text-white/90">
-                Сайн байна уу?
-              </p>
-            </div>
-          </div>
-          <div
-            className="flex flex-col gap-2 p-3"
-            style={{ background: "var(--surface)" }}
-          >
-            <button
-              className="w-full rounded-2xl py-2.5 text-center text-sm font-bold text-white transition active:scale-95"
-              style={{ background: "var(--olive)" }}
-            >
-              Видео дуудлага эхлүүлэх
-            </button>
-            <div
-              className="flex items-center gap-2 rounded-xl px-3 py-2"
-              style={{ background: "var(--olive-soft)" }}
-            >
-              <Hand
-                className="h-4 w-4 shrink-0"
-                style={{ color: "var(--olive)" }}
-              />
-              <div className="flex-1 space-y-1">
-                <div
-                  className="h-1.5 w-3/4 rounded-full"
-                  style={{ background: "var(--olive-bright)", opacity: 0.5 }}
-                />
-                <div
-                  className="h-1.5 w-1/2 rounded-full"
-                  style={{ background: "var(--olive-bright)", opacity: 0.3 }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ResponsiveDesign />
     </div>
   </section>
 );

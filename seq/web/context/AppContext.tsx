@@ -1,6 +1,21 @@
 "use client";
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
-import type { HistoryKind, Settings, Stats, Toast, ToastKind } from "@/lib/types";
+
+import { useUser } from "@clerk/nextjs";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
+import type {
+  HistoryKind,
+  Settings,
+  Stats,
+  Toast,
+  ToastKind,
+} from "@/lib/types";
+import { recordTranslation } from "@/lib/api";
 import { countWords } from "@/lib/utils";
 
 interface AppValue {
@@ -16,7 +31,12 @@ const AppContext = createContext<AppValue | null>(null);
 const EMPTY_STATS: Stats = { words: 0, sessions: 0, history: [] };
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<Settings>({ gender: "female", rate: 1, autoSpeak: true });
+  const { user } = useUser();
+  const [settings, setSettings] = useState<Settings>({
+    gender: "female",
+    rate: 1,
+    autoSpeak: true,
+  });
   const [stats, setStats] = useState<Stats>(EMPTY_STATS);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -25,21 +45,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const pushHistory = useCallback((kind: HistoryKind, text: string) => {
+  const pushHistory = useCallback(async (kind: HistoryKind, text: string) => {
     if (!text.trim()) return;
     setStats((s) => ({
       words: s.words + countWords(text),
       sessions: s.sessions + 1,
       history: [{ kind, text, time: "Дөнгөж сая" }, ...s.history].slice(0, 30),
     }));
-    // TODO: await recordTranslation({ userId, kind, text }) from lib/api.ts
-  }, []);
+    if (!user?.id) return;
+    await recordTranslation({ userId: user.id, kind, text }).catch(() => {});
+  }, [user?.id]);
 
-  const toast = useCallback((kind: ToastKind, message: string, icon = "info") => {
-    const id = Date.now() + Math.random();
-    setToasts((t) => [...t, { id, kind, message, icon }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2600);
-  }, []);
+  const toast = useCallback(
+    (kind: ToastKind, message: string, icon = "info") => {
+      const id = Date.now() + Math.random();
+      setToasts((t) => [...t, { id, kind, message, icon }]);
+      setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2600);
+    },
+    [],
+  );
 
   const value = useMemo(
     () => ({ settings, updateSettings, stats, pushHistory, toasts, toast }),
