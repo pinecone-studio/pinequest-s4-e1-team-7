@@ -2,10 +2,8 @@
 
 import {
   FilesetResolver,
-  FaceLandmarker,
   HandLandmarker,
   PoseLandmarker,
-  type FaceLandmarkerResult,
   type HandLandmarkerResult,
   type PoseLandmarkerResult,
 } from "@mediapipe/tasks-vision";
@@ -13,7 +11,6 @@ import {
 export type AllLandmarks = {
   pose: PoseLandmarkerResult | null;
   hand: HandLandmarkerResult | null;
-  face: FaceLandmarkerResult | null;
 };
 
 export type LandmarkBundle = {
@@ -23,9 +20,7 @@ export type LandmarkBundle = {
 
 export type MediaPipeProgress = (stage: string) => void;
 
-/** Local WASM — CDN биш, илүү хурдан/найдвартай. */
 const WASM_PATH = "/mediapipe-wasm";
-/** 3 GPU delegate зэрэг = Mac дээр CPU 100% + гацалт. Зөвхөн CPU. */
 const DELEGATE = "CPU" as const;
 
 let cached: Promise<LandmarkBundle> | null = null;
@@ -83,19 +78,7 @@ async function build(onProgress?: MediaPipeProgress): Promise<LandmarkBundle> {
     runningMode: "VIDEO",
     numHands: 2,
   });
-  await yieldToBrowser();
-
-  onProgress?.("face");
-  console.info("[MediaPipe] face...");
-  const face = await FaceLandmarker.createFromOptions(wasm, {
-    baseOptions: {
-      modelAssetPath: "/models/face_landmarker.task",
-      delegate: DELEGATE,
-    },
-    runningMode: "VIDEO",
-    numFaces: 1,
-  });
-  console.info("[MediaPipe] бэлэн");
+  console.info("[MediaPipe] бэлэн (pose + hand)");
 
   return {
     detect(source, ts): AllLandmarks {
@@ -103,17 +86,15 @@ async function build(onProgress?: MediaPipeProgress): Promise<LandmarkBundle> {
         return {
           pose: pose.detectForVideo(source, ts),
           hand: hand.detectForVideo(source, ts),
-          face: face.detectForVideo(source, ts),
         };
       } catch (e) {
         console.warn("detect error", e);
-        return { pose: null, hand: null, face: null };
+        return { pose: null, hand: null };
       }
     },
     close() {
       pose.close();
       hand.close();
-      face.close();
     },
   };
 }
@@ -125,7 +106,6 @@ export function getLandmarkers(
   return cached;
 }
 
-/** Test/dev: дахин ачаалах. */
 export function resetLandmarkersCache(): void {
   cached = null;
 }

@@ -167,10 +167,8 @@ def export_tfjs(model, labels: list[str]) -> None:
             return
         except subprocess.CalledProcessError as e:
             print(f"\n⚠ export_model.py амжилтгүй: {e}")
-            print("  Гараар: python3 export_model.py")
-            return
 
-    # Fallback: in-process tensorflowjs (if installed cleanly).
+    # Fallback: in-process h5 → TFJS (model already in memory).
     try:
         from export_model import export_h5_to_tfjs
         h5_path = os.path.join(C.ARTIFACTS_DIR, "model.h5")
@@ -182,7 +180,6 @@ def export_tfjs(model, labels: list[str]) -> None:
         pass
 
     print("\n⚠ TFJS export алгассан.")
-    print("  python3 -m pip install --no-compile --no-deps tensorflowjs==4.13.0")
     print("  python3 export_model.py")
 
 

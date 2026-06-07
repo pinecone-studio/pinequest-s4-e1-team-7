@@ -8,7 +8,6 @@ import {
   N_HAND,
   N_POSE,
   RIGHT_PRESENT_IDX,
-  detectChestZone,
   hasPose,
   isLongVowelSign,
   isTwoHandMode,
@@ -68,8 +67,6 @@ export type SeqMetadata = {
   motionMinMargin?: number;
   /** Per label: 0=neutral/any, 1=one-hand only, 2=two-hand only (see hand_modes.json). */
   handModes?: number[];
-  /** Per label: 0=any, 1=above chest, 2=at chest, 3=below (see position_modes.json). */
-  positionModes?: number[];
   longVowelMinStreak?: number;
   longVowelMinConfidence?: number;
   longVowelMinMargin?: number;
@@ -270,7 +267,6 @@ export function emitterOptionsFromMeta(
     neutralLabel:        meta.neutralLabel,
     labels:              meta.labels,
     handModes:           meta.handModes,
-    positionModes:       meta.positionModes,
     longVowelMinStreak:  meta.longVowelMinStreak ?? 2,
     longVowelMinConfidence: meta.longVowelMinConfidence ?? 0.80,
     longVowelMinMargin:  meta.longVowelMinMargin ?? 0.18,
@@ -485,14 +481,9 @@ export class SequenceRecognizer {
     return both / n;
   }
 
-  /** Mask softmax: гарын тоо + цээжний байрлалд тохирох class-ууд үлдэнэ. */
-  private _maskProbs(
-    probs: Float32Array,
-    bothHands: boolean,
-    chestZone: number
-  ): Float32Array {
+  /** Mask softmax: гарын тоонд тохирох class-ууд үлдэнэ. */
+  private _maskProbs(probs: Float32Array, bothHands: boolean): Float32Array {
     const modes = this.meta.handModes;
-    const posModes = this.meta.positionModes;
     if (!modes || modes.length !== probs.length) return probs;
 
     const wantHand = bothHands ? 2 : 1;
@@ -500,11 +491,7 @@ export class SequenceRecognizer {
     let sum = 0;
     for (let i = 0; i < probs.length; i++) {
       const m = modes[i];
-      const handOk = m === 0 || m === wantHand;
-      const pm = posModes?.[i] ?? 0;
-      const posOk =
-        pm === 0 || chestZone === 0 || pm === chestZone;
-      const ok = handOk && posOk;
+      const ok = m === 0 || m === wantHand;
       out[i] = ok ? probs[i] : 0;
       sum += out[i];
     }
@@ -523,7 +510,6 @@ export class SequenceRecognizer {
     bothHands: boolean
   ): Omit<SeqPrediction, "bothHands" | "handMotion"> {
     const motion = this._windowHandMotion();
-    const chestZone = detectChestZone(this._latestFrame());
 
     if (!bothHands) {
       const idleMax = this.meta.idleMaxMotion ?? 0.002;
@@ -556,7 +542,7 @@ export class SequenceRecognizer {
       const out = this.model.predict(input) as tf.Tensor;
       return out.dataSync() as Float32Array;
     });
-    const probs = this._maskProbs(rawProbs, bothHands, chestZone);
+    const probs = this._maskProbs(rawProbs, bothHands);
 
     let bestId = 0;
     let best = -1;
@@ -650,7 +636,6 @@ export type SeqEmitterOptions = {
   neutralLabel?: string;
   labels?: string[];
   handModes?: number[];
-  positionModes?: number[];
   longVowelMinStreak?: number;
   longVowelMinConfidence?: number;
   longVowelMinMargin?: number;
@@ -723,7 +708,6 @@ const DEFAULTS: Required<SeqEmitterOptions> = {
   twoHandSameLabelCooldownMs: 2500,
   labels: [],
   handModes: [],
-  positionModes: [],
   longVowelMinStreak: 2,
   longVowelMinConfidence: 0.80,
   longVowelMinMargin: 0.18,
