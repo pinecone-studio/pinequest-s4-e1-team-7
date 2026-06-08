@@ -4,25 +4,35 @@ type Props = { myCaption: string; theirCaption: string; onClearMine: () => void 
 
 export function CaptionOverlay({ myCaption, theirCaption, onClearMine }: Props) {
   if (!myCaption && !theirCaption) return null;
+
   return (
-    <div className="absolute inset-x-4 bottom-[120px] z-20 space-y-2">
+    <div className="pointer-events-none absolute inset-x-4 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-30 max-h-[38vh] space-y-2 overflow-y-auto">
       {theirCaption && (
-        <div className="rounded-[14px] px-4 py-2.5"
-          style={{ background: "var(--glass)", backdropFilter: "blur(12px)", border: "1px solid var(--glass-border)" }}>
-          <p className="mb-1 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--teal-2)" }}>Хамтрагч</p>
-          <TypewriterCaption instant text={theirCaption} />
+        <div className="pointer-events-auto rounded-2xl bg-black/55 px-4 py-3 backdrop-blur-md">
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-teal-300/80">
+            Хамтрагч
+          </p>
+          <div className="[&>div]:border-0 [&>div]:bg-transparent [&>div]:p-0 [&>div]:text-base [&>div]:leading-snug [&>div]:text-white [&>div]:shadow-none">
+            <TypewriterCaption text={theirCaption} charMs={16} />
+          </div>
         </div>
       )}
       {myCaption && (
-        <div className="flex items-start gap-2">
-          <div className="flex-1 rounded-[14px] px-4 py-2.5"
-            style={{ background: "var(--glass)", backdropFilter: "blur(12px)", border: "1px solid var(--glass-border)" }}>
-            <p className="mb-1 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--olive)" }}>Та</p>
-            <TypewriterCaption instant text={myCaption} />
+        <div className="pointer-events-auto flex items-start gap-2">
+          <div className="flex-1 rounded-2xl bg-black/55 px-4 py-3 backdrop-blur-md">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--olive)]">
+              Та
+            </p>
+            <div className="[&>div]:border-0 [&>div]:bg-transparent [&>div]:p-0 [&>div]:text-base [&>div]:leading-snug [&>div]:text-white [&>div]:shadow-none">
+              <TypewriterCaption text={myCaption} charMs={16} />
+            </div>
           </div>
-          <button onClick={onClearMine}
-            className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-opacity active:opacity-60"
-            style={{ background: "var(--glass-btn)", color: "var(--text-3)", border: "1px solid var(--glass-border)" }}>
+          <button
+            type="button"
+            onClick={onClearMine}
+            aria-label="Цэвэрлэх"
+            className="mt-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-sm text-white/70 backdrop-blur-md transition active:scale-90"
+          >
             ✕
           </button>
         </div>

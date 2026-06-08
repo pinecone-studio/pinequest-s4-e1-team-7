@@ -1,26 +1,34 @@
 "use client";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { CSSProperties } from "react";
 import { CameraView } from "@/components/CameraView";
-import { VoiceWave } from "@/components/ui/voice-wave";
 import { CallControls } from "./CallControls";
 import { CallWaiting } from "./CallWaiting";
-import { CaptionOverlay } from "./CaptionOverlay";
+import { CallSubtitles } from "./CallSubtitles";
+import { CallTopBar } from "./CallTopBar";
 import { useCallPeer } from "@/hooks/useCallPeer";
 import { useSignDetection } from "@/hooks/useSignDetection";
 import { VideoCameraSlashIcon } from "@heroicons/react/24/solid";
 
 const fmtDur = (s: number) => {
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+  const m = Math.floor(s / 60);
   const p = (n: number) => String(n).padStart(2, "0");
-  return h > 0 ? `${p(h)}:${p(m)}:${p(s % 60)}` : `${p(m)}:${p(s % 60)}`;
+  return `${p(m)}:${p(s % 60)}`;
 };
+
 const appendWord = (prev: string, w: string) => {
   const t = prev.trim();
   if (!t) return w;
   if (t.split(/\s+/).pop() === w) return prev;
   return `${t} ${w}`;
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  connected: "Холбогдсон",
+  connecting: "Холбогдож байна…",
+  error: "Алдаа",
+  idle: "Хүлээж байна",
 };
 
 export function CallSession({ roomId }: { roomId: string }) {
@@ -34,82 +42,158 @@ export function CallSession({ roomId }: { roomId: string }) {
   const [elapsed, setElapsed] = useState(0);
   const connectedAtRef = useRef<number | null>(null);
 
-  const { role, status, message, remoteVideoRef, connRef, callRef, sendCaption, toggleCam, toggleMic, onStreamReady } =
-    useCallPeer(roomId, setTheirCaption, peerHint);
+  const {
+    role,
+    status,
+    message,
+    hasRemoteStream,
+    remoteVideoRef,
+    connRef,
+    callRef,
+    sendCaption,
+    toggleCam,
+    toggleMic,
+    onStreamReady,
+  } = useCallPeer(roomId, setTheirCaption, peerHint);
+
   const connected = status === "connected";
 
   useEffect(() => {
     if (connected && !connectedAtRef.current) connectedAtRef.current = Date.now();
-    else if (!connected) { connectedAtRef.current = null; setElapsed(0); }
+    else if (!connected) {
+      connectedAtRef.current = null;
+      setElapsed(0);
+    }
   }, [connected]);
 
   useEffect(() => {
     if (!connected) return;
     const id = setInterval(() => {
-      if (connectedAtRef.current) setElapsed(Math.floor((Date.now() - connectedAtRef.current) / 1000));
+      if (connectedAtRef.current) {
+        setElapsed(Math.floor((Date.now() - connectedAtRef.current) / 1000));
+      }
     }, 1000);
     return () => clearInterval(id);
   }, [connected]);
 
   const onWord = useCallback(
-    (word: string) => { setMyCaption((prev) => { const next = appendWord(prev, word); sendCaption(next); return next; }); },
-    [sendCaption],
+    (word: string) => {
+      setMyCaption((prev) => {
+        const next = appendWord(prev, word);
+        sendCaption(next);
+        return next;
+      });
+    },
+    [sendCaption]
   );
-  const { modelReady, startLoad, handleLandmarks, reset } = useSignDetection(onWord);
-  const clearCaption = useCallback(() => { setMyCaption(""); sendCaption(""); reset(); }, [sendCaption, reset]);
+
+  const { modelReady, modelError, modelLoading, startLoad, handleLandmarks } =
+    useSignDetection(onWord);
 
   const shareLink = useMemo(
-    () => typeof window !== "undefined" ? `${window.location.origin}/call/${encodeURIComponent(roomId)}` : "",
-    [roomId],
+    () =>
+      typeof window !== "undefined"
+        ? `${window.location.origin}/call/${encodeURIComponent(roomId)}`
+        : "",
+    [roomId]
   );
+
   const copyLink = useCallback(async () => {
     await navigator.clipboard.writeText(shareLink);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 1500);
   }, [shareLink]);
-  const endCall = useCallback(() => { connRef.current?.close(); callRef.current?.close(); router.back(); }, [connRef, callRef, router]);
 
-  const handleCamToggle = () => { toggleCam(); setCamMuted((m) => !m); };
-  const handleMicToggle = () => { toggleMic(); setMicMuted((m) => !m); };
+  const endCall = useCallback(() => {
+    connRef.current?.close();
+    callRef.current?.close();
+    router.back();
+  }, [connRef, callRef, router]);
+
+  const handleCamToggle = () => {
+    toggleCam();
+    setCamMuted((m) => !m);
+  };
+  const handleMicToggle = () => {
+    toggleMic();
+    setMicMuted((m) => !m);
+  };
+
+  const statusDot =
+    status === "connected"
+      ? "connected"
+      : status === "connecting"
+        ? "connecting"
+        : status === "error"
+          ? "error"
+          : "idle";
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black md:relative md:inset-auto md:z-auto md:h-[calc(100dvh-56px)] md:overflow-hidden md:rounded-2xl">
-      <video ref={remoteVideoRef} playsInline autoPlay className="absolute inset-0 h-full w-full object-cover" />
-
-      <CallWaiting role={role} status={status} message={message} shareLink={shareLink} onCopyLink={copyLink} linkCopied={linkCopied} />
-
-      <div className="absolute inset-x-4 top-0 z-20 mt-[max(env(safe-area-inset-top),16px)]">
-        <div className="rounded-[24px] p-4" style={{ background: "var(--glass)", backdropFilter: "blur(24px)", border: "1px solid var(--glass-border)" }}>
-          <div className="flex items-center justify-between">
-            <p className="text-[15px] font-bold" style={{ color: "var(--text)" }}>Видео дуудлага</p>
-            <div className="flex h-4 items-end gap-[2px]">
-              {[6, 12, 8, 14, 10].map((h, i) => (
-                <span key={i} className="w-[3px] rounded-full"
-                  style={{ height: connected ? undefined : "3px", background: connected ? "var(--olive)" : "var(--border-c)", "--wh": `${h}px`, animation: connected ? `wave ${0.5 + i * 0.12}s ease-in-out infinite` : "none", animationDelay: `${i * 0.1}s` } as CSSProperties} />
-              ))}
-            </div>
-            <p className="font-mono text-[14px] font-semibold" style={{ color: connected ? "#e53535" : "var(--text-3)" }}>
-              {connected ? fmtDur(elapsed) : "--:--"}
-            </p>
+    <div className="fixed inset-0 z-[60] overflow-hidden bg-black">
+      {/* Үндсэн камер — preview + detect хоёуланд ижил flip (сургалттай нийцнэ) */}
+      <div className="absolute inset-0 z-0">
+        <CameraView
+          fullscreen
+          showPreview
+          mirrorPreview
+          mirrorDetect
+          onLandmarks={handleLandmarks}
+          onStreamReady={onStreamReady}
+          onMediaPipeReady={startLoad}
+          inferenceActive={modelReady}
+        />
+        {camMuted && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80">
+            <VideoCameraSlashIcon className="h-12 w-12 text-zinc-500" />
           </div>
-          <div className="my-3"><VoiceWave active={connected} color="var(--teal-2)" /></div>
-          <CallControls camMuted={camMuted} micMuted={micMuted} onCamToggle={handleCamToggle} onMicToggle={handleMicToggle} onEnd={endCall}
-            onVolumeChange={(v) => { if (remoteVideoRef.current) remoteVideoRef.current.volume = v; }} />
-        </div>
+        )}
       </div>
 
-      {connected && (
-        <div className="absolute bottom-20 right-4 z-20 w-[108px] overflow-hidden rounded-[18px] shadow-xl"
-          style={{ border: "2px solid var(--glass-border)", aspectRatio: "3/4" }}>
-          <div className="relative h-full w-full bg-black">
-            <CameraView onLandmarks={handleLandmarks} onStreamReady={onStreamReady} onMediaPipeReady={startLoad}
-              inferenceActive={modelReady} mirror width={280} height={380} fullscreen />
-            {camMuted && <div className="absolute inset-0 flex items-center justify-center bg-zinc-900"><VideoCameraSlashIcon className="h-8 w-8 text-zinc-500" /></div>}
-          </div>
-        </div>
+      {/* Хамтрагч — PiP, mirror ГҮЙ */}
+      <div
+        className={`absolute left-4 top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 h-[120px] w-[90px] overflow-hidden rounded-2xl border border-white/20 bg-black shadow-lg transition-opacity ${
+          connected && hasRemoteStream ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      >
+        <video ref={remoteVideoRef} playsInline className="h-full w-full object-cover" />
+      </div>
+
+      <CallWaiting
+        role={role}
+        status={status}
+        message={message}
+        shareLink={shareLink}
+        onCopyLink={copyLink}
+        linkCopied={linkCopied}
+      />
+
+      <CallTopBar
+        statusLabel={STATUS_LABEL[status] ?? "…"}
+        statusDot={statusDot}
+        timer={connected ? fmtDur(elapsed) : undefined}
+        onBack={() => router.back()}
+      />
+
+      {(modelError || modelLoading) && !connected && (
+        <p className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+3.5rem)] z-30 text-center text-xs text-white/50">
+          {modelError ?? "Дохионы загвар ачаалж байна…"}
+        </p>
       )}
 
-      <CaptionOverlay myCaption={myCaption} theirCaption={theirCaption} onClearMine={clearCaption} />
+      <CallSubtitles myText={myCaption} theirText={theirCaption} />
+
+      <div className="absolute inset-x-0 bottom-0 z-40 px-6 pb-[max(env(safe-area-inset-bottom),24px)] pt-4">
+        <CallControls
+          camMuted={camMuted}
+          micMuted={micMuted}
+          onCamToggle={handleCamToggle}
+          onMicToggle={handleMicToggle}
+          onEnd={endCall}
+          onVolumeChange={(v) => {
+            if (remoteVideoRef.current) remoteVideoRef.current.volume = v;
+          }}
+        />
+      </div>
     </div>
   );
 }
