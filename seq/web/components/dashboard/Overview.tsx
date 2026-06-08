@@ -1,9 +1,12 @@
+"use client";
+
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { StarIcon } from "@heroicons/react/24/solid";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { FeatureCarousel } from "./FeatureCarousel";
+import { useState, useEffect } from "react";
 import type { CarouselFeature } from "./FeatureCarousel";
 
 const FEATURES: CarouselFeature[] = [
@@ -45,20 +48,52 @@ const FEATURES: CarouselFeature[] = [
   },
 ];
 
-export async function Overview() {
-  const user = await currentUser();
-  const name = user?.firstName ?? "Хэрэглэгч";
-  const h = new Date().getHours();
-  const greeting =
-    h < 6 ? "Шөнийн мэнд" : h < 12 ? "Өглөөний мэнд" : h < 18 ? "Өдрийн мэнд" : "Оройн мэнд";
+export function Overview() {
+  const [isDark, setIsDark] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    
+    const checkDark = () => {
+      const theme = document.documentElement.getAttribute("data-theme");
+      setIsDark(theme === "dark");
+    };
+    
+    checkDark();
+    
+    const observer = new MutationObserver(checkDark);
+    observer.observe(document.documentElement, { attributes: true });
+    
+    return () => observer.disconnect();
+  }, []);
+
+  const logoSrc = isDark ? "/images/logoShar.png" : "/images/logoBlue.png";
+  const bridgeColor = isDark ? "#E5EEFF" : "#0D1E35";
 
   return (
     <div className="pb-4" style={{ background: "var(--bg)" }}>
 
       {/* Mobile header: logo · theme toggle · settings */}
       <div className="flex items-center justify-between px-5 pt-4 pb-1 md:hidden">
-        <Link href="/dashboard" aria-label="Нүүр хуудас">
-          <img src="/images/logo.png" alt="Sign Bridge" className="h-10 w-10 rounded-xl" />
+        <Link href="/dashboard" className="flex items-center" aria-label="Нүүр хуудас">
+          {mounted && (
+            <>
+              <img 
+                src={logoSrc}
+                alt="Sign Bridge" 
+                className="h-13 w-13 rounded-lg object-contain" 
+              />
+              <div className="flex gap-1 items-baseline">
+                <span style={{ color: "#ffbf00ff", fontWeight: 900, fontSize: "20px" }}>
+                  Sign
+                </span>
+                <span style={{ color: bridgeColor, fontWeight: 900, fontSize: "20px" }}>
+                  Bridge
+                </span>
+              </div>
+            </>
+          )}
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -77,13 +112,13 @@ export async function Overview() {
       <div className="flex items-start justify-between px-5 pb-2 pt-3 md:pt-6">
         <div>
           <p className="text-[14px]" style={{ color: "var(--text-3)" }}>
-            {greeting},
+            Сайн байна уу,
           </p>
           <h2
             className="mt-0.5 text-[22px] font-bold leading-tight"
             style={{ color: "var(--text)" }}
           >
-            {name}
+            Хэрэглэгч
           </h2>
           <div className="mt-1.5 flex items-center gap-1.5">
             <StarIcon className="h-3.5 w-3.5" style={{ color: "var(--olive)" }} />
