@@ -35,7 +35,7 @@ export function CallWaiting({ role, status, message, shareLink, onCopyLink, link
             className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--olive)] px-5 py-3.5 text-[15px] font-semibold text-black transition active:scale-[0.98]"
           >
             {linkCopied ? <CheckIcon className="h-5 w-5" /> : <LinkIcon className="h-5 w-5" />}
-            {linkCopied ? "Хуулагдлаа!" : "Холбоос хуулах"}
+            {linkCopied ? "Хуулагдлаа" : "Холбоос хуулах"}
           </button>
         )}
 

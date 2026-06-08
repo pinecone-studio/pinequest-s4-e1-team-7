@@ -51,7 +51,7 @@ export const TopNav = () => {
   const bridgeColor = isDark ? "#E5EEFF" : "#0D1E35";
 
   return (
-    <header className="sticky top-0 z-40 hidden items-center justify-between gap-3 px-4 py-4 md:flex md:px-6"
+    <header className="sticky top-0 z-40 hidden items-center justify-between gap-3 px-4 py-4 md:flex md:px-6 lg:px-10 xl:px-16"
       style={{ background: "var(--surface)", borderBottom: "1px solid var(--border-c)", backdropFilter: "blur(12px)" }}>
       <div className="flex min-w-0 flex-1 items-center gap-4">
         <Link href="/dashboard" className="shrink-0 flex items-center" aria-label="Нүүр хуудас">

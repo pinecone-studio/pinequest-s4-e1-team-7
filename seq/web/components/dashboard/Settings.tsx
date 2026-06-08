@@ -33,7 +33,8 @@ export function Settings() {
   const card = { background: "var(--surface)", border: "1px solid var(--border-c)" };
 
   return (
-    <div className="min-h-[calc(100dvh-56px)] p-5" style={{ background: "var(--bg)" }}>
+    <div className="h-full overflow-y-auto" style={{ background: "var(--bg)" }}>
+    <div className="mx-auto max-w-lg px-5 pb-[max(calc(env(safe-area-inset-bottom)+1rem),1.5rem)] pt-5 lg:max-w-2xl lg:px-10 xl:px-16">
 
       <div className="mb-4 rounded-[22px] p-5" style={card}>
         <div className="flex items-center gap-4">
@@ -97,6 +98,7 @@ export function Settings() {
         <ArrowRightEndOnRectangleIcon className="h-5 w-5" />
         Гарах
       </button>
+    </div>
     </div>
   );
 }

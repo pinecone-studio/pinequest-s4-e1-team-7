@@ -25,9 +25,9 @@ const fmtDur = (s: number) => {
 
 const STATUS_LABEL: Record<string, string> = {
   connected: "Холбогдсон",
-  connecting: "Холбогдож байна…",
+  connecting: "Холбогдож байна...",
   error: "Алдаа",
-  idle: "Хүлээж байна",
+  idle: "Холболтыг хүлээж байна...",
 };
 
 export function CallSession({ roomId }: { roomId: string }) {
@@ -193,7 +193,7 @@ export function CallSession({ roomId }: { roomId: string }) {
 
       {(modelError || modelLoading) && !connected && (
         <p className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+3.5rem)] z-30 text-center text-xs text-white/50">
-          {modelError ?? "Дохионы загвар ачаалж байна…"}
+          {modelError ?? "Ачааллаж байна…"}
         </p>
       )}
 
