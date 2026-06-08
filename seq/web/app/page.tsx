@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { AuthOverlay } from "@/components/landingpage/AuthOverlay";
 import { Header } from "@/components/landingpage/Header";
 import { Hero } from "@/components/landingpage/Hero";
 import { ThreeModes } from "@/components/landingpage/ThreeModes";
@@ -18,6 +20,9 @@ export default function HomePage() {
       <FeatureVideoCall />
       <ThreeSteps />
       <Footer />
+      <Suspense>
+        <AuthOverlay />
+      </Suspense>
     </main>
   );
 }

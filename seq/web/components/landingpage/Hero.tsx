@@ -27,7 +27,7 @@ export const Hero = () => (
         </h1>
 
         <div className="lhero-cta mt-8">
-          <Link href="/auth/register" className="db-pillbtn green lg">Эхлэх</Link>
+          <Link href="/?auth=register" className="db-pillbtn green lg">Эхлэх</Link>
           <a href="#how" className="db-pillbtn lg">Ашиглах заавар</a>
         </div>
       </div>
