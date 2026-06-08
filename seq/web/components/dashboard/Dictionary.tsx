@@ -69,7 +69,7 @@ export function Dictionary({
   };
 
   return (
-    <section className="db-section">
+    <section className="db-section mt-4">
       <SectionHeader
         crumb={`Толь бичиг › ${catInfo.label}`}
         title={catInfo.label}
