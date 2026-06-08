@@ -45,10 +45,10 @@ export const Header = () => {
           className="h-13 w-13 object-contain" 
         />
         <div className="flex gap-1 items-baseline ">
-          <span style={{ color: "#ffbf00ff", fontWeight: 800, fontSize: "20px" }}>
+          <span style={{ color: "#ffbf00ff", fontWeight: 900, fontSize: "20px" }}>
             Sign
           </span>
-          <span style={{ color: bridgeColor, fontWeight: 800, fontSize: "20px" }}>
+          <span style={{ color: bridgeColor, fontWeight: 900, fontSize: "20px" }}>
             Bridge
           </span>
         </div>

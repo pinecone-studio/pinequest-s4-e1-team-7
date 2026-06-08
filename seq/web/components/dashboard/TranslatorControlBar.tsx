@@ -1,26 +1,23 @@
 "use client";
 
-import { ArrowPathIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { PlayIcon, StopIcon } from "@heroicons/react/24/solid";
+import { SpeakerWaveIcon } from "@heroicons/react/24/outline";
 
 type Props = {
   running: boolean;
   modelReady: boolean;
-  showSettings: boolean;
+  gender: "female" | "male";
   onToggle: () => void;
-  onReset: () => void;
-  onSettings: () => void;
+  onGenderChange: (g: "female" | "male") => void;
 };
 
 export function TranslatorControlBar({
   running,
   modelReady,
-  showSettings,
+  gender,
   onToggle,
-  onReset,
-  onSettings,
+  onGenderChange,
 }: Props) {
-
   return (
     <footer
       className="flex shrink-0 items-center gap-3 rounded-[24px] px-5 py-3"
@@ -30,7 +27,7 @@ export function TranslatorControlBar({
         boxShadow: "var(--shadow-sm)",
       }}
     >
-      {/* Play / Stop — pill with text label */}
+      {/* Play / Stop */}
       <button
         type="button"
         onClick={onToggle}
@@ -48,7 +45,7 @@ export function TranslatorControlBar({
         {running ? "Зогсоох" : "Эхлүүлэх"}
       </button>
 
-      {/* Status */}
+      {/* Status — fills remaining space */}
       <div className="flex flex-1 items-center gap-2">
         <span
           className="h-1.5 w-1.5 shrink-0 rounded-full transition-colors"
@@ -62,33 +59,25 @@ export function TranslatorControlBar({
         </span>
       </div>
 
-      {/* Reset */}
-      <button
-        type="button"
-        onClick={onReset}
-        aria-label="Цэвэрлэх"
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all active:scale-90"
-        style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
-      >
-        <ArrowPathIcon className="h-[18px] w-[18px]" style={{ color: "var(--text-2)" }} />
-      </button>
-
-      {/* Settings gear */}
-      <button
-        type="button"
-        onClick={onSettings}
-        aria-label="Тохиргоо"
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all active:scale-90"
-        style={{
-          background: showSettings ? "var(--olive)" : "var(--surface-2)",
-          border: `1px solid ${showSettings ? "var(--olive)" : "var(--border-c)"}`,
-        }}
-      >
-        <Cog6ToothIcon
-          className="h-[18px] w-[18px]"
-          style={{ color: showSettings ? "#0d1e35" : "var(--text-2)" }}
-        />
-      </button>
+      {/* Gender selector — right corner with voice icon */}
+      <div className="flex items-center gap-1.5">
+        <SpeakerWaveIcon className="h-4 w-4 shrink-0" style={{ color: "var(--text-3)" }} />
+        {(["female", "male"] as const).map((g) => (
+          <button
+            key={g}
+            type="button"
+            onClick={() => onGenderChange(g)}
+            className="rounded-full px-4 py-2 text-[12px] font-semibold transition-all duration-150 active:scale-95"
+            style={
+              gender === g
+                ? { background: "var(--olive)", color: "#0d1e35" }
+                : { background: "var(--surface-2)", color: "var(--text-2)", border: "1px solid var(--border-c)" }
+            }
+          >
+            {g === "female" ? "Эмэгтэй" : "Эрэгтэй"}
+          </button>
+        ))}
+      </div>
     </footer>
   );
 }

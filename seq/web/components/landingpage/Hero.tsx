@@ -1,38 +1,127 @@
 import Link from "next/link";
-import { ResponsiveDesign } from "./ResponsiveDesign";
 
 export const Hero = () => (
   <section
-    className="relative overflow-hidden px-4 py-20 md:px-8 md:py-28"
+    className="relative flex min-h-screen flex-col overflow-hidden px-4 pb-0 pt-16 md:pt-20"
     style={{ background: "var(--bg)" }}
     id="top"
   >
-    <div
-      className="pointer-events-none absolute -left-32 -top-32 h-[500px] w-[500px] rounded-full blur-3xl"
-      style={{ background: "var(--olive-soft)" }}
-    />
-    <div
-      className="pointer-events-none absolute -bottom-32 -right-16 h-[400px] w-[400px] rounded-full blur-3xl"
-      style={{ background: "var(--olive-faint)" }}
-    />
+    <div className="relative mx-auto w-full max-w-3xl text-center">
+      <h1
+        className="font-display text-[44px] font-bold leading-[1.04] tracking-[-1.5px] sm:text-[56px] md:text-[64px] lg:text-[72px]"
+        style={{ color: "var(--text)" }}
+      >
+        Дохионы хэлийг
+        <br />
+        <span style={{ color: "var(--olive)" }}>шууд хөрвүүлэх платформ</span>
+      </h1>
 
-    <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-16 md:flex-row md:items-center">
-      <div className="flex-1 text-center md:text-left">
-        <h1
-          className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl"
-          style={{ color: "var(--text)" }}
-        >
-          Монгол дохионы хэл <br />
-          <span style={{ color: "var(--olive)" }}>Шууд дуудлага</span>
-        </h1>
+      <p
+        className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed md:text-[19px]"
+        style={{ color: "var(--text-2)" }}
+      >
+        Монгол дохионы хэлнээс бичвэр хөрвүүлэж, видео дуудлага хийнэ.
+      </p>
 
-        <div className="lhero-cta mt-8">
-          <Link href="/?auth=register" className="db-pillbtn green lg">Эхлэх</Link>
-          <a href="#how" className="db-pillbtn lg">Ашиглах заавар</a>
-        </div>
+      <div className="lhero-cta mt-8 justify-center">
+        <Link href="/?auth=register" className="db-pillbtn green lg">
+          Эхлэх
+        </Link>
+        <a href="#how" className="db-pillbtn lg">
+          Хэрхэн ажилладаг вэ?
+        </a>
       </div>
+    </div>
 
-      <ResponsiveDesign />
+    {/* ── Floating visual composition — fills remaining viewport ── */}
+    <div className="relative mx-auto mt-10 w-full flex-1 max-w-5xl max-h-screen">
+      {/* Warm circle behind center image */}
+      <div
+        className="pointer-events-none absolute"
+        style={{
+          bottom: "-8%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "clamp(340px, 42vw, 540px)",
+          height: "clamp(340px, 42vw, 540px)",
+          borderRadius: "50%",
+          background: "var(--olive-soft)",
+          opacity: 0.72,
+          zIndex: 0,
+        }}
+      />
+
+      {/* Center image — mobile: landing4, desktop: landing3 */}
+      <img
+        src="/images/landing4.png"
+        alt="Sign Bridge"
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 object-contain object-bottom md:hidden"
+        style={{ height: "92%", width: "auto", maxWidth: "80%", zIndex: 2 }}
+      />
+      <img
+        src="/images/landing3.png"
+        alt="Sign Bridge"
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 object-contain object-bottom hidden md:block"
+        style={{ height: "96%", width: "auto", maxWidth: "54%", zIndex: 2 }}
+      />
+
+      {/* Top-left — landing1 */}
+      <img
+        src="/images/landing1.png"
+        alt=""
+        className="pointer-events-none absolute hidden md:block"
+        style={{
+          top: "8%",
+          left: "5%",
+          width: "clamp(175px, 16vw, 235px)",
+          borderRadius: "20px",
+          zIndex: 3,
+        }}
+      />
+
+      {/* Bottom-left — landing4 */}
+      <img
+        src="/images/landing4.png"
+        alt=""
+        className="pointer-events-none absolute hidden md:block"
+        style={{
+          bottom: "8%",
+          left: "3%",
+          width: "clamp(145px, 13vw, 200px)",
+          borderRadius: "18px",
+          zIndex: 3,
+        }}
+      />
+
+      {/* Top-right — landing2 */}
+      <img
+        src="/images/landing2.png"
+        alt=""
+        className="pointer-events-none absolute hidden md:block"
+        style={{
+          top: "6%",
+          right: "5%",
+          width: "clamp(185px, 17vw, 250px)",
+          borderRadius: "20px",
+          zIndex: 3,
+        }}
+      />
+
+      {/* Bottom-right — landing3 */}
+      {/* Over center — video.png overlaid on top of center image */}
+      <img
+        src="/images/video.png"
+        alt=""
+        className="pointer-events-none absolute hidden md:block"
+        style={{
+          bottom: "-11%",
+          left: "70%",
+          transform: "translateX(-50%)",
+          width: "clamp(180px, 20vw, 260px)",
+          borderRadius: "20px",
+          zIndex: 4,
+        }}
+      />
     </div>
   </section>
 );

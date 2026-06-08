@@ -2,16 +2,13 @@
 
 import { useState } from "react";
 import { SpeakerWaveIcon } from "@heroicons/react/24/outline";
-import type { LivePred } from "@/hooks/useSignDetection";
 
 type Props = {
   detected: string;
   running: boolean;
   modelLoading?: boolean;
-  livePred?: LivePred | null;
   speaking: boolean;
   volume: number;
-  textScale?: number;
   onSpeak: () => void;
   onVolumeChange: (v: number) => void;
 };
@@ -20,10 +17,8 @@ export function TranslatorCard({
   detected,
   running,
   modelLoading = false,
-  livePred = null,
   speaking,
   volume,
-  textScale = 1,
   onSpeak,
   onVolumeChange,
 }: Props) {
@@ -33,8 +28,11 @@ export function TranslatorCard({
     ? modelLoading ? "Ачааллаж байна…" : "Хүлээж байна…"
     : "Бичвэр энд харагдана...";
 
-  const textSize = `${Math.round(20 * textScale)}px`;
-  const subSize = `${Math.round(16 * textScale)}px`;
+  const btnStyle = {
+    background: "var(--surface-2)",
+    border: "1px solid var(--border-c)",
+    color: "var(--text-2)",
+  };
 
   return (
     <section
@@ -46,14 +44,8 @@ export function TranslatorCard({
       }}
     >
       <div className="mb-3 flex items-center gap-2">
-        <span
-          className="h-1.5 w-1.5 shrink-0 rounded-full"
-          style={{ background: "var(--olive)" }}
-        />
-        <p
-          className="text-[11px] font-bold uppercase tracking-[0.14em]"
-          style={{ color: "var(--text-3)" }}
-        >
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--olive)" }} />
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--text-3)" }}>
           Хөрвүүлсэн бичвэр
         </p>
       </div>
@@ -61,10 +53,7 @@ export function TranslatorCard({
       {/* Scrollable text area */}
       <div className="min-h-[120px] flex-1 overflow-y-auto">
         {detected ? (
-          <p
-            className="font-semibold leading-relaxed"
-            style={{ fontSize: `${fontSize}px`, color: "var(--text)" }}
-          >
+          <p className="font-semibold leading-relaxed" style={{ fontSize: `${fontSize}px`, color: "var(--text)" }}>
             {detected}
           </p>
         ) : (
@@ -75,29 +64,19 @@ export function TranslatorCard({
       </div>
 
       {/* Controls */}
-      <div
-        className="mt-3 space-y-2 border-t pt-3"
-        style={{ borderColor: "var(--border-c)" }}
-      >
+      <div className="mt-3 space-y-2 border-t pt-3" style={{ borderColor: "var(--border-c)" }}>
+        {/* Font size row */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setFontSize((s) => Math.max(14, s - 2))}
             aria-label="Фонт багасгах"
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[13px] font-bold transition-all active:scale-90"
-            style={{
-              background: "var(--surface-2)",
-              border: "1px solid var(--border-c)",
-              color: "var(--text-3)",
-            }}
+            style={btnStyle}
           >
             A
           </button>
           <input
-            type="range"
-            min={14}
-            max={32}
-            step={2}
-            value={fontSize}
+            type="range" min={14} max={32} step={2} value={fontSize}
             onChange={(e) => setFontSize(Number(e.target.value))}
             className="range-line flex-1 cursor-pointer"
             aria-label="Фонтын хэмжээ"
@@ -109,17 +88,13 @@ export function TranslatorCard({
             onClick={() => setFontSize((s) => Math.min(32, s + 2))}
             aria-label="Фонт томруулах"
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[18px] font-bold transition-all active:scale-90"
-            style={{
-              background: "var(--surface-2)",
-              border: "1px solid var(--border-c)",
-              color: "var(--text-3)",
-            }}
+            style={btnStyle}
           >
             A
           </button>
         </div>
 
-        {/* Volume + speak */}
+        {/* Volume + speak row */}
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -127,21 +102,12 @@ export function TranslatorCard({
             disabled={!detected}
             aria-label="Дуугаар унших"
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all active:scale-90 disabled:opacity-30"
-            style={{
-              background: speaking ? "var(--olive)" : "var(--surface-2)",
-              border: "1px solid var(--border-c)",
-            }}
+            style={speaking ? { background: "var(--olive)", border: "none" } : btnStyle}
           >
-            <SpeakerWaveIcon
-              className="h-5 w-5"
-              style={{ color: speaking ? "#0d1e35" : "var(--text-2)" }}
-            />
+            <SpeakerWaveIcon className="h-5 w-5" style={{ color: speaking ? "#0d1e35" : "var(--text-2)" }} />
           </button>
           <input
-            type="range"
-            min={0}
-            max={100}
-            value={Math.round(volume * 100)}
+            type="range" min={0} max={100} value={Math.round(volume * 100)}
             onChange={(e) => onVolumeChange(Number(e.target.value) / 100)}
             className="range-line flex-1 cursor-pointer"
             aria-label="Дуу"
@@ -151,7 +117,6 @@ export function TranslatorCard({
           />
         </div>
       </div>
-      {/* end controls wrapper */}
     </section>
   );
 }

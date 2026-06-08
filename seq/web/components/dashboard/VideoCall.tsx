@@ -29,7 +29,7 @@ export function VideoCall() {
 
   return (
     <div className="flex h-full flex-col" style={{ background: "var(--bg)" }}>
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 lg:max-w-none lg:px-10 xl:px-16">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 md:px-6 pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 lg:max-w-none lg:px-10 xl:px-16">
 
         {/* Header */}
         <div className="flex items-center pb-2 pt-5">
@@ -76,19 +76,24 @@ export function VideoCall() {
           <p className="mb-4 text-[15px] leading-relaxed" style={{ color: "var(--text-2)" }}>
             Эхлүүлэх дарж холбоосыг нөгөө хүндээ илгээнэ үү.
           </p>
-          <div className="mb-3 flex items-center gap-3 rounded-[14px] px-4 py-3"
+          <div className="flex items-center gap-3 rounded-[14px] px-4 py-3"
             style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}>
             <LinkIcon className="h-4 w-4 shrink-0" style={{ color: "var(--olive)" }} />
             <span className="flex-1 truncate font-mono text-[12px]" style={{ color: "var(--text-3)" }}>
               /call/{sessionId}
             </span>
           </div>
-          <button onClick={copyLink}
-            className="flex w-full items-center justify-center gap-2 rounded-[14px] px-4 py-3 text-[13px] font-bold transition-all active:scale-[0.98]"
-            style={{ background: "var(--olive)", color: "#0d1e35", boxShadow: "0 4px 16px rgba(245,197,24,0.3)" }}>
-            <LinkIcon className="h-4 w-4 shrink-0" />
-            {copied ? "Хуулагдлаа ✓" : "Холбоос хуулах"}
-          </button>
+
+          <div className="mt-3 flex justify-center">
+            <button
+              onClick={copyLink}
+              className="flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold transition-all duration-150 active:scale-95"
+              style={{ background: "var(--olive)", color: "#0d1e35" }}
+            >
+              <LinkIcon className="h-4 w-4 shrink-0" />
+              {copied ? "Хуулагдлаа ✓" : "Холбоос хуулах"}
+            </button>
+          </div>
         </div>
 
         <div className="flex-1" />

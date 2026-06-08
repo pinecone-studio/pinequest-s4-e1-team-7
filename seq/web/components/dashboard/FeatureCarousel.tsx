@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { FeatureCardContent } from "./FeatureCardContent";
 
-export type CarouselFeature = { id: string; title: string; sub: string; img: string; dark: boolean; bg: string; href: string };
+export type CarouselFeature = { id: string; title: string; sub: string; img: string; dark: boolean; bg: string; href: string; btnBg?: string; btnColor?: string; };
 
 export function FeatureCarousel({ features }: { features: CarouselFeature[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -85,42 +85,42 @@ export function FeatureCarousel({ features }: { features: CarouselFeature[] }) {
         </div>
       </div>
 
-      {/* Desktop: bento grid — fills available height, no fixed row heights */}
-      <div className="hidden h-full md:grid md:grid-cols-3 md:grid-rows-[1fr_1fr] md:gap-5">
+      {/* Desktop: 6col×2row — call(col1-2,big) | translator+dict(stacked,col3-4) | voice(col5-6,big) */}
+      <div className="hidden h-full md:grid md:grid-cols-6 md:grid-rows-[1fr_1fr] md:gap-5">
         {features[0] && (
           <Link
             href={features[0].href}
-            className="group relative col-span-2 overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            className="group relative col-span-2 row-span-2 overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
             style={cardStyle(features[0])}
           >
-            <FeatureCardContent f={features[0]} />
+            <FeatureCardContent f={features[0]} size="big" />
           </Link>
         )}
         {features[1] && (
           <Link
             href={features[1].href}
-            className="group relative col-span-1 overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
-            style={cardStyle(features[1])}
+            className="group relative overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            style={{ ...cardStyle(features[1]), gridColumn: "3 / span 2", gridRow: "1 / span 1" }}
           >
-            <FeatureCardContent f={features[1]} />
+            <FeatureCardContent f={features[1]} size="medium" />
           </Link>
         )}
         {features[2] && (
           <Link
             href={features[2].href}
-            className="group relative col-span-1 overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
-            style={cardStyle(features[2])}
+            className="group relative overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            style={{ ...cardStyle(features[2]), gridColumn: "5 / span 2", gridRow: "1 / span 2" }}
           >
-            <FeatureCardContent f={features[2]} />
+            <FeatureCardContent f={features[2]} size="big" />
           </Link>
         )}
         {features[3] && (
           <Link
             href={features[3].href}
-            className="group relative col-span-2 overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
-            style={cardStyle(features[3])}
+            className="group relative overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            style={{ ...cardStyle(features[3]), gridColumn: "3 / span 2", gridRow: "2 / span 1" }}
           >
-            <FeatureCardContent f={features[3]} />
+            <FeatureCardContent f={features[3]} size="medium" />
           </Link>
         )}
       </div>

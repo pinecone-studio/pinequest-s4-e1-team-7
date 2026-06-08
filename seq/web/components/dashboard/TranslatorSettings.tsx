@@ -63,7 +63,7 @@ type Props = {
 };
 
 export function TranslatorSettings({ settings, onUpdate, onClose }: Props) {
-  const activeStyle = { background: "var(--olive)", color: "black" };
+  const activeStyle = { background: "var(--olive)", color: "#0d1e35" };
   const inactiveStyle = {
     background: "var(--surface-2)",
     color: "var(--text-2)",

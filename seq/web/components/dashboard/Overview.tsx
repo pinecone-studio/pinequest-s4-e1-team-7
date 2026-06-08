@@ -10,24 +10,6 @@ import { useUser } from "@clerk/nextjs";
 
 const FEATURES: CarouselFeature[] = [
   {
-    id: "translator",
-    title: "Монгол дохионы хэл",
-    sub: "Дохионы хэлнээс яриа болгон сонсоно.",
-    img: "/images/welcome.png",
-    dark: true,
-    bg: "linear-gradient(135deg, var(--teal) 0%, var(--teal-2) 100%)",
-    href: "/dashboard/translator",
-  },
-  {
-    id: "voice",
-    title: "Ярианаас бичвэр",
-    sub: "Яриаг текст болгоно.",
-    img: "/images/text.png",
-    dark: false,
-    bg: "var(--surface)",
-    href: "/dashboard/voice",
-  },
-  {
     id: "call",
     title: "Видео дуудлага",
     sub: "Дуудлага хийх үед дохионы хэлнээс бичвэр, яриа",
@@ -35,15 +17,37 @@ const FEATURES: CarouselFeature[] = [
     dark: true,
     bg: "linear-gradient(135deg, #1a3d5c 0%, var(--teal-2) 100%)",
     href: "/dashboard/call",
+    btnBg: "rgba(255,255,255,0.18)",
+    btnColor: "#eaf0f8",
+  },
+  {
+    id: "translator",
+    title: "Монгол дохионы хэл",
+    sub: "Дохионы хэлнээс яриа болгон сонсоно.",
+    img: "/images/welcome.png",
+    dark: false,
+    bg: "var(--surface)",
+    href: "/dashboard/translator",
+  },
+  {
+    id: "voice",
+    title: "Ярианаас бичвэр",
+    sub: "Яриаг бичвэр болгоно.",
+    img: "/images/text.png",
+    dark: false,
+    bg: "var(--surface)",
+    href: "/dashboard/voice",
   },
   {
     id: "dict",
     title: "Толь бичиг",
     sub: "Монгол дохионы цагаан толгой, тоо",
     img: "/images/hero.png",
-    dark: false,
-    bg: "var(--surface)",
+    dark: true,
+    bg: "linear-gradient(135deg, var(--teal) 0%, #0b2840 100%)",
     href: "/dashboard/dict",
+    btnBg: "rgba(255,255,255,0.18)",
+    btnColor: "#eaf0f8",
   },
 ];
 
@@ -74,7 +78,7 @@ export function Overview() {
 
   return (
     <div
-      className="h-full flex flex-col overflow-y-auto md:overflow-hidden px-4 lg:px-10 xl:px-16"
+      className="h-full flex flex-col overflow-hidden px-4 md:px-6 lg:px-10 xl:px-16"
       style={{ background: "var(--bg)" }}
     >
       {/* Mobile header: logo · theme toggle · settings */}
@@ -134,7 +138,7 @@ export function Overview() {
       </div>
 
       {/* Greeting row */}
-      <div className="flex items-start justify-between pb-1 pt-3 md:pt-4">
+      <div className="flex items-start justify-between pb-1 pt-2 md:pt-3">
         <div>
           <p className="text-[14px] md:text-[15px]" style={{ color: "var(--text-3)" }}>
             Сайн байна уу?
@@ -149,9 +153,9 @@ export function Overview() {
       </div>
 
       {/* Hero headline */}
-      <div className="pb-3 pt-1">
+      <div className="pb-2 pt-1">
         <h1
-          className="text-[30px] font-bold leading-[1.06] tracking-[-0.5px] md:text-[38px] lg:text-[44px]"
+          className="text-[28px] font-bold leading-[1.06] tracking-[-0.5px] md:text-[34px] lg:text-[40px]"
           style={{ color: "var(--text)" }}
         >
           Монгол дохионы хэлнээс
