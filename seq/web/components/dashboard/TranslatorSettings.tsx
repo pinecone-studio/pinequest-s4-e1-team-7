@@ -72,7 +72,7 @@ export function TranslatorSettings({ settings, onUpdate, onClose }: Props) {
 
   return (
     <section
-      className="rounded-[24px] p-6"
+      className="shrink-0 rounded-[24px] p-5 md:p-6"
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border-c)",
@@ -88,9 +88,9 @@ export function TranslatorSettings({ settings, onUpdate, onClose }: Props) {
         </button>
       </div>
 
-      <div className="mb-6">
-        <p className="mb-2 text-[13px] font-semibold" style={{ color: "var(--text-3)" }}>
-          Дуу хоолой
+      <div className="mb-5">
+        <p className="mb-2 text-[12px] font-semibold" style={{ color: "var(--text-3)" }}>
+          Дуу
         </p>
         <div className="flex gap-2">
           {(["female", "male"] as const).map((g) => (
@@ -107,9 +107,9 @@ export function TranslatorSettings({ settings, onUpdate, onClose }: Props) {
         </div>
       </div>
 
-      <div className="mb-6">
-        <p className="mb-3 text-[13px] font-semibold" style={{ color: "var(--text-3)" }}>
-          Хурд
+      <div>
+        <p className="mb-3 text-[12px] font-semibold" style={{ color: "var(--text-3)" }}>
+          Унших хурд
         </p>
         <SpeedLine rate={settings.rate} onChange={(v) => onUpdate({ rate: v })} />
       </div>

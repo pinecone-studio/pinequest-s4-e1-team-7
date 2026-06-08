@@ -391,7 +391,7 @@ export function CameraView({
         {manualStart && !cameraOn && !status && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/80 p-6 text-center">
             <p className="text-sm text-zinc-300">
-              Камер + дохио танилтыг эхлүүлэхийн тулд доорх товчийг дарна уу
+              Эхлүүлнэ үү
             </p>
             <button
               type="button"

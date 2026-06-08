@@ -31,34 +31,99 @@ export function FeatureCarousel({ features }: { features: CarouselFeature[] }) {
   });
 
   return (
-    <>
+    <div className="md:h-full">
+      {/* Mobile: horizontal scroll carousel with peek */}
       <div className="md:hidden">
-        <div ref={scrollRef} onScroll={onScroll} className="no-scrollbar -mx-4 flex overflow-x-auto pb-4"
-          style={{ scrollSnapType: "x mandatory", scrollPaddingLeft: "16px", WebkitOverflowScrolling: "touch", overscrollBehaviorX: "contain", gap: "12px", paddingLeft: "16px", paddingRight: "16px" } as CSSProperties}>
+        <div
+          ref={scrollRef}
+          onScroll={onScroll}
+          className="no-scrollbar -mx-4 flex overflow-x-auto pb-3"
+          style={{
+            scrollSnapType: "x mandatory",
+            scrollPaddingLeft: "16px",
+            WebkitOverflowScrolling: "touch",
+            overscrollBehaviorX: "contain",
+            gap: "12px",
+            paddingLeft: "16px",
+            paddingRight: "16px",
+          } as CSSProperties}
+        >
           {features.map((f) => (
-            <Link key={f.id} href={f.href} className="group relative shrink-0 overflow-hidden rounded-[28px] transition-all duration-300 active:scale-[0.97]"
-              style={{ width: "88vw", maxWidth: "440px", height: "clamp(440px, 52dvh, 560px)", scrollSnapAlign: "start", flexShrink: 0, ...cardStyle(f) }}>
+            <Link
+              key={f.id}
+              href={f.href}
+              className="group relative shrink-0 overflow-hidden rounded-[28px] transition-all duration-300 active:scale-[0.97]"
+              style={{
+                width: "78vw",
+                maxWidth: "370px",
+                height: "clamp(300px, 44dvh, 440px)",
+                scrollSnapAlign: "start",
+                flexShrink: 0,
+                ...cardStyle(f),
+              }}
+            >
               <FeatureCardContent f={f} />
             </Link>
           ))}
           <div className="w-4 shrink-0" />
         </div>
-        <div className="flex items-center justify-center gap-1.5 py-3">
+        {/* Dot indicators */}
+        <div className="flex items-center justify-center gap-2 py-2">
           {features.map((_, i) => (
-            <button key={i} onClick={() => scrollTo(i)} aria-label={`${i + 1}-р карт`} className="rounded-full transition-all duration-300"
-              style={{ height: "6px", width: activeIdx === i ? "24px" : "6px", background: activeIdx === i ? "var(--olive)" : "var(--border-c)" }} />
+            <button
+              key={i}
+              onClick={() => scrollTo(i)}
+              aria-label={`${i + 1}-р карт`}
+              className="rounded-full transition-all duration-300"
+              style={{
+                height: "7px",
+                width: activeIdx === i ? "28px" : "7px",
+                background: activeIdx === i ? "var(--olive)" : "var(--border-c)",
+              }}
+            />
           ))}
         </div>
       </div>
 
-      <div className="hidden md:grid md:grid-cols-2 md:gap-4 md:pb-6">
-        {features.map((f) => (
-          <Link key={f.id} href={f.href} className="group relative overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
-            style={{ height: "clamp(340px, 28vw, 440px)", ...cardStyle(f) }}>
-            <FeatureCardContent f={f} />
+      {/* Desktop: bento grid — fills available height, no fixed row heights */}
+      <div className="hidden h-full md:grid md:grid-cols-3 md:grid-rows-[1fr_1fr] md:gap-5">
+        {features[0] && (
+          <Link
+            href={features[0].href}
+            className="group relative col-span-2 overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            style={cardStyle(features[0])}
+          >
+            <FeatureCardContent f={features[0]} />
           </Link>
-        ))}
+        )}
+        {features[1] && (
+          <Link
+            href={features[1].href}
+            className="group relative col-span-1 overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            style={cardStyle(features[1])}
+          >
+            <FeatureCardContent f={features[1]} />
+          </Link>
+        )}
+        {features[2] && (
+          <Link
+            href={features[2].href}
+            className="group relative col-span-1 overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            style={cardStyle(features[2])}
+          >
+            <FeatureCardContent f={features[2]} />
+          </Link>
+        )}
+        {features[3] && (
+          <Link
+            href={features[3].href}
+            className="group relative col-span-2 overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            style={cardStyle(features[3])}
+          >
+            <FeatureCardContent f={features[3]} />
+          </Link>
+        )}
       </div>
-    </>
+    </div>
   );
 }

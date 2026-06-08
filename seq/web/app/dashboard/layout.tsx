@@ -25,9 +25,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-dvh flex-col">
       <TopNav />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 min-h-0 overflow-hidden">
         <PageTransition>
-          <div className="mx-auto max-w-[1380px] px-4 pb-[calc(4rem+env(safe-area-inset-bottom))] md:px-6 md:pb-12">
+          <div className="h-full">
             {children}
           </div>
         </PageTransition>
