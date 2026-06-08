@@ -2,45 +2,69 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Hand, Mic, Video, Settings } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  HomeIcon as HomeO,
+  HandRaisedIcon as HandO,
+  MicrophoneIcon as MicO,
+  VideoCameraIcon as VideoO,
+  BookOpenIcon as BookO,
+} from "@heroicons/react/24/outline";
+import {
+  HomeIcon as HomeS,
+  HandRaisedIcon as HandS,
+  MicrophoneIcon as MicS,
+  VideoCameraIcon as VideoS,
+  BookOpenIcon as BookS,
+} from "@heroicons/react/24/solid";
 
 const tabs = [
-  { href: "/dashboard/overview", label: "Нүүр", icon: Home },
-  { href: "/dashboard/translator", label: "Дохио→Дуу", icon: Hand },
-  { href: "/dashboard/voice", label: "Дуу→Бичвэр", icon: Mic },
-  { href: "/dashboard/call", label: "Видео", icon: Video },
-  { href: "/dashboard/settings", label: "Тохиргоо", icon: Settings },
+  { href: "/dashboard/overview",   O: HomeO,  S: HomeS,  label: "Нүүр"   },
+  { href: "/dashboard/translator", O: HandO,  S: HandS,  label: "Дохио"  },
+  { href: "/dashboard/voice",      O: MicO,   S: MicS,   label: "Яриа"   },
+  { href: "/dashboard/call",       O: VideoO, S: VideoS, label: "Видео"  },
+  { href: "/dashboard/dict",       O: BookO,  S: BookS,  label: "Толь"   },
 ];
 
 export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden">
-      <ul className="mx-auto flex max-w-md justify-around px-1 pb-[env(safe-area-inset-bottom)]">
-        {tabs.map(({ href, label, icon: Icon }) => {
+    <nav
+      className="fixed inset-x-0 bottom-0 z-50 md:hidden"
+      style={{
+        background: "var(--surface)",
+        borderTop: "1px solid var(--border-c)",
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      <ul className="mx-auto flex max-w-md items-stretch justify-around px-1 pb-[max(env(safe-area-inset-bottom),8px)] pt-1">
+        {tabs.map(({ href, O, S, label }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
+          const Icon = active ? S : O;
           return (
             <li key={href} className="flex-1">
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors",
-                  active
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
+                aria-label={label}
+                className="flex flex-col items-center gap-0.5 py-1"
               >
-                <Icon
-                  className={cn(
-                    "size-5 transition-transform",
-                    active && "scale-110",
-                  )}
-                  aria-hidden
-                />
-                <span className="leading-none">{label}</span>
+                <span
+                  className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200"
+                  style={active ? { background: "var(--olive)" } : {}}
+                >
+                  <Icon
+                    className="h-[20px] w-[20px]"
+                    style={active ? { color: "#0d1e35" } : { color: "var(--text-3)" }}
+                    aria-hidden
+                  />
+                </span>
+                <span
+                  className="text-[10px] font-semibold leading-none transition-colors duration-200"
+                  style={{ color: active ? "var(--olive)" : "var(--text-3)" }}
+                >
+                  {label}
+                </span>
               </Link>
             </li>
           );

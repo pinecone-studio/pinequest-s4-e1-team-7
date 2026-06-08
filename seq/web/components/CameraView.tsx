@@ -21,6 +21,8 @@ type Props = {
   onStarted?: () => void;
   onMediaPipeReady?: () => void;
   inferenceActive?: boolean;
+  /** true = камер бүтэн дэлгэцэд дүүргэнэ (aspect-ratio хязгаарлалтгүй). */
+  fullscreen?: boolean;
 };
 
 export function CameraView({
@@ -36,6 +38,7 @@ export function CameraView({
   onStarted,
   onMediaPipeReady,
   inferenceActive = false,
+  fullscreen = false,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -284,6 +287,32 @@ export function CameraView({
     );
   }
 
+  if (fullscreen) {
+    return (
+      <div ref={wrapRef} className="absolute inset-0 overflow-hidden bg-black">
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          className="pointer-events-none absolute h-px w-px opacity-0"
+          aria-hidden
+        />
+        <canvas ref={canvasRef} className="block h-full w-full object-cover" />
+        {manualStart && !cameraOn && !status && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/70 p-6 text-center">
+            <p className="text-sm text-zinc-300">Камер асаахын тулд эхлүүлэх товчийг дарна уу</p>
+          </div>
+        )}
+        {status && (
+          <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-4 py-3 text-center text-xs text-zinc-300">
+            <p>{status}</p>
+          </div>
+        )}
+        {overlay && <div className="absolute inset-0">{overlay}</div>}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div
@@ -307,7 +336,7 @@ export function CameraView({
             <button
               type="button"
               onClick={() => void startCamera()}
-              className="rounded-xl bg-violet-600 px-6 py-3 text-sm font-medium text-white hover:bg-violet-500"
+              className="rounded-xl bg-[var(--olive)] px-6 py-3 text-sm font-medium text-white opacity-90"
             >
               📷 Камер асаах
             </button>
@@ -329,7 +358,7 @@ export function CameraView({
               <button
                 type="button"
                 onClick={() => void startCamera()}
-                className="rounded-lg bg-violet-600 px-4 py-2 text-xs text-white hover:bg-violet-500"
+                className="rounded-lg bg-[var(--olive)] px-4 py-2 text-xs text-white opacity-90"
               >
                 Дахин оролдох
               </button>

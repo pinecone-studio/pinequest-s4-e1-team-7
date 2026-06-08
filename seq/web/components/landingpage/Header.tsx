@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { UserPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { Show, UserButton } from "@clerk/nextjs";
-import Switch from "./DarkLightButton";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const NAV_LINKS = [
   { href: "#features", label: "Онцлог" },
@@ -10,50 +9,31 @@ const NAV_LINKS = [
 ];
 
 export const Header = () => (
-  <nav className="sticky top-0 z-50 flex items-center justify-between border-b bg-background/80 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/75 md:px-8">
-    <Link href="/" className="flex overflow-hidden">
-      <img src="/images/logo.png" width={150} height={80} />
+  <nav className="lnav">
+    <Link href="/" className="lnav-logo">
+      <img src="/images/logo.png" alt="Sign Bridge" className="h-10 w-10 object-contain" />
     </Link>
 
-    <div className="hidden items-center gap-1 md:flex">
+    <div className="lnav-links">
       {NAV_LINKS.map((l) => (
-        <a
-          key={l.href}
-          href={l.href}
-          className="rounded-full px-4 py-2 text-md font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          {l.label}
-        </a>
+        <a key={l.href} href={l.href}>{l.label}</a>
       ))}
     </div>
 
-    <div className="flex items-center gap-2">
-      <Switch />
+    <div className="lnav-right">
+      <ThemeToggle />
 
       <Show when="signed-out">
-        <Button
-          asChild
-          variant="ghost"
-          size="sm"
-          className="hidden hover:rounded-full sm:inline-flex"
-        >
-          <Link href="/auth/login" className="text-sm">
-            Нэвтрэх
-          </Link>
-        </Button>
-        <Button asChild size="sm" className="rounded-full">
-          <Link href="/auth/register">
-            <UserPlus className="size-4" /> Бүртгүүлэх
-          </Link>
-        </Button>
+        <Link href="/auth/login" className="db-pillbtn hidden sm:inline-flex">
+          Нэвтрэх
+        </Link>
+        <Link href="/auth/register" className="db-pillbtn green">
+          <UserPlusIcon className="h-4 w-4" /> Бүртгүүлэх
+        </Link>
       </Show>
 
       <Show when="signed-in">
-        <Button asChild size="sm" className="rounded-full">
-          <Link href="/dashboard" className="text-sm">
-            Эхлэх
-          </Link>
-        </Button>
+        <Link href="/dashboard" className="db-pillbtn green">Эхлэх</Link>
         <UserButton />
       </Show>
     </div>
