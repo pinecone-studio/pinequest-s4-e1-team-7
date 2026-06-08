@@ -1,0 +1,18 @@
+name = "sign-bridge-server"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sign-bridge-db"
+database_id = "dcde1bda-a70c-4a2c-ae1b-676e6b95b39f"
+migrations_dir = "drizzle/migrations"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "sign-bridge-storage"
+
+[vars]
+# CLERK_WEBHOOK_SECRET = "whsec_..."  ← wrangler secret put CLERK_WEBHOOK_SECRET
+

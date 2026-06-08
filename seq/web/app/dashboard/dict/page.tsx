@@ -1,4 +1,5 @@
 import { Dictionary } from "@/components/dashboard/Dictionary";
+import { getSigns } from "@/lib/api";
 import type { DictCategory } from "@/lib/constants";
 
 interface Props {
@@ -7,5 +8,11 @@ interface Props {
 
 export default async function DictPage({ searchParams }: Props) {
   const { cat } = await searchParams;
-  return <Dictionary category={(cat as DictCategory | undefined) ?? "alphabet"} />;
+  const category = (cat as DictCategory | undefined) ?? "alphabet";
+
+  // "numbers" → "number" (server schema)
+  const serverCategory = category === "numbers" ? "number" : "alphabet";
+  const signs = await getSigns(serverCategory);
+
+  return <Dictionary category={category} signs={signs} />;
 }

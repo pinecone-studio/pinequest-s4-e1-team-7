@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Wrangler local state (local D1 SQLite файл, cache)
+.wrangler/
+
+# Build output
+dist/
+
+# Local secrets — wrangler dev-д ашиглах нууц утгууд
+# Энэ файлд API key, token гэх мэт нууц зүйлс байна
+.dev.vars
+
+# macOS
+.DS_Store

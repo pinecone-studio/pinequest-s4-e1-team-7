@@ -1,0 +1,25 @@
+{
+  "name": "sign-bridge-server",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply sign-bridge-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply sign-bridge-db --remote",
+    "db:studio": "drizzle-kit studio",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.41.0",
+    "hono": "^4.7.0",
+    "svix": "^1.95.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250525.0",
+    "drizzle-kit": "^0.31.0",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.0.0"
+  }
+}

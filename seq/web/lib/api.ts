@@ -19,6 +19,13 @@ export interface DictionaryEntry {
   note: string;
 }
 
+export interface SignEntry {
+  id: number;
+  label: string;
+  category: "alphabet" | "number";
+  url: string;
+}
+
 export async function getStats(userId: string): Promise<UserStats> {
   const res = await fetch(`${BASE}/api/users/${userId}/stats`, {
     next: { tags: ["stats"] },
@@ -39,12 +46,45 @@ export async function getHistory(
   return res.json();
 }
 
+export async function getSigns(
+  category: "alphabet" | "number",
+): Promise<SignEntry[]> {
+  try {
+    const res = await fetch(`${BASE}/api/signs?category=${category}`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 export async function getDictionary(): Promise<DictionaryEntry[]> {
   const res = await fetch(`${BASE}/api/dictionary`, {
     next: { revalidate: 3600 },
   });
   if (!res.ok) throw new Error("Failed to load dictionary");
   return res.json();
+}
+
+export async function uploadSign(
+  file: File,
+  label: string,
+  category: "alphabet" | "number",
+): Promise<SignEntry> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("label", label);
+  fd.append("category", category);
+  const res = await fetch(`${BASE}/api/signs/upload`, { method: "POST", body: fd });
+  if (!res.ok) throw new Error("Upload failed");
+  return res.json();
+}
+
+export async function deleteSign(id: number): Promise<void> {
+  const res = await fetch(`${BASE}/api/signs/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Delete failed");
 }
 
 export async function recordTranslation(payload: {
