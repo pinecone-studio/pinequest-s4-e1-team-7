@@ -36,6 +36,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     gender: "female",
     rate: 1,
     autoSpeak: true,
+    textScale: 1,
   });
   const [stats, setStats] = useState<Stats>(EMPTY_STATS);
   const [toasts, setToasts] = useState<Toast[]>([]);

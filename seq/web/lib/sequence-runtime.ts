@@ -115,6 +115,8 @@ export type SeqPrediction = {
   bothHands: boolean;
   /** Avg hand landmark motion in the sliding window. */
   handMotion: number;
+  /** Full softmax vector (pred-decoder stage-2). */
+  probs?: Float32Array;
 };
 
 /** Single Cyrillic/Latin letter (А, В, …) or long vowel — not words like "би". */
@@ -376,6 +378,8 @@ export function emitterOptionsFromMeta(
     twoHandPostEmitBlockMs: meta.twoHandPostEmitBlockMs ?? 120,
     twoHandGapMs:         meta.twoHandGapMs ?? 150,
     twoHandSameLabelCooldownMs: meta.twoHandSameLabelCooldownMs ?? 500,
+    twoHandWindowFrac: meta.twoHandWindowFrac ?? 0.55,
+    twoHandMotionMin: meta.twoHandMotionMin ?? 0.0018,
     twoHandInstantConfidence: meta.twoHandInstantConfidence ?? 0.72,
   };
 }
@@ -765,6 +769,11 @@ export type SeqEmitterOptions = {
   staticResetClearFrac?: number;
   staticLiveInferFrames?: number;
   idleMaxMotion?: number;
+  postResetWarmFrames?: number;
+  postStaticWarmFrames?: number;
+  postResetClearFrac?: number;
+  lowConfNeutral?: number;
+  lowMarginNeutral?: number;
   oneHandWordMinConfidence?: number;
   oneHandWordMinMargin?: number;
   oneHandWordMinStreak?: number;
@@ -792,6 +801,8 @@ export type SeqEmitterOptions = {
   twoHandPostEmitBlockMs?: number;
   twoHandGapMs?: number;
   twoHandSameLabelCooldownMs?: number;
+  twoHandWindowFrac?: number;
+  twoHandMotionMin?: number;
   twoHandInstantConfidence?: number;
   staticTransitionBlockMs?: number;
   disarmMs?: number;
@@ -847,6 +858,11 @@ const DEFAULTS: Required<SeqEmitterOptions> = {
   staticResetClearFrac: 0.55,
   staticLiveInferFrames: 6,
   idleMaxMotion:       0.002,
+  postResetWarmFrames: 2,
+  postStaticWarmFrames: 1,
+  postResetClearFrac: 0.35,
+  lowConfNeutral: 0.66,
+  lowMarginNeutral: 0.10,
   oneHandWordMinConfidence: 0.74,
   oneHandWordMinMargin: 0.14,
   oneHandWordMinStreak: 3,
@@ -869,6 +885,8 @@ const DEFAULTS: Required<SeqEmitterOptions> = {
   twoHandPostEmitBlockMs: 120,
   twoHandGapMs:         150,
   twoHandSameLabelCooldownMs: 2500,
+  twoHandWindowFrac: 0.55,
+  twoHandMotionMin: 0.0018,
   twoHandInstantConfidence: 0.72,
   labels: [],
   handModes: [],

@@ -1,12 +1,8 @@
-import { randomBytes } from "crypto";
 import Link from "next/link";
 import { VideoCameraIcon } from "@heroicons/react/24/solid";
-
-export const dynamic = "force-dynamic";
+import { DEMO_CALL_ROOM } from "@/lib/call-constants";
 
 export function VideoCall() {
-  const sessionId = randomBytes(8).toString("hex");
-
   return (
     <div className="flex min-h-[calc(100dvh-56px)] flex-col" style={{ background: "var(--bg)" }}>
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
@@ -31,7 +27,7 @@ export function VideoCall() {
           {/* Call button + label */}
           <div className="flex flex-col items-center gap-3 pb-1">
             <Link
-              href={`/call/${sessionId}`}
+              href={`/call/${DEMO_CALL_ROOM}`}
               className="flex h-[100px] w-[100px] items-center justify-center rounded-full transition-all duration-300 active:scale-95 md:h-[120px] md:w-[120px]"
               style={{ background: "var(--olive)", boxShadow: "0 8px 28px rgba(0,0,0,0.15)" }}
             >

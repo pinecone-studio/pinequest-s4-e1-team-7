@@ -7,10 +7,13 @@ export interface User {
   email: string;
 }
 
+export type TextScale = 0.9 | 1 | 1.15 | 1.3;
+
 export interface Settings {
   gender: Gender;
   rate: number;
   autoSpeak: boolean;
+  textScale: TextScale;
 }
 
 export interface HistoryItem {

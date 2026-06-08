@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { getLandmarkers, type AllLandmarks } from "@/lib/mediapipe";
+import { getLandmarkers, resetLandmarkersCache, type AllLandmarks } from "@/lib/mediapipe";
+import { registerCameraReleaser } from "@/lib/camera-registry";
 import {
   attachMediaStream,
   detachMediaStream,
@@ -29,6 +30,8 @@ type Props = {
   drawSkeleton?: boolean;
   showPreview?: boolean;
   manualStart?: boolean;
+  /** manualStart=true үед камер энэ утга true болоход нээгдэнэ */
+  active?: boolean;
   onStarted?: () => void;
   onMediaPipeReady?: () => void;
   inferenceActive?: boolean;
@@ -50,6 +53,7 @@ export function CameraView({
   drawSkeleton = false,
   showPreview = true,
   manualStart = false,
+  active = false,
   onStarted,
   onMediaPipeReady,
   inferenceActive = false,
@@ -98,6 +102,7 @@ export function CameraView({
     detachMediaStream(videoRef.current);
     bundleRef.current?.close();
     bundleRef.current = null;
+    resetLandmarkersCache();
   }, []);
 
   const releaseCamera = useCallback(() => {
@@ -305,6 +310,26 @@ export function CameraView({
       releaseCameraResources();
     };
   }, [manualStart, releaseCameraResources, startCamera]);
+
+  useEffect(() => {
+    if (!manualStart) return;
+    mountedRef.current = true;
+    if (active) {
+      setCameraOn(true);
+      if (!streamRef.current) void startCamera();
+    } else if (streamRef.current) {
+      releaseCamera();
+      setStatus("");
+    }
+    return () => {
+      mountedRef.current = false;
+      releaseCameraResources();
+    };
+  }, [active, manualStart, releaseCamera, releaseCameraResources, startCamera]);
+
+  useEffect(() => {
+    return registerCameraReleaser(releaseCamera);
+  }, [releaseCamera]);
 
   useEffect(() => {
     if (inferenceActive) setStatus("");

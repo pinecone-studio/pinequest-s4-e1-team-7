@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AllLandmarks } from "@/lib/mediapipe";
+import * as sequenceRuntime from "@/lib/sequence-runtime";
 import type { SequenceEmitter, SequenceRecognizer } from "@/lib/sequence-runtime";
 
 export type LivePred = {
@@ -19,35 +20,54 @@ export function useSignDetection(onWord: (word: string) => void) {
 
   const recognizerRef = useRef<SequenceRecognizer | null>(null);
   const emitterRef = useRef<SequenceEmitter | null>(null);
-  const runtimeRef = useRef<typeof import("@/lib/sequence-runtime") | null>(null);
   const livePredRef = useRef<LivePred | null>(null);
   const lastLiveUiAtRef = useRef(0);
   const modelLoadStartedRef = useRef(false);
+  const loadGenRef = useRef(0);
+  const modelErrorRef = useRef(modelError);
+  modelErrorRef.current = modelError;
+
+  const resetSession = useCallback(() => {
+    recognizerRef.current = null;
+    emitterRef.current = null;
+    livePredRef.current = null;
+    lastLiveUiAtRef.current = 0;
+    modelLoadStartedRef.current = false;
+    loadGenRef.current += 1;
+    setModelReady(false);
+    setModelLoading(false);
+    setModelError("");
+    setLivePred(null);
+  }, []);
 
   const startLoad = useCallback(() => {
-    if (modelLoadStartedRef.current) return;
+    if (modelLoadStartedRef.current && !modelErrorRef.current) return;
     modelLoadStartedRef.current = true;
+    setModelError("");
     setModelLoading(true);
 
+    const gen = loadGenRef.current;
     let cancelled = false;
     const loadTimeout = setTimeout(() => {
-      if (cancelled) return;
+      if (cancelled || gen !== loadGenRef.current) return;
       setModelError(
         "Загвар ачаалах удаан байна. Хуудсыг refresh хийж, browser console (F12) шалгана уу."
       );
       setModelLoading(false);
+      modelLoadStartedRef.current = false;
     }, 45_000);
 
     void (async () => {
       await new Promise((r) => setTimeout(r, 100));
-      const runtime = await import("@/lib/sequence-runtime");
-      runtimeRef.current = runtime;
-      const result = await runtime.loadSequenceModelWithReason();
-      if (cancelled) return;
+      if (cancelled || gen !== loadGenRef.current) return;
+
+      const result = await sequenceRuntime.loadSequenceModelWithReason();
+      if (cancelled || gen !== loadGenRef.current) return;
       clearTimeout(loadTimeout);
       setModelLoading(false);
 
       if (!result.ok) {
+        modelLoadStartedRef.current = false;
         if (result.reason === "missing_files") {
           setModelError(
             "Загварын файл олдсонгүй. seq/training дотор: python3 train.py"
@@ -63,9 +83,12 @@ export function useSignDetection(onWord: (word: string) => void) {
         return;
       }
 
-      recognizerRef.current = new runtime.SequenceRecognizer(result.model, result.meta);
-      emitterRef.current = new runtime.SequenceEmitter(
-        runtime.emitterOptionsFromMeta(result.meta)
+      recognizerRef.current = new sequenceRuntime.SequenceRecognizer(
+        result.model,
+        result.meta
+      );
+      emitterRef.current = new sequenceRuntime.SequenceEmitter(
+        sequenceRuntime.emitterOptionsFromMeta(result.meta)
       );
       console.info("[seq] model ready → detect эхэлж байна");
       setModelReady(true);
@@ -84,12 +107,13 @@ export function useSignDetection(onWord: (word: string) => void) {
     };
   }, []);
 
+  useEffect(() => () => resetSession(), [resetSession]);
+
   const handleLandmarks = useCallback(
     (lm: AllLandmarks) => {
       const rec = recognizerRef.current;
       const emitter = emitterRef.current;
-      const runtime = runtimeRef.current;
-      if (!rec || !emitter || !runtime) return;
+      if (!rec || !emitter) return;
 
       const pred = rec.push(lm);
       const word = pred ? emitter.push(pred) : null;
@@ -97,7 +121,7 @@ export function useSignDetection(onWord: (word: string) => void) {
       const now = performance.now();
       if (
         pred &&
-        runtime.isPredictionVisible(pred) &&
+        sequenceRuntime.isPredictionVisible(pred) &&
         now - lastLiveUiAtRef.current >= 350
       ) {
         const st = emitter.getStatus(now);
@@ -122,7 +146,7 @@ export function useSignDetection(onWord: (word: string) => void) {
 
       if (!word) return;
 
-      if (runtime.isStaticSign(word)) rec.resetAfterStaticEmit();
+      if (sequenceRuntime.isStaticSign(word)) rec.resetAfterStaticEmit();
       else rec.resetAfterWordEmit();
 
       onWord(word);
@@ -145,5 +169,6 @@ export function useSignDetection(onWord: (word: string) => void) {
     startLoad,
     handleLandmarks,
     reset,
+    resetSession,
   };
 }

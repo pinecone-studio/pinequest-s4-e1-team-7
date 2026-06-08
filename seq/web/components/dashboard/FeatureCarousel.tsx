@@ -37,7 +37,7 @@ export function FeatureCarousel({ features }: { features: CarouselFeature[] }) {
           style={{ scrollSnapType: "x mandatory", scrollPaddingLeft: "16px", WebkitOverflowScrolling: "touch", overscrollBehaviorX: "contain", gap: "12px", paddingLeft: "16px", paddingRight: "16px" } as CSSProperties}>
           {features.map((f) => (
             <Link key={f.id} href={f.href} className="group relative shrink-0 overflow-hidden rounded-[28px] transition-all duration-300 active:scale-[0.97]"
-              style={{ width: "85vw", maxWidth: "400px", height: "clamp(400px, 46dvh, 500px)", scrollSnapAlign: "start", flexShrink: 0, ...cardStyle(f) }}>
+              style={{ width: "88vw", maxWidth: "440px", height: "clamp(440px, 52dvh, 560px)", scrollSnapAlign: "start", flexShrink: 0, ...cardStyle(f) }}>
               <FeatureCardContent f={f} />
             </Link>
           ))}
@@ -54,7 +54,7 @@ export function FeatureCarousel({ features }: { features: CarouselFeature[] }) {
       <div className="hidden md:grid md:grid-cols-2 md:gap-4 md:pb-6">
         {features.map((f) => (
           <Link key={f.id} href={f.href} className="group relative overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
-            style={{ height: "clamp(300px, 26vw, 400px)", ...cardStyle(f) }}>
+            style={{ height: "clamp(340px, 28vw, 440px)", ...cardStyle(f) }}>
             <FeatureCardContent f={f} />
           </Link>
         ))}

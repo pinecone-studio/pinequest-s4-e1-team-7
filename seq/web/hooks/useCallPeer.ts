@@ -1,9 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { attachMediaStream, detachMediaStream } from "@/lib/video-utils";
+import {
+  attachMediaStream,
+  detachMediaStream,
+  releaseMediaStream,
+} from "@/lib/video-utils";
 
-type PeerMsg = { kind: "caption"; text: string } | { kind: "phrase"; text: string };
+type PeerMsg =
+  | { kind: "caption"; text: string }
+  | { kind: "phrase"; text: string }
+  | { kind: "hangup" };
 
 type CaptionHandlers = {
   onCaption: (text: string) => void;
@@ -31,11 +38,13 @@ export function useCallPeer(
   onRemoteDisconnectRef.current = onRemoteDisconnect;
   const wasInCallRef = useRef(false);
   const disconnectNotifiedRef = useRef(false);
+  const sessionEndedRef = useRef(false);
 
   const notifyRemoteDisconnect = useCallback(() => {
     if (!wasInCallRef.current || disconnectNotifiedRef.current) return;
     disconnectNotifiedRef.current = true;
     wasInCallRef.current = false;
+    sessionEndedRef.current = true;
     onRemoteDisconnectRef.current?.();
   }, []);
 
@@ -75,6 +84,10 @@ export function useCallPeer(
       conn.on("error", () => setStatus("error"));
       conn.on("data", (d) => {
         const m = d as PeerMsg;
+        if (m?.kind === "hangup") {
+          notifyRemoteDisconnect();
+          return;
+        }
         if (m?.kind === "caption" && typeof m.text === "string") {
           handlersRef.current.onCaption(m.text);
         } else if (m?.kind === "phrase" && typeof m.text === "string") {
@@ -112,6 +125,7 @@ export function useCallPeer(
 
   const dialOnce = useCallback(
     (target: string) => {
+      if (sessionEndedRef.current) return false;
       const peer = peerRef.current;
       const stream = localStreamRef.current;
       if (!peer || !stream || connRef.current?.open) return false;
@@ -130,9 +144,14 @@ export function useCallPeer(
 
   const startDial = useCallback(
     (target: string) => {
+      if (sessionEndedRef.current) return;
       if (dialRef.current) return;
       attemptsRef.current = 0;
       const tick = () => {
+        if (sessionEndedRef.current) {
+          stopDial();
+          return;
+        }
         if (connRef.current?.open) {
           stopDial();
           return;
@@ -250,6 +269,7 @@ export function useCallPeer(
   }, [attachCall, attachConn, roomId, stopDial]);
 
   useEffect(() => {
+    if (sessionEndedRef.current) return;
     if (role !== "guest" || !myPeerId || !hasLocalStream) return;
     if (connRef.current?.open || callRef.current) return;
     const target = peerHint || hostId;
@@ -258,9 +278,11 @@ export function useCallPeer(
   }, [hasLocalStream, hostId, myPeerId, peerHint, role, startDial, stopDial]);
 
   useEffect(() => {
+    if (sessionEndedRef.current) return;
     if (role !== "guest" || !myPeerId) return;
     const target = peerHint || hostId;
     const id = setInterval(() => {
+      if (sessionEndedRef.current) return;
       if (localStreamRef.current && !connRef.current?.open && !dialRef.current) {
         startDial(target);
       }
@@ -285,8 +307,8 @@ export function useCallPeer(
     setHasLocalStream(true);
   }, []);
 
-  /** Remote video салгах — local stream-ийг CameraView унтраана. */
   const releaseLocalMedia = useCallback(() => {
+    releaseMediaStream(localStreamRef.current);
     localStreamRef.current = null;
     detachMediaStream(remoteVideoRef.current);
     setHasLocalStream(false);
@@ -296,14 +318,26 @@ export function useCallPeer(
   useEffect(() => () => detachMediaStream(remoteVideoRef.current), []);
 
   const hangUp = useCallback(() => {
+    sessionEndedRef.current = true;
     wasInCallRef.current = false;
     disconnectNotifiedRef.current = true;
-    connRef.current?.close();
+    stopDial();
+    const conn = connRef.current;
+    if (conn?.open) {
+      try {
+        conn.send({ kind: "hangup" } satisfies PeerMsg);
+      } catch {
+        /* peer аль хэдийн хаагдсан */
+      }
+    }
+    conn?.close();
     callRef.current?.close();
     connRef.current = null;
     callRef.current = null;
+    peerRef.current?.destroy();
+    peerRef.current = null;
     releaseLocalMedia();
-  }, [releaseLocalMedia]);
+  }, [releaseLocalMedia, stopDial]);
 
   return {
     role,
