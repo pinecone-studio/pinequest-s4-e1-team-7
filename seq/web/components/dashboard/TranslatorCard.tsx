@@ -3,12 +3,14 @@
 import { SpeakerWaveIcon, ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import { VoiceWave } from "@/components/ui/voice-wave";
 import { TypewriterCaption } from "@/components/TypewriterCaption";
+import type { LivePred } from "@/hooks/useSignDetection";
 
 type Props = {
   detected: string;
   running: boolean;
   modelReady: boolean;
   modelLoading?: boolean;
+  livePred?: LivePred | null;
   speaking: boolean;
   volume: number;
   onSpeak: () => void;
@@ -20,6 +22,7 @@ export function TranslatorCard({
   running,
   modelReady,
   modelLoading = false,
+  livePred = null,
   speaking,
   volume,
   onSpeak,
@@ -54,9 +57,16 @@ export function TranslatorCard({
         style={{ background: "var(--bg)", border: "1px solid var(--border-c)" }}
       >
         {detected ? (
-          <div className="[&>div]:min-h-0 [&>div]:border-0 [&>div]:bg-transparent [&>div]:p-0 [&>div]:text-[20px] [&>div]:font-semibold [&>div]:leading-snug [&>div]:shadow-none [&>div]:text-[var(--text)]">
-            <TypewriterCaption text={detected} charMs={18} wordPauseMs={40} />
+          <div className="text-[18px] font-semibold leading-snug">
+            <TypewriterCaption variant="plain" text={detected} charMs={18} wordPauseMs={40} />
           </div>
+        ) : running && livePred ? (
+          <p className="text-[18px] font-medium leading-snug" style={{ color: "var(--text-2)" }}>
+            {livePred.label}
+            <span className="ml-2 font-mono text-[14px]" style={{ color: "var(--text-3)" }}>
+              {(livePred.confidence * 100).toFixed(0)}%
+            </span>
+          </p>
         ) : (
           <p className="text-[18px] font-medium leading-snug" style={{ color: "var(--text-3)" }}>
             {placeholder}

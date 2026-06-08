@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { getLandmarkers, type AllLandmarks } from "@/lib/mediapipe";
-import { attachMediaStream, drawVideoCover } from "@/lib/video-utils";
+import {
+  attachMediaStream,
+  detachMediaStream,
+  drawVideoCover,
+  releaseMediaStream,
+} from "@/lib/video-utils";
 
 /** MediaPipe only — preview is live rAF from <video>. */
 const DETECT_HZ = 8;
@@ -29,6 +34,8 @@ type Props = {
   inferenceActive?: boolean;
   /** true = камер бүтэн дэлгэцэд дүүргэнэ (aspect-ratio хязгаарлалтгүй). */
   fullscreen?: boolean;
+  /** cover = zoom/crop, contain = бүтэн кадр (call-д илүү тохиромжтой). */
+  previewFit?: "cover" | "contain";
 };
 
 export function CameraView({
@@ -47,6 +54,7 @@ export function CameraView({
   onMediaPipeReady,
   inferenceActive = false,
   fullscreen = false,
+  previewFit = "cover",
 }: Props) {
   const previewMirror = mirrorPreview ?? mirror;
   const detectMirror = mirrorDetect ?? mirror;
@@ -77,6 +85,26 @@ export function CameraView({
   const bundleRef = useRef<Awaited<ReturnType<typeof getLandmarkers>> | null>(
     null
   );
+  const mountedRef = useRef(true);
+
+  /** Stream + MediaPipe хаах (setState хийхгүй — Strict Mode remount-д хэрэгтэй). */
+  const releaseCameraResources = useCallback(() => {
+    if (liveRafRef.current !== null) {
+      cancelAnimationFrame(liveRafRef.current);
+      liveRafRef.current = null;
+    }
+    releaseMediaStream(streamRef.current);
+    streamRef.current = null;
+    detachMediaStream(videoRef.current);
+    bundleRef.current?.close();
+    bundleRef.current = null;
+  }, []);
+
+  const releaseCamera = useCallback(() => {
+    releaseCameraResources();
+    setBundleReady(false);
+    setCameraOn(false);
+  }, [releaseCameraResources]);
 
   useEffect(() => {
     workRef.current = document.createElement("canvas");
@@ -124,7 +152,7 @@ export function CameraView({
             const ctx = c.getContext("2d", { alpha: false });
             if (ctx) {
               ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-              drawVideoCover(ctx, v, displayW, displayH, previewMirror);
+              drawVideoCover(ctx, v, displayW, displayH, previewMirror, previewFit);
               if (drawSkeleton && lastLmRef.current) {
                 drawSkeletonOverlay(ctx, displayW, displayH, lastLmRef.current);
               }
@@ -143,7 +171,7 @@ export function CameraView({
         liveRafRef.current = null;
       }
     };
-  }, [cameraOn, drawSkeleton, previewMirror, showPreview]);
+  }, [cameraOn, drawSkeleton, previewFit, previewMirror, showPreview]);
 
   /** MediaPipe + inference — preview-ийг блоклохгүй, TF дараагийн frame-д. */
   useEffect(() => {
@@ -207,7 +235,7 @@ export function CameraView({
   }, [bundleReady, detectMirror, inferenceActive]);
 
   const startCamera = useCallback(async () => {
-    if (streamRef.current) return;
+    if (streamRef.current || !mountedRef.current) return;
     setCameraOn(true);
     setStatus("Камерын зөвшөөрөл хүлээж байна...");
 
@@ -220,8 +248,8 @@ export function CameraView({
         },
         audio: false,
       });
-      if (!videoRef.current) {
-        stream.getTracks().forEach((t) => t.stop());
+      if (!mountedRef.current || !videoRef.current) {
+        releaseMediaStream(stream);
         return;
       }
       streamRef.current = stream;
@@ -232,7 +260,9 @@ export function CameraView({
       setStatus("MediaPipe: WASM...");
 
       const bundle = await Promise.race([
-        getLandmarkers((stage) => setStatus(`MediaPipe: ${stage}...`)),
+        getLandmarkers((stage) => {
+          if (mountedRef.current) setStatus(`MediaPipe: ${stage}...`);
+        }),
         new Promise<never>((_, reject) =>
           setTimeout(
             () => reject(new Error("MediaPipe ачаалах хэт удаан (60s)")),
@@ -240,15 +270,20 @@ export function CameraView({
           )
         ),
       ]);
+      if (!mountedRef.current) {
+        bundle.close();
+        releaseCameraResources();
+        return;
+      }
       bundleRef.current = bundle;
       setBundleReady(true);
       setStatus("Загвар ачаалж байна...");
       onMediaPipeReadyRef.current?.();
       onStartedRef.current?.();
     } catch (e) {
+      if (!mountedRef.current) return;
       console.error(e);
-      setCameraOn(false);
-      setBundleReady(false);
+      releaseCamera();
       const msg = (e as Error).message;
       if (msg.includes("Permission") || msg.includes("NotAllowed")) {
         setStatus(
@@ -258,24 +293,22 @@ export function CameraView({
         setStatus(`Алдаа: ${msg}`);
       }
     }
-  }, [height, width]);
+  }, [height, releaseCamera, releaseCameraResources, width]);
 
   useEffect(() => {
-    if (!cameraOn || manualStart) return;
+    if (manualStart) return;
+    mountedRef.current = true;
+    setCameraOn(true);
     void startCamera();
-  }, [cameraOn, manualStart, startCamera]);
+    return () => {
+      mountedRef.current = false;
+      releaseCameraResources();
+    };
+  }, [manualStart, releaseCameraResources, startCamera]);
 
   useEffect(() => {
     if (inferenceActive) setStatus("");
   }, [inferenceActive]);
-
-  useEffect(() => {
-    return () => {
-      if (liveRafRef.current !== null) cancelAnimationFrame(liveRafRef.current);
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      bundleRef.current?.close();
-    };
-  }, []);
 
   if (!showPreview) {
     return (

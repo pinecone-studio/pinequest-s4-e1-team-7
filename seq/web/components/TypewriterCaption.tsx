@@ -7,8 +7,8 @@ type Props = {
   instant?: boolean;
   charMs?: number;
   wordPauseMs?: number;
-  /** box = card UI, subtitle = кино subtitle (no background) */
-  variant?: "box" | "subtitle";
+  /** box = dark card, subtitle = кино subtitle, plain = цайвар UI */
+  variant?: "box" | "subtitle" | "plain";
   /** subtitle variant өнгө */
   tone?: "white" | "yellow";
 };
@@ -123,6 +123,14 @@ export function TypewriterCaption({
         style={shadowStyle}
       >
         {content}
+      </p>
+    );
+  }
+
+  if (variant === "plain") {
+    return (
+      <p className="whitespace-pre-wrap break-words" style={{ color: "var(--text)" }}>
+        {text ? content : null}
       </p>
     );
   }

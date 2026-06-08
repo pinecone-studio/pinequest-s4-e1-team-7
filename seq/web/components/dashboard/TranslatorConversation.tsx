@@ -1,11 +1,13 @@
 "use client";
 
 import { TypewriterCaption } from "@/components/TypewriterCaption";
+import type { LivePred } from "@/hooks/useSignDetection";
 
 type Props = {
   detected: string;
   running: boolean;
   modelReady: boolean;
+  livePred: LivePred | null;
   placeholder: string;
 };
 
@@ -13,6 +15,7 @@ export function TranslatorConversation({
   detected,
   running,
   modelReady,
+  livePred,
   placeholder,
 }: Props) {
   return (
@@ -44,11 +47,23 @@ export function TranslatorConversation({
         style={{ background: "var(--bg)", border: "1px solid var(--border-c)" }}
       >
         {detected ? (
-          <div
-            className="text-[16px] leading-relaxed [&>div]:min-h-0 [&>div]:border-0 [&>div]:bg-transparent [&>div]:p-0 [&>div]:text-[16px] [&>div]:font-medium [&>div]:leading-relaxed [&>div]:shadow-none [&>div]:text-[var(--text)]"
-          >
-            <TypewriterCaption text={detected} charMs={14} wordPauseMs={30} />
+          <div className="text-[16px] font-medium leading-relaxed">
+            <TypewriterCaption
+              variant="plain"
+              text={detected}
+              charMs={14}
+              wordPauseMs={30}
+            />
           </div>
+        ) : running && livePred ? (
+          <p className="text-[15px] leading-relaxed" style={{ color: "var(--text-2)" }}>
+            <span className="font-semibold" style={{ color: "var(--text)" }}>
+              {livePred.label}
+            </span>
+            <span className="ml-2 font-mono text-[13px]" style={{ color: "var(--text-3)" }}>
+              {(livePred.confidence * 100).toFixed(0)}%
+            </span>
+          </p>
         ) : (
           <p className="text-[15px] leading-relaxed" style={{ color: "var(--text-3)" }}>
             {placeholder}

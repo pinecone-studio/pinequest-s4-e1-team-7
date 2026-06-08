@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
@@ -13,13 +13,10 @@ import { TranslatorControlBar } from "./TranslatorControlBar";
 import { OnboardingSheet } from "./OnboardingSheet";
 import { ChevronLeftIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { PlayIcon, StopIcon } from "@heroicons/react/24/solid";
-
-const appendWord = (prev: string, w: string) => {
-  const t = prev.trim();
-  if (!t) return w;
-  if (t.split(/\s+/).pop() === w) return prev;
-  return `${t} ${w}`;
-};
+import {
+  appendDetectedWord,
+  shouldAcceptWord,
+} from "@/lib/caption-utils";
 
 export function Translator() {
   const router = useRouter();
@@ -31,10 +28,14 @@ export function Translator() {
   const [showSettings, setShowSettings] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const lastWordRef = useRef<{ word: string; at: number } | null>(null);
 
   const onWord = useCallback(
     (word: string) => {
-      setDetected((prev) => appendWord(prev, word));
+      const now = Date.now();
+      if (!shouldAcceptWord(word, lastWordRef.current, now)) return;
+      lastWordRef.current = { word, at: now };
+      setDetected((prev) => appendDetectedWord(prev, word));
       pushHistory("sign", word);
       if (settings.autoSpeak) {
         speak(word, { ...settings, volume });
@@ -74,6 +75,7 @@ export function Translator() {
 
   const clearAll = useCallback(() => {
     setDetected("");
+    lastWordRef.current = null;
     reset();
   }, [reset]);
 
@@ -99,7 +101,10 @@ export function Translator() {
       >
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => {
+            clearAll();
+            router.back();
+          }}
           aria-label="Буцах"
           className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70"
           style={{ background: "var(--surface)", border: "1px solid var(--border-c)" }}
@@ -253,6 +258,7 @@ export function Translator() {
             detected={detected}
             running={running}
             modelReady={modelReady}
+            livePred={livePred}
             placeholder={placeholder}
           />
           {showSettings && (
@@ -280,6 +286,7 @@ export function Translator() {
             running={running}
             modelReady={modelReady}
             modelLoading={modelLoading}
+            livePred={livePred}
             speaking={speaking}
             volume={volume}
             onSpeak={handleSpeak}

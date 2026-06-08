@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Recognition = typeof window extends { SpeechRecognition: infer T } ? T : any;
 
@@ -9,7 +9,12 @@ const getCtor = (): any =>
 
 export function useSpeechRecognition(onResult: (text: string, final: boolean) => void) {
   const [listening, setListening] = useState(false);
+  const [supported, setSupported] = useState(false);
   const recRef = useRef<any>(null);
+
+  useEffect(() => {
+    setSupported(!!getCtor());
+  }, []);
 
   const stop = useCallback(() => {
     setListening(false);
@@ -37,5 +42,5 @@ export function useSpeechRecognition(onResult: (text: string, final: boolean) =>
     return true;
   }, [onResult]);
 
-  return { listening, start, stop, supported: !!getCtor() };
+  return { listening, start, stop, supported };
 }
