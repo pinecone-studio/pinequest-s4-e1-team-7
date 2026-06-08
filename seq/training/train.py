@@ -49,6 +49,19 @@ def _tcn_block(x, filters: int, kernel: int, dilation: int, dropout: float,
     return layers.Add()([x, res])
 
 
+def _label_smoothing_loss(epsilon: float = 0.08):
+    import tensorflow as tf
+
+    def loss(y_true, y_pred):
+        n = tf.cast(tf.shape(y_pred)[-1], tf.float32)
+        y = tf.one_hot(tf.cast(y_true, tf.int32), tf.shape(y_pred)[-1])
+        y = tf.cast(y, y_pred.dtype)
+        y = y * (1.0 - epsilon) + epsilon / n
+        return tf.keras.losses.categorical_crossentropy(y, y_pred)
+
+    return loss
+
+
 def build_model(n_classes: int):
     """
     TCN (Temporal Convolutional Network) — GRU-ийн оронд.
@@ -78,7 +91,7 @@ def build_model(n_classes: int):
     model = models.Model(inp, out)
     model.compile(
         optimizer=tf.keras.optimizers.Adam(C.LEARNING_RATE),
-        loss="sparse_categorical_crossentropy",
+        loss=_label_smoothing_loss(0.08),
         metrics=["accuracy"],
     )
     return model
@@ -89,9 +102,12 @@ def class_weights(y: np.ndarray, n_classes: int, labels: list[str]) -> dict[int,
     counts[counts == 0] = 1.0
     w = counts.sum() / (n_classes * counts)
     out = {i: float(w[i]) for i in range(n_classes)}
-    # Two-hand / motion signs — up-weight vs static letters.
     for i, lbl in enumerate(labels):
         if lbl == C.NEUTRAL_LABEL:
+            out[i] *= 3.5
+            continue
+        if C.is_static_sign(lbl):
+            out[i] *= 0.75
             continue
         if C.hand_mode_for(lbl) == 2:
             out[i] *= 2.4

@@ -61,6 +61,7 @@ export type SeqMetadata = {
   oneHandWordMinMotion?: number;
   oneHandWordAnyCooldownMs?: number;
   oneHandWordEarlyExitConfidence?: number;
+  oneHandWordInstantConfidence?: number;
   fragileOneHandLabels?: string[];
   fragileExtraConf?: number;
   fragileExtraMargin?: number;
@@ -81,6 +82,25 @@ export type SeqMetadata = {
   twoHandSameLabelCooldownMs?: number;
   twoHandWindowFrac?: number;
   twoHandMotionMin?: number;
+  twoHandInstantConfidence?: number;
+  postResetWarmFrames?: number;
+  postStaticWarmFrames?: number;
+  postResetClearFrac?: number;
+  lowConfNeutral?: number;
+  lowMarginNeutral?: number;
+  staticTransitionBlockMs?: number;
+  disarmMs?: number;
+  rearmNeutralStreak?: number;
+  coreFastLabels?: string[];
+  coreFastMinConfidence?: number;
+  coreFastMinMargin?: number;
+  coreFastMinStreak?: number;
+  coreFastStreakMinAvgConf?: number;
+  coreFastEarlyExit?: number;
+  coreFastInstantConfidence?: number;
+  noiseProneLabels?: string[];
+  noiseProneExtraConf?: number;
+  noiseProneExtraMargin?: number;
 };
 
 export type SeqPrediction = {
@@ -271,44 +291,71 @@ export function emitterOptionsFromMeta(
     longVowelMinConfidence: meta.longVowelMinConfidence ?? 0.80,
     longVowelMinMargin:  meta.longVowelMinMargin ?? 0.18,
     maxConsecutiveLongVowels: meta.maxConsecutiveLongVowels ?? 2,
-    minConfidence:       meta.minLiveConfidence ?? 0.68,
+    minConfidence:       meta.minLiveConfidence ?? 0.70,
     minStreak:           meta.minStreak ?? 3,
-    streakMinAvgConf:    meta.streakMinAvgConf ?? 0.72,
-    earlyExitConfidence: meta.earlyExitConfidence ?? 0.88,
-    postEmitBlockMs:     meta.postEmitBlockMs ?? 80,
-    gapBetweenWordsMs:   meta.gapBetweenWordsMs ?? 80,
+    streakMinAvgConf:    meta.streakMinAvgConf ?? 0.74,
+    earlyExitConfidence: meta.earlyExitConfidence ?? 0.86,
+    postEmitBlockMs:     meta.postEmitBlockMs ?? 100,
+    gapBetweenWordsMs:   meta.gapBetweenWordsMs ?? 100,
     sameLabelCooldownMs: meta.sameLabelCooldownMs ?? 1500,
     staticSameLabelCooldownMs: meta.staticSameLabelCooldownMs ?? 1800,
     oneHandWordSameLabelCooldownMs: meta.oneHandWordSameLabelCooldownMs ?? 2000,
     instantEmitConfidence: meta.instantEmitConfidence ?? 0.95,
     instantPostEmitBlockMs: meta.instantPostEmitBlockMs ?? 50,
     instantSameLabelCooldownMs: meta.instantSameLabelCooldownMs ?? 120,
-    staticMinConfidence: meta.staticMinConfidence ?? 0.78,
+    staticMinConfidence: meta.staticMinConfidence ?? 0.76,
     staticMinMargin:     meta.staticMinMargin ?? 0.16,
-    staticStreakMinAvgConf: meta.staticStreakMinAvgConf ?? 0.76,
-    staticEarlyExitConfidence: meta.staticEarlyExitConfidence ?? 0.85,
-    staticMinStreak:     meta.staticMinStreak ?? 1,
-    staticHoldMinMotion: meta.staticHoldMinMotion ?? 0.0005,
-    staticMaxMotion:     meta.staticMaxMotion ?? 0.0045,
-    staticAnyLetterCooldownMs: meta.staticAnyLetterCooldownMs ?? 0,
-    staticPostEmitBlockMs: meta.staticPostEmitBlockMs ?? 12,
-    staticInstantEmitConfidence: meta.staticInstantEmitConfidence ?? 0.85,
+    staticStreakMinAvgConf: meta.staticStreakMinAvgConf ?? 0.74,
+    staticEarlyExitConfidence: meta.staticEarlyExitConfidence ?? 0.84,
+    staticMinStreak:     meta.staticMinStreak ?? 2,
+    staticHoldMinMotion: meta.staticHoldMinMotion ?? 0.0006,
+    staticMaxMotion:     meta.staticMaxMotion ?? 0.0042,
+    staticAnyLetterCooldownMs: meta.staticAnyLetterCooldownMs ?? 350,
+    staticPostEmitBlockMs: meta.staticPostEmitBlockMs ?? 16,
+    staticInstantEmitConfidence: meta.staticInstantEmitConfidence ?? 0.88,
     staticInstantPostEmitBlockMs: meta.staticInstantPostEmitBlockMs ?? 8,
     staticInstantSameLabelCooldownMs: meta.staticInstantSameLabelCooldownMs ?? 1800,
     staticResetClearFrac: meta.staticResetClearFrac ?? 0.55,
     staticLiveInferFrames: meta.staticLiveInferFrames ?? 6,
     idleMaxMotion:       meta.idleMaxMotion ?? 0.002,
-    oneHandWordMinConfidence: meta.oneHandWordMinConfidence ?? 0.78,
-    oneHandWordMinMargin: meta.oneHandWordMinMargin ?? 0.16,
-    oneHandWordMinStreak: meta.oneHandWordMinStreak ?? 5,
-    oneHandWordStreakMinAvgConf: meta.oneHandWordStreakMinAvgConf ?? 0.80,
-    oneHandWordMinMotion: meta.oneHandWordMinMotion ?? 0.0042,
-    oneHandWordAnyCooldownMs: meta.oneHandWordAnyCooldownMs ?? 220,
-    oneHandWordEarlyExitConfidence: meta.oneHandWordEarlyExitConfidence ?? 0.95,
-    fragileOneHandLabels: meta.fragileOneHandLabels ?? ["миний", "Ганхөлөг"],
-    fragileExtraConf:    meta.fragileExtraConf ?? 0.06,
-    fragileExtraMargin:  meta.fragileExtraMargin ?? 0.08,
-    motionMinMargin:     meta.motionMinMargin ?? 0.16,
+    postResetWarmFrames: meta.postResetWarmFrames ?? 2,
+    postStaticWarmFrames: meta.postStaticWarmFrames ?? 1,
+    postResetClearFrac: meta.postResetClearFrac ?? 0.35,
+    lowConfNeutral:      meta.lowConfNeutral ?? 0.66,
+    lowMarginNeutral:    meta.lowMarginNeutral ?? 0.10,
+    staticTransitionBlockMs: meta.staticTransitionBlockMs ?? 200,
+    disarmMs:            meta.disarmMs ?? 90,
+    rearmNeutralStreak:  meta.rearmNeutralStreak ?? 1,
+    coreFastLabels:      meta.coreFastLabels ?? [
+      "би", "миний", "нэрийг", "А", "Н", "Р", "Ө", "Э", "И", "О", "У",
+    ],
+    coreFastMinConfidence: meta.coreFastMinConfidence ?? 0.70,
+    coreFastMinMargin: meta.coreFastMinMargin ?? 0.10,
+    coreFastMinStreak: meta.coreFastMinStreak ?? 2,
+    coreFastStreakMinAvgConf: meta.coreFastStreakMinAvgConf ?? 0.72,
+    coreFastEarlyExit: meta.coreFastEarlyExit ?? 0.82,
+    coreFastInstantConfidence: meta.coreFastInstantConfidence ?? 0.72,
+    noiseProneLabels:    meta.noiseProneLabels ?? [
+      "та", "сайхан", "гарах", "зүгээр",
+    ],
+    noiseProneExtraConf: meta.noiseProneExtraConf ?? 0.06,
+    noiseProneExtraMargin: meta.noiseProneExtraMargin ?? 0.10,
+    oneHandWordMinConfidence: meta.oneHandWordMinConfidence ?? 0.74,
+    oneHandWordMinMargin: meta.oneHandWordMinMargin ?? 0.14,
+    oneHandWordMinStreak: meta.oneHandWordMinStreak ?? 3,
+    oneHandWordStreakMinAvgConf: meta.oneHandWordStreakMinAvgConf ?? 0.76,
+    oneHandWordMinMotion: meta.oneHandWordMinMotion ?? 0.0035,
+    oneHandWordAnyCooldownMs: meta.oneHandWordAnyCooldownMs ?? 200,
+    oneHandWordEarlyExitConfidence: meta.oneHandWordEarlyExitConfidence ?? 0.84,
+    oneHandWordInstantConfidence: meta.oneHandWordInstantConfidence ?? 0.68,
+    fragileOneHandLabels: meta.fragileOneHandLabels ?? [
+      "Ганхөлөг гэдэг",
+      "сайн байна уу ?",
+      "нэрийг",
+    ],
+    fragileExtraConf:    meta.fragileExtraConf ?? 0.05,
+    fragileExtraMargin:  meta.fragileExtraMargin ?? 0.10,
+    motionMinMargin:     meta.motionMinMargin ?? 0.18,
     twoHandMinConfidence: meta.twoHandMinConfidence ?? 0.74,
     twoHandMinMargin:     meta.twoHandMinMargin ?? 0.10,
     twoHandMinStreak:     meta.twoHandMinStreak ?? 3,
@@ -317,6 +364,7 @@ export function emitterOptionsFromMeta(
     twoHandPostEmitBlockMs: meta.twoHandPostEmitBlockMs ?? 120,
     twoHandGapMs:         meta.twoHandGapMs ?? 150,
     twoHandSameLabelCooldownMs: meta.twoHandSameLabelCooldownMs ?? 500,
+    twoHandInstantConfidence: meta.twoHandInstantConfidence ?? 0.72,
   };
 }
 
@@ -334,6 +382,8 @@ export class SequenceRecognizer {
   private writePos = 0;
   private count = 0;
   private sinceInfer = 0;
+  /** Skip inference after emit while buffer is mostly neutral zeros. */
+  private skipInfer = 0;
 
   constructor(model: tf.LayersModel, meta: SeqMetadata) {
     this.model = model;
@@ -344,6 +394,9 @@ export class SequenceRecognizer {
       () => new Float32Array(FEATURE_DIM)
     );
     this.flat = new Float32Array(this.T * FEATURE_DIM);
+    // Zero-prefilled window — inference from first frame (training live_zero_prefix parity).
+    this.count = this.T;
+    this.writePos = 0;
   }
 
   get labels(): string[] {
@@ -351,15 +404,18 @@ export class SequenceRecognizer {
   }
 
   reset(): void {
+    for (let i = 0; i < this.T; i++) {
+      this.frames[i].fill(0);
+    }
     this.writePos = 0;
-    this.count = 0;
+    this.count = this.T;
     this.sinceInfer = 0;
+    this.skipInfer = 0;
   }
 
   /**
    * Emit дараа дуудна. Buffer-ийг бүрэн neutral (all-zero) frame-ээр дүүргэнэ.
-   * Шинэ дохионы frame-үүд neutral frame-ийг дарж орж ирдэг тул модель нь
-   * 12 frame биш ~6 frame-ийн дараа шинэ дохиог таних боломжтой болно.
+   * Шинэ дохионы frame-үүд neutral frame-ийг дарж орж ирдэг.
    */
   resetWithNeutral(): void {
     for (let i = 0; i < this.T; i++) {
@@ -368,11 +424,11 @@ export class SequenceRecognizer {
     this.count = this.T;
     this.writePos = 0;
     this.sinceInfer = 0;
+    this.skipInfer = this.meta.postResetWarmFrames ?? 5;
   }
 
   /**
    * Үсэг emit дараа — бүх buffer биш, хамгийн хуучин хэсгийг л цэвэрлэнэ.
-   * Дараагийн үсэг ~2× хурдан танигдана.
    */
   resetAfterStaticEmit(clearFrac?: number): void {
     const frac = clearFrac ?? this.meta.staticResetClearFrac ?? 0.55;
@@ -382,6 +438,19 @@ export class SequenceRecognizer {
       this.frames[idx].fill(0);
     }
     this.sinceInfer = 0;
+    this.skipInfer = this.meta.postStaticWarmFrames ?? 1;
+  }
+
+  /** Word emit дараа — бүх buffer биш зөвхөн хуучин хэсгийг цэвэрлэнэ (хурдан дараагийн үг). */
+  resetAfterWordEmit(clearFrac?: number): void {
+    const frac = clearFrac ?? this.meta.postResetClearFrac ?? 0.35;
+    const clearCount = Math.max(3, Math.floor(this.T * frac));
+    for (let k = 0; k < clearCount; k++) {
+      const idx = (this.writePos + k) % this.T;
+      this.frames[idx].fill(0);
+    }
+    this.sinceInfer = 0;
+    this.skipInfer = this.meta.postResetWarmFrames ?? 2;
   }
 
   /** TF compile + buffer бэлэн. */
@@ -408,21 +477,20 @@ export class SequenceRecognizer {
     this.count = Math.min(this.count + 1, this.T);
 
     this.sinceInfer += 1;
-    if (this.count < this.T) return null;
     if (this.sinceInfer < this.meta.liveStride) return null;
     this.sinceInfer = 0;
 
-    const mpHands = lm.hand?.landmarks?.length ?? 0;
-    if (mpHands < 2) {
-      const motion = this._windowHandMotion();
-      return { ...this.infer(false), bothHands: false, handMotion: motion };
+    if (this.skipInfer > 0) {
+      this.skipInfer--;
+      return null;
     }
 
     const motion = this._windowHandMotion();
-    const frac = this._windowTwoHandFraction();
-    const needFrac = this.meta.twoHandWindowFrac ?? 0.5;
-    const bothHands = isTwoHandMode(lm, raw) && frac >= needFrac;
-    return { ...this.infer(bothHands), bothHands, handMotion: motion };
+    const mpHands = lm.hand?.landmarks?.length ?? 0;
+    if (mpHands < 2) {
+      return { ...this._inferSingle(false, motion), bothHands: false, handMotion: motion };
+    }
+    return { ...this._inferDual(motion), handMotion: motion };
   }
 
   private _latestFrame(): Float32Array {
@@ -506,44 +574,27 @@ export class SequenceRecognizer {
     return out;
   }
 
-  private infer(
-    bothHands: boolean
-  ): Omit<SeqPrediction, "bothHands" | "handMotion"> {
-    const motion = this._windowHandMotion();
-
-    if (!bothHands) {
-      const idleMax = this.meta.idleMaxMotion ?? 0.002;
-      if (
-        motion < idleMax &&
-        !this._handPresentInFrame(this._latestFrame())
-      ) {
-        return this._neutralPred();
-      }
-    }
-
-    if (bothHands) {
-      const motionMin = this.meta.twoHandMotionMin ?? 0.0035;
-      if (motion < motionMin) {
-        return this._neutralPred();
-      }
-    }
-
+  /** Single TF forward — reuse for 1-hand vs 2-hand mask. */
+  private _forwardProbs(): Float32Array {
     const T = this.T;
     const start = this.count < T ? 0 : this.writePos;
-
     for (let t = 0; t < T; t++) {
       const idx = this.count < T ? t : (start + t) % T;
       normalizeFrame(this.frames[idx], this.scratch);
       this.flat.set(this.scratch, t * FEATURE_DIM);
     }
-
-    const rawProbs = tf.tidy(() => {
+    return tf.tidy(() => {
       const input = tf.tensor3d(this.flat, [1, T, FEATURE_DIM]);
       const out = this.model.predict(input) as tf.Tensor;
-      return out.dataSync() as Float32Array;
+      return new Float32Array(out.dataSync() as Float32Array);
     });
-    const probs = this._maskProbs(rawProbs, bothHands);
+  }
 
+  private _decodeMasked(
+    rawProbs: Float32Array,
+    bothHands: boolean
+  ): Omit<SeqPrediction, "bothHands" | "handMotion"> {
+    const probs = this._maskProbs(rawProbs, bothHands);
     let bestId = 0;
     let best = -1;
     let second = -1;
@@ -557,12 +608,92 @@ export class SequenceRecognizer {
       }
     }
     const label = this.meta.labels[bestId] ?? this.meta.neutralLabel;
+    const margin = best - Math.max(second, 0);
+    const lowConf = this.meta.lowConfNeutral ?? 0.62;
+    const lowMargin = this.meta.lowMarginNeutral ?? 0.08;
+    const neutral = this.meta.neutralLabel;
+
+    if (label !== neutral && (best < lowConf || margin < lowMargin)) {
+      return { label: neutral, confidence: best, margin, isNeutral: true };
+    }
     return {
       label,
       confidence: best,
-      margin: best - Math.max(second, 0),
-      isNeutral: label === this.meta.neutralLabel,
+      margin,
+      isNeutral: label === neutral,
     };
+  }
+
+  /** 1-hand path (or forced mode). */
+  private _inferSingle(
+    bothHands: boolean,
+    motion: number
+  ): Omit<SeqPrediction, "bothHands" | "handMotion"> {
+    if (!bothHands) {
+      const idleMax = this.meta.idleMaxMotion ?? 0.002;
+      if (
+        motion < idleMax &&
+        !this._handPresentInFrame(this._latestFrame())
+      ) {
+        return this._neutralPred();
+      }
+    } else {
+      const motionMin = this.meta.twoHandMotionMin ?? 0.0018;
+      if (motion < motionMin) return this._neutralPred();
+    }
+    return this._decodeMasked(this._forwardProbs(), bothHands);
+  }
+
+  /**
+   * 2 гар харагдах үед 1-hand vs 2-hand mask-ийг харьцуулна.
+   * Нэг гарын үсэг буруу mask-аар алга болохоос сэргийлнэ.
+   */
+  private _inferDual(
+    motion: number
+  ): Omit<SeqPrediction, "bothHands" | "handMotion"> & { bothHands: boolean } {
+    const raw = this._forwardProbs();
+    const one = this._decodeMasked(raw, false);
+    const two = this._decodeMasked(raw, true);
+    const neutral = this.meta.neutralLabel;
+
+    const oneStatic =
+      !one.isNeutral && isStaticSign(one.label, neutral);
+    const twoStatic =
+      !two.isNeutral && isStaticSign(two.label, neutral);
+
+    if (
+      oneStatic &&
+      one.confidence >= 0.58 &&
+      (two.isNeutral || one.confidence >= two.confidence - 0.05)
+    ) {
+      return { ...one, bothHands: false };
+    }
+
+    const motionMin = this.meta.twoHandMotionMin ?? 0.0018;
+    if (
+      !two.isNeutral &&
+      !twoStatic &&
+      motion >= motionMin &&
+      (one.isNeutral || two.confidence > one.confidence + 0.03)
+    ) {
+      return { ...two, bothHands: true };
+    }
+
+    if (!one.isNeutral) {
+      return { ...one, bothHands: false };
+    }
+    if (!two.isNeutral && motion >= motionMin) {
+      return { ...two, bothHands: true };
+    }
+    return { ...this._neutralPred(), bothHands: false };
+  }
+
+  /** Warmup entry. */
+  private infer(
+    bothHands: boolean,
+    motion = this._windowHandMotion()
+  ): Omit<SeqPrediction, "bothHands" | "handMotion"> {
+    return this._inferSingle(bothHands, motion);
   }
 
 }
@@ -629,6 +760,7 @@ export type SeqEmitterOptions = {
   oneHandWordMinMotion?: number;
   oneHandWordAnyCooldownMs?: number;
   oneHandWordEarlyExitConfidence?: number;
+  oneHandWordInstantConfidence?: number;
   fragileOneHandLabels?: string[];
   fragileExtraConf?: number;
   fragileExtraMargin?: number;
@@ -648,6 +780,20 @@ export type SeqEmitterOptions = {
   twoHandPostEmitBlockMs?: number;
   twoHandGapMs?: number;
   twoHandSameLabelCooldownMs?: number;
+  twoHandInstantConfidence?: number;
+  staticTransitionBlockMs?: number;
+  disarmMs?: number;
+  rearmNeutralStreak?: number;
+  coreFastLabels?: string[];
+  coreFastMinConfidence?: number;
+  coreFastMinMargin?: number;
+  coreFastMinStreak?: number;
+  coreFastStreakMinAvgConf?: number;
+  coreFastEarlyExit?: number;
+  coreFastInstantConfidence?: number;
+  noiseProneLabels?: string[];
+  noiseProneExtraConf?: number;
+  noiseProneExtraMargin?: number;
 };
 
 type LabelBar = {
@@ -660,44 +806,49 @@ type LabelBar = {
 
 const DEFAULTS: Required<SeqEmitterOptions> = {
   neutralLabel:        "neutral",
-  minConfidence:       0.68,
+  minConfidence:       0.70,
   minStreak:           3,
-  streakMinAvgConf:    0.72,
-  earlyExitConfidence: 0.88,
-  postEmitBlockMs:     80,
-  gapBetweenWordsMs:   80,
+  streakMinAvgConf:    0.74,
+  earlyExitConfidence: 0.86,
+  postEmitBlockMs:     100,
+  gapBetweenWordsMs:   100,
   sameLabelCooldownMs: 1500,
   staticSameLabelCooldownMs: 1800,
   oneHandWordSameLabelCooldownMs: 2000,
   instantEmitConfidence: 0.95,
   instantPostEmitBlockMs: 50,
   instantSameLabelCooldownMs: 1500,
-  staticMinConfidence: 0.78,
+  staticMinConfidence: 0.76,
   staticMinMargin:     0.16,
-  staticStreakMinAvgConf: 0.76,
-  staticEarlyExitConfidence: 0.85,
-  staticMinStreak:     1,
-  staticHoldMinMotion: 0.0005,
-  staticMaxMotion:     0.0045,
-  staticAnyLetterCooldownMs: 0,
-  staticPostEmitBlockMs: 12,
-  staticInstantEmitConfidence: 0.85,
+  staticStreakMinAvgConf: 0.74,
+  staticEarlyExitConfidence: 0.84,
+  staticMinStreak:     2,
+  staticHoldMinMotion: 0.0006,
+  staticMaxMotion:     0.0042,
+  staticAnyLetterCooldownMs: 350,
+  staticPostEmitBlockMs: 16,
+  staticInstantEmitConfidence: 0.88,
   staticInstantPostEmitBlockMs: 8,
   staticInstantSameLabelCooldownMs: 1800,
   staticResetClearFrac: 0.55,
   staticLiveInferFrames: 6,
   idleMaxMotion:       0.002,
-  oneHandWordMinConfidence: 0.78,
-  oneHandWordMinMargin: 0.16,
-  oneHandWordMinStreak: 5,
-  oneHandWordStreakMinAvgConf: 0.80,
-  oneHandWordMinMotion: 0.0042,
-  oneHandWordAnyCooldownMs: 220,
-  oneHandWordEarlyExitConfidence: 0.95,
-  fragileOneHandLabels: ["миний", "Ганхөлөг"],
-  fragileExtraConf:    0.06,
-  fragileExtraMargin:  0.08,
-  motionMinMargin:     0.16,
+  oneHandWordMinConfidence: 0.74,
+  oneHandWordMinMargin: 0.14,
+  oneHandWordMinStreak: 3,
+  oneHandWordStreakMinAvgConf: 0.76,
+  oneHandWordMinMotion: 0.0035,
+  oneHandWordAnyCooldownMs: 200,
+  oneHandWordEarlyExitConfidence: 0.74,
+  oneHandWordInstantConfidence: 0.68,
+  fragileOneHandLabels: [
+    "Ганхөлөг гэдэг",
+    "сайн байна уу ?",
+    "нэрийг",
+  ],
+  fragileExtraConf:    0.05,
+  fragileExtraMargin:  0.10,
+  motionMinMargin:     0.18,
   twoHandMinConfidence: 0.74,
   twoHandMinMargin:     0.10,
   twoHandMinStreak:     3,
@@ -706,12 +857,28 @@ const DEFAULTS: Required<SeqEmitterOptions> = {
   twoHandPostEmitBlockMs: 120,
   twoHandGapMs:         150,
   twoHandSameLabelCooldownMs: 2500,
+  twoHandInstantConfidence: 0.72,
   labels: [],
   handModes: [],
   longVowelMinStreak: 2,
   longVowelMinConfidence: 0.80,
   longVowelMinMargin: 0.18,
   maxConsecutiveLongVowels: 2,
+  staticTransitionBlockMs: 200,
+  disarmMs: 90,
+  rearmNeutralStreak: 1,
+  coreFastLabels: [
+    "би", "миний", "нэрийг", "А", "Н", "Р", "Ө", "Э", "И", "О", "У",
+  ],
+  coreFastMinConfidence: 0.70,
+  coreFastMinMargin: 0.10,
+  coreFastMinStreak: 2,
+  coreFastStreakMinAvgConf: 0.72,
+  coreFastEarlyExit: 0.72,
+  coreFastInstantConfidence: 0.72,
+  noiseProneLabels: ["та", "сайхан", "гарах", "зүгээр"],
+  noiseProneExtraConf: 0.06,
+  noiseProneExtraMargin: 0.10,
 };
 
 export type SeqEmitterStatus = {
@@ -736,6 +903,15 @@ export class SequenceEmitter {
   private oneHandWordAnyUntil = 0;
   private consecutiveLongVowels = 0;
   private fragileSet: Set<string>;
+  /** Word/two-hand emit дараа үсэг noise-ийг хориглох. */
+  private staticBlockedUntil = 0;
+  /** Emit дараа дахин зөвшөөрөх хүртэл neutral streak шаардлагатай. */
+  private disarmedUntil = 0;
+  private rearmNeutralCount = 0;
+  private noiseProneSet: Set<string>;
+  private coreFastSet: Set<string>;
+  /** Consecutive null/weak frames before streak reset (MediaPipe dropout). */
+  private missStreak = 0;
 
   constructor(options?: SeqEmitterOptions) {
     this.opts = { ...DEFAULTS, ...options };
@@ -743,6 +919,42 @@ export class SequenceEmitter {
       this.fragileSet = new Set(options.fragileOneHandLabels);
     } else {
       this.fragileSet = new Set(DEFAULTS.fragileOneHandLabels);
+    }
+    if (options?.noiseProneLabels) {
+      this.noiseProneSet = new Set(options.noiseProneLabels);
+    } else {
+      this.noiseProneSet = new Set(DEFAULTS.noiseProneLabels);
+    }
+    if (options?.coreFastLabels) {
+      this.coreFastSet = new Set(options.coreFastLabels);
+    } else {
+      this.coreFastSet = new Set(DEFAULTS.coreFastLabels);
+    }
+  }
+
+  private _isNoiseProne(label: string): boolean {
+    return this.noiseProneSet.has(label);
+  }
+
+  private _isDisarmed(now: number): boolean {
+    return now < this.disarmedUntil;
+  }
+
+  private _trackRearm(pred: SeqPrediction | null): void {
+    const neutral = this.opts.neutralLabel;
+    const lowConf = this.opts.minConfidence - 0.06;
+    if (
+      !pred ||
+      pred.isNeutral ||
+      pred.label === neutral ||
+      pred.confidence < lowConf
+    ) {
+      this.rearmNeutralCount++;
+      if (this.rearmNeutralCount >= this.opts.rearmNeutralStreak) {
+        this.disarmedUntil = 0;
+      }
+    } else {
+      this.rearmNeutralCount = 0;
     }
   }
 
@@ -760,6 +972,15 @@ export class SequenceEmitter {
   }
 
   private _bar(label: string): LabelBar {
+    if (this.coreFastSet.has(label)) {
+      return {
+        minConfidence: this.opts.coreFastMinConfidence,
+        minMargin: this.opts.coreFastMinMargin,
+        minStreak: this.opts.coreFastMinStreak,
+        streakMinAvgConf: this.opts.coreFastStreakMinAvgConf,
+        earlyExitConfidence: this.opts.coreFastEarlyExit,
+      };
+    }
     if (isLongVowelSign(label)) {
       return {
         minConfidence: this.opts.longVowelMinConfidence,
@@ -853,7 +1074,11 @@ export class SequenceEmitter {
       return false;
     }
     if (isStaticSign(pred.label, this.opts.neutralLabel)) {
-      if (pred.handMotion > this.opts.staticMaxMotion) return false;
+      if (pred.handMotion < this.opts.staticHoldMinMotion) return false;
+      const cap = this.coreFastSet.has(pred.label)
+        ? Math.max(this.opts.staticMaxMotion, 0.04)
+        : this.opts.staticMaxMotion;
+      if (pred.handMotion > cap && pred.confidence < 0.74) return false;
     }
     if (
       isOneHandWord(
@@ -870,6 +1095,10 @@ export class SequenceEmitter {
     if (this._isFragile(pred.label)) {
       minConf += this.opts.fragileExtraConf;
       minMargin += this.opts.fragileExtraMargin;
+    }
+    if (this._isNoiseProne(pred.label)) {
+      minConf += this.opts.noiseProneExtraConf;
+      minMargin += this.opts.noiseProneExtraMargin;
     }
 
     return (
@@ -890,19 +1119,77 @@ export class SequenceEmitter {
   }
 
   push(pred: SeqPrediction | null, now: number = performance.now()): string | null {
-    if (!pred) {
-      this._resetStreak();
+    this._trackRearm(pred);
+
+    if (!pred || pred.isNeutral) {
+      this.missStreak++;
+      if (this.missStreak >= 4) this._resetStreak();
+      return null;
+    }
+    this.missStreak = 0;
+
+    const sinceEmit = now - this.lastEmitAt;
+    const instantBlock = this._instantBlockMs(pred.label);
+    const bar = this._bar(pred.label);
+
+    // Core vocabulary — instant emit at moderate confidence (би, миний, letters).
+    if (
+      this.coreFastSet.has(pred.label) &&
+      pred.confidence >= this.opts.coreFastInstantConfidence &&
+      pred.margin >= this.opts.coreFastMinMargin &&
+      this._passesBar(pred, bar) &&
+      sinceEmit >= instantBlock &&
+      !this._isSameLabelBlocked(pred.label, now)
+    ) {
+      return this._emit(pred.label, now, { instant: true });
+    }
+
+    // Two-hand motion signs — instant when confident + moving.
+    if (
+      this._handModeFor(pred.label) === 2 &&
+      pred.confidence >= this.opts.twoHandInstantConfidence &&
+      pred.margin >= this.opts.twoHandMinMargin &&
+      pred.handMotion >= this.opts.twoHandMotionMin &&
+      sinceEmit >= instantBlock &&
+      !this._isSameLabelBlocked(pred.label, now)
+    ) {
+      return this._emit(pred.label, now, { instant: true });
+    }
+
+    // 1-hand words (сурагч, orox, …).
+    if (
+      isOneHandWord(
+        pred.label,
+        this._handModeFor(pred.label),
+        this.opts.neutralLabel
+      ) &&
+      pred.confidence >= this.opts.oneHandWordInstantConfidence &&
+      pred.margin >= this.opts.oneHandWordMinMargin &&
+      pred.handMotion >= this.opts.oneHandWordMinMotion &&
+      sinceEmit >= instantBlock &&
+      !this._isSameLabelBlocked(pred.label, now)
+    ) {
+      return this._emit(pred.label, now, { instant: true });
+    }
+
+    if (this._isDisarmed(now)) {
       return null;
     }
 
-    const bar = this._bar(pred.label);
     if (!this._passesBar(pred, bar)) {
-      this._resetStreak();
+      this.missStreak++;
+      if (this.missStreak >= 2) this._resetStreak();
+      return null;
+    }
+
+    if (
+      isStaticSign(pred.label, this.opts.neutralLabel) &&
+      now < this.staticBlockedUntil
+    ) {
       return null;
     }
 
     if (this._isSameLabelBlocked(pred.label, now)) {
-      this._resetStreak();
       return null;
     }
 
@@ -910,15 +1197,11 @@ export class SequenceEmitter {
       isLongVowelSign(pred.label) &&
       this.consecutiveLongVowels >= this.opts.maxConsecutiveLongVowels
     ) {
-      this._resetStreak();
       return null;
     }
 
-    const sinceEmit = now - this.lastEmitAt;
     const instantConf = this._instantThreshold(pred.label);
-    const instantBlock = this._instantBlockMs(pred.label);
 
-    // Instant — үсэг 90%+, бусад 95%+: streak/gap алгасаж шууд emit
     if (
       pred.confidence >= instantConf &&
       pred.margin >= bar.minMargin &&
@@ -935,7 +1218,6 @@ export class SequenceEmitter {
         : this.opts.postEmitBlockMs;
 
     if (sinceEmit < blockMs) {
-      this._resetStreak();
       return null;
     }
 
@@ -944,7 +1226,6 @@ export class SequenceEmitter {
       this.opts.staticAnyLetterCooldownMs > 0 &&
       now < this.staticAnyLetterUntil
     ) {
-      this._resetStreak();
       return null;
     }
 
@@ -956,20 +1237,18 @@ export class SequenceEmitter {
       ) &&
       now < this.oneHandWordAnyUntil
     ) {
-      this._resetStreak();
       return null;
     }
 
     const gapMs = this._gapMs(pred.label);
     const fullyUnlocked = sinceEmit >= gapMs;
     const isStatic = isStaticSign(pred.label, this.opts.neutralLabel);
-    const earlyStreak = isStatic ? 1 : this._handModeFor(pred.label) === 2 ? 3 : 2;
+    const earlyStreak = isStatic ? 1 : this._handModeFor(pred.label) === 2 ? 2 : 1;
 
-    // 88–95% — streak богино early exit
     if (
       fullyUnlocked &&
       pred.confidence >= bar.earlyExitConfidence &&
-      pred.margin >= bar.minMargin + 0.04 &&
+      pred.margin >= bar.minMargin + 0.02 &&
       pred.label === this.streakLabel &&
       this.streakCount >= earlyStreak
     ) {
@@ -1014,6 +1293,10 @@ export class SequenceEmitter {
     this.staticAnyLetterUntil = 0;
     this.oneHandWordAnyUntil = 0;
     this.consecutiveLongVowels = 0;
+    this.staticBlockedUntil = 0;
+    this.disarmedUntil = 0;
+    this.rearmNeutralCount = 0;
+    this.missStreak = 0;
   }
 
   private _resetStreak(): void {
@@ -1045,6 +1328,14 @@ export class SequenceEmitter {
     } else {
       this.consecutiveLongVowels = 0;
     }
+
+    if (!isStatic) {
+      this.staticBlockedUntil =
+        now + this.opts.staticTransitionBlockMs;
+    }
+
+    this.disarmedUntil = now + this.opts.disarmMs;
+    this.rearmNeutralCount = 0;
 
     this.suppressUntil = now + this._sameLabelCooldownMs(label);
 

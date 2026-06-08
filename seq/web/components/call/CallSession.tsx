@@ -362,13 +362,13 @@ export function CallSession({ roomId }: Props) {
       const runtime = runtimeRef.current;
       if (!rec || !emitter || !runtime) return;
       const pred = rec.push(lm);
-      const word = emitter.push(pred);
+      const word = pred ? emitter.push(pred) : null;
 
       const now = performance.now();
       if (
         pred &&
         runtime.isPredictionVisible(pred) &&
-        now - lastLiveUiAtRef.current >= 250
+        now - lastLiveUiAtRef.current >= 350
       ) {
         const st = emitter.getStatus(now);
         const next = {
@@ -394,7 +394,7 @@ export function CallSession({ roomId }: Props) {
       if (runtime.isStaticSign(word)) {
         rec.resetAfterStaticEmit();
       } else {
-        rec.resetWithNeutral();
+        rec.resetAfterWordEmit();
       }
       setMyCaption((prev) => {
         const next = appendWord(prev, word);
@@ -506,7 +506,7 @@ export function CallSession({ roomId }: Props) {
               Цэвэрлэх
             </button>
           </div>
-          <TypewriterCaption instant text={myCaption || "..."} />
+          <TypewriterCaption text={myCaption} />
         </section>
 
         <section className="space-y-3">
@@ -547,7 +547,7 @@ export function CallSession({ roomId }: Props) {
               </div>
             )}
           </div>
-          <TypewriterCaption instant text={theirCaption || "..."} />
+          <TypewriterCaption text={theirCaption} />
         </section>
       </div>
 
