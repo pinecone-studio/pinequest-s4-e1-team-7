@@ -75,7 +75,7 @@ export function VoiceToText() {
       className="flex h-full flex-col"
       style={{ background: "var(--bg)" }}
     >
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 lg:max-w-none lg:px-10 xl:px-16">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 md:px-6 pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 lg:max-w-none lg:px-10 xl:px-16">
         <div className="flex items-center pb-2 pt-5">
           <button
             onClick={() => router.back()}
@@ -179,9 +179,9 @@ export function VoiceToText() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Controls — separated from text area */}
+          {/* Controls */}
           <div className="mt-3 space-y-2 border-t pt-3" style={{ borderColor: "var(--border-c)" }}>
-          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
             <button
               onClick={() => setFontSize((s) => Math.max(14, s - 2))}
               aria-label="Фонт багасгах"
@@ -211,10 +211,10 @@ export function VoiceToText() {
             >
               A
             </button>
-          </div>
+            </div>
 
-          {/* Copy + delete */}
-          <div className="flex items-center justify-end gap-2">
+            {/* Copy + delete */}
+            <div className="flex items-center justify-end gap-2">
             <button
               onClick={copyAll}
               disabled={!hasContent}
@@ -259,8 +259,8 @@ export function VoiceToText() {
                 <TrashIcon className="h-5 w-5" style={{ color: "var(--text-2)" }} />
               </button>
             )}
+            </div>
           </div>
-          </div>{/* end controls wrapper */}
         </div>
       </div>
     </div>

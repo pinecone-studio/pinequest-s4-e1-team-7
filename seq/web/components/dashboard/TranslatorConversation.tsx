@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SpeakerWaveIcon } from "@heroicons/react/24/outline";
+import { SpeakerWaveIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { TypewriterCaption } from "@/components/TypewriterCaption";
 import type { LivePred } from "@/hooks/useSignDetection";
 
@@ -15,6 +15,7 @@ type Props = {
   volume: number;
   onSpeak: () => void;
   onVolumeChange: (v: number) => void;
+  onReset: () => void;
 };
 
 export function TranslatorConversation({
@@ -27,6 +28,7 @@ export function TranslatorConversation({
   volume,
   onSpeak,
   onVolumeChange,
+  onReset,
 }: Props) {
   const [fontSize, setFontSize] = useState(22);
   const volPct = Math.round(volume * 100);
@@ -60,7 +62,14 @@ export function TranslatorConversation({
       </div>
 
       {/* Scrollable text — font size applies to both detected and placeholder */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="relative flex-1 overflow-y-auto">
+        <button
+          type="button" onClick={onReset} aria-label="Цэвэрлэх"
+          className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center rounded-full transition-all active:scale-90"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
+        >
+          <ArrowPathIcon className="h-[18px] w-[18px]" style={{ color: "var(--text-2)" }} />
+        </button>
         {detected ? (
           <div
             style={{ fontSize: `${fontSize}px` }}
@@ -115,7 +124,7 @@ export function TranslatorConversation({
           </button>
         </div>
 
-        {/* Speak + volume row — matches mobile TranslatorCard */}
+        {/* Speak + volume row */}
         <div className="flex items-center gap-2">
           <button
             type="button" onClick={onSpeak} aria-label="Дуугаар унших"

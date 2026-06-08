@@ -28,13 +28,13 @@ export function Settings() {
   const name = user?.firstName ?? user?.emailAddresses?.[0]?.emailAddress ?? "Хэрэглэгч";
   const email = user?.emailAddresses?.[0]?.emailAddress ?? "";
   const avatar = user?.imageUrl;
-  const activeBtn = { background: "var(--olive)", color: "black" };
+  const activeBtn = { background: "var(--olive)", color: "#0d1e35" };
   const inactiveBtn = { background: "var(--surface-2)", color: "var(--text-2)", border: "1px solid var(--border-c)" };
   const card = { background: "var(--surface)", border: "1px solid var(--border-c)" };
 
   return (
     <div className="h-full overflow-y-auto" style={{ background: "var(--bg)" }}>
-    <div className="mx-auto max-w-lg px-5 pb-[max(calc(env(safe-area-inset-bottom)+1rem),1.5rem)] pt-5 lg:max-w-2xl lg:px-10 xl:px-16">
+    <div className="mx-auto max-w-lg px-4 md:px-6 pb-[max(calc(env(safe-area-inset-bottom)+1rem),1.5rem)] pt-5 lg:max-w-2xl lg:px-10 xl:px-16">
 
       <div className="mb-4 rounded-[22px] p-5" style={card}>
         <div className="flex items-center gap-4">

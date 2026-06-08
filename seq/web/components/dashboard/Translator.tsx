@@ -265,14 +265,8 @@ export function Translator() {
               volume={volume}
               onSpeak={handleSpeak}
               onVolumeChange={setVolume}
+              onReset={clearAll}
             />
-            {showSettings && (
-              <TranslatorSettings
-                settings={settings}
-                onUpdate={updateSettings}
-                onClose={() => setShowSettings(false)}
-              />
-            )}
           </div>
 
           {/* Mobile: settings + card */}
@@ -302,10 +296,9 @@ export function Translator() {
             <TranslatorControlBar
               running={running}
               modelReady={modelReady}
-              showSettings={showSettings}
+              gender={settings.gender}
               onToggle={toggle}
-              onReset={clearAll}
-              onSettings={() => setShowSettings((s) => !s)}
+              onGenderChange={(g) => updateSettings({ gender: g })}
             />
           </div>
         </div>

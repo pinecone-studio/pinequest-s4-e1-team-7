@@ -14,10 +14,7 @@ export default function HomePage() {
     <main>
       <Header />
       <Hero />
-      <ThreeModes />
-      <FeatureSignToVoice />
-      <FeatureVoiceToText />
-      <FeatureVideoCall />
+
       <ThreeSteps />
       <Footer />
       <Suspense>
