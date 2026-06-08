@@ -5,6 +5,7 @@ import type { Gender } from "@/lib/types";
 interface SpeakOptions {
   rate: number;
   gender: Gender;
+  volume?: number; // 0–1
 }
 
 const pickVoice = (gender: Gender): SpeechSynthesisVoice | null => {
@@ -20,7 +21,7 @@ export function useTextToSpeech() {
   const lastRef = useRef("");
 
   const speak = useCallback(
-    (text: string, { rate, gender }: SpeakOptions) => {
+    (text: string, { rate, gender, volume }: SpeakOptions) => {
       lastRef.current = text;
       if (!supported) return;
       window.speechSynthesis.cancel();
@@ -28,6 +29,7 @@ export function useTextToSpeech() {
       u.lang = "mn-MN";
       u.rate = rate;
       u.pitch = gender === "female" ? 1.08 : 0.9;
+      u.volume = volume ?? 1;
       const v = pickVoice(gender);
       if (v) u.voice = v;
       window.speechSynthesis.speak(u);

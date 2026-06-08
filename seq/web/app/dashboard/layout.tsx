@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { TopNav } from "@/components/dashboard/TopNav";
 import { MobileNav } from "@/components/mobile/mobile-nav";
+import { PageTransition } from "@/components/PageTransition";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isSignedIn, isLoaded } = useUser();
@@ -19,9 +20,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-dvh flex-col">
       <TopNav />
       <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-[1380px] px-4 pb-[calc(4rem+env(safe-area-inset-bottom))] md:px-6 md:pb-12">
-          {children}
-        </div>
+        <PageTransition>
+          <div className="mx-auto max-w-[1380px] px-4 pb-[calc(4rem+env(safe-area-inset-bottom))] md:px-6 md:pb-12">
+            {children}
+          </div>
+        </PageTransition>
       </main>
       <MobileNav />
     </div>

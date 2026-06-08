@@ -1,88 +1,58 @@
 "use client";
+import { useState } from "react";
+import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { Hand, Volume2 } from "lucide-react";
 import { SectionHeader } from "./SectionHeader";
+import { SignCard } from "./SignCard";
+import { DictDetailSheet } from "./DictDetailSheet";
 import { MN_ALPHABET, MN_NUMBERS, DICT_CATEGORIES } from "@/lib/constants";
 import type { DictCategory } from "@/lib/constants";
+import type { SignItem } from "./SignCard";
 
-interface Props {
-  category?: DictCategory;
+function buildItems(category: DictCategory): SignItem[] {
+  const letters = category === "alphabet" ? MN_ALPHABET : MN_NUMBERS;
+  return letters.map((letter) => ({
+    id: letter, letter, label: category === "alphabet" ? `${letter} үсэг` : `${letter} тоо`,
+  }));
 }
 
-export function Dictionary({ category = "alphabet" }: Props) {
+export function Dictionary({ category = "alphabet" }: { category?: DictCategory }) {
   const { settings, toast } = useApp();
   const { speak } = useTextToSpeech();
-
+  const [selected, setSelected] = useState<SignItem | null>(null);
   const catInfo = DICT_CATEGORIES.find((c) => c.id === category)!;
-  const items = category === "alphabet" ? MN_ALPHABET : MN_NUMBERS;
+  const items = buildItems(category);
 
-  const getLabel = (item: string) =>
-    category === "alphabet" ? `${item} үсэг` : `${item} тоо`;
-
-  const say = (item: string) => {
-    speak(getLabel(item), settings);
-    toast("info", `Уншиж байна: ${getLabel(item)}`, "volume-2");
+  const handleSpeak = (item: SignItem) => {
+    speak(item.label, settings);
+    toast("info", `Уншиж байна: ${item.label}`, "volume-2");
   };
 
   return (
     <section className="db-section">
-      <SectionHeader
-        crumb={`Толь бичиг › ${catInfo.label}`}
-        title={catInfo.label}
-        subtitle={
-          category === "alphabet"
-            ? "Дохионы хэлний монгол цагаан толгой. Үсгийг товшиход дуугаар сонсоно."
-            : "0-аас 9 хүртэл тоон дохио. Тоог товшиход дуугаар сонсоно."
-        }
-      />
-
-      <p className="mb-5 text-sm" style={{ color: "var(--text-3)" }}>
-        Нийт {items.length} {category === "alphabet" ? "үсэг" : "тоо"}
-      </p>
-
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
-        {items.map((item) => (
-          <button
-            key={item}
-            onClick={() => say(item)}
-            className="group overflow-hidden rounded-2xl border border-border bg-card text-left transition-all hover:border-primary/40 hover:shadow-md active:scale-95"
-          >
-            <div
-              className="relative flex aspect-square items-center justify-center"
-              style={{ background: "var(--olive-soft)" }}
-            >
-              <span
-                className="text-5xl font-bold transition-transform group-hover:scale-110"
-                style={{ color: "var(--olive)" }}
-              >
-                {item}
+      <SectionHeader crumb={`Толь бичиг › ${catInfo.label}`} title="Толь бичиг"
+        subtitle="Монгол дохионы хэлний цагаан толгой. Картыг дарж дэлгэрэнгүй харна уу." />
+      <div className="mb-6 flex flex-wrap gap-2">
+        {DICT_CATEGORIES.map((cat) => {
+          const active = cat.id === category;
+          return (
+            <Link key={cat.id} href={`/dashboard/dict?cat=${cat.id}`}
+              className="flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-all duration-200"
+              style={active ? { background: "var(--olive)", color: "#0d1e35" } : { background: "var(--surface)", border: "1px solid var(--border-c)", color: "var(--text-2)" }}>
+              {cat.label}
+              <span className="rounded-full px-1.5 py-0.5 text-[11px] font-bold"
+                style={active ? { background: "rgba(0,0,0,0.14)", color: "#0d1e35" } : { background: "var(--surface-2)", color: "var(--text-3)" }}>
+                {cat.sub}
               </span>
-              <span
-                className="absolute right-2 top-2"
-                style={{ color: "var(--olive)", opacity: 0.4 }}
-              >
-                <Hand className="size-3.5" />
-              </span>
-            </div>
-            <div className="p-2.5">
-              <div
-                className="text-sm font-semibold leading-tight"
-                style={{ color: "var(--text)" }}
-              >
-                {getLabel(item)}
-              </div>
-              <div
-                className="mt-1 flex items-center gap-1 text-xs"
-                style={{ color: "var(--olive)" }}
-              >
-                <Volume2 className="size-3" />
-                {category === "alphabet" ? "Үсэг" : "Тоо"}
-              </div>
-            </div>
-          </button>
-        ))}
+            </Link>
+          );
+        })}
       </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {items.map((item) => <SignCard key={item.id} item={item} onClick={() => setSelected(item)} />)}
+      </div>
+      {selected && <DictDetailSheet item={selected} category={category} onClose={() => setSelected(null)} onSpeak={handleSpeak} />}
     </section>
   );
 }

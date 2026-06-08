@@ -1,49 +1,61 @@
 import { randomBytes } from "crypto";
 import Link from "next/link";
-import { Video } from "lucide-react";
+import { VideoCameraIcon } from "@heroicons/react/24/solid";
 
 export const dynamic = "force-dynamic";
 
 export function VideoCall() {
-  const roomId = randomBytes(2).toString("hex");
+  const sessionId = randomBytes(8).toString("hex");
 
   return (
-    <section className="db-section">
-      <div className="db-headrow">
-        <div>
-          <div className="db-crumb"><b>Портал</b> › Видео дуудлага</div>
-          <h1 className="db-h">Видео дуудлага</h1>
-          <p className="db-sub">Дохионы хэлийг бодит цагт хэлмэрчлэн видео дуудлага хийнэ.</p>
-        </div>
-      </div>
+    <div className="flex min-h-[calc(100dvh-56px)] flex-col" style={{ background: "var(--bg)" }}>
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
 
-      <div style={{ maxWidth: "480px" }}>
-        <Link
-          href={`/call/${roomId}`}
-          className="db-card flex flex-col items-center gap-4 py-10 text-center transition hover:border-primary/40 hover:shadow-md"
-        >
-          <span
-            className="grid size-16 place-items-center rounded-2xl"
-            style={{ background: "var(--olive-soft)", color: "var(--olive)" }}
-          >
-            <Video size={32} />
-          </span>
-          <div>
-            <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>
-              Шинэ дуудлага эхлүүлэх
-            </h2>
-            <p className="mt-1 text-sm" style={{ color: "var(--text-2)" }}>
-              Өрөөний дугаар: <code style={{ color: "var(--olive)" }}>{roomId}</code>
+        <div className="flex items-center px-5 pb-2 pt-5">
+          <div className="h-10 w-10" />
+          <h1 className="flex-1 text-center text-[17px] font-bold md:text-[20px]" style={{ color: "var(--text)" }}>
+            Видео дуудлага
+          </h1>
+          <div className="h-10 w-10" />
+        </div>
+
+        <div className="flex items-end justify-center gap-5 py-4">
+          {/* Character mascot beside the button */}
+          <img
+            src="/images/video.png"
+            alt=""
+            aria-hidden
+            className="h-28 w-auto object-contain md:h-32"
+          />
+
+          {/* Call button + label */}
+          <div className="flex flex-col items-center gap-3 pb-1">
+            <Link
+              href={`/call/${sessionId}`}
+              className="flex h-[100px] w-[100px] items-center justify-center rounded-full transition-all duration-300 active:scale-95 md:h-[120px] md:w-[120px]"
+              style={{ background: "var(--olive)", boxShadow: "0 8px 28px rgba(0,0,0,0.15)" }}
+            >
+              <VideoCameraIcon className="h-12 w-12 text-black md:h-14 md:w-14" />
+            </Link>
+            <p className="text-[12px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--text-3)" }}>
+              Дарж эхлүүлнэ үү
             </p>
           </div>
-          <span
-            className="rounded-full px-5 py-2 text-sm font-bold text-white"
-            style={{ background: "var(--olive)" }}
-          >
-            Нэгдэх
-          </span>
-        </Link>
+        </div>
+
+        <div
+          className="mx-4 mb-3 flex-1 overflow-y-auto rounded-[22px] p-5 md:rounded-[24px] md:p-6"
+          style={{ background: "var(--surface)", border: "1px solid var(--border-c)" }}
+        >
+          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--text-3)" }}>
+            Дуудлага
+          </p>
+          <p className="text-[15px] leading-relaxed" style={{ color: "var(--text-2)" }}>
+            Шинэ дуудлага үүсгэж холбоосыг хамтрагчдаа илгэнэ үү. Хамтрагч нь холбоосоор орсны дараа шууд дохионы хэлмэрчлэл ажиллана.
+          </p>
+        </div>
+
       </div>
-    </section>
+    </div>
   );
 }

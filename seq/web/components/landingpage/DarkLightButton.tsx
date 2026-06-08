@@ -1,6 +1,5 @@
 "use client";
-
-import { Moon, Sun } from "lucide-react";
+import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 import { useTheme } from "@/hooks/useTheme";
 
 export const Switch = () => {
@@ -11,13 +10,14 @@ export const Switch = () => {
     <button
       onClick={toggle}
       aria-label={dark ? "Гэрэл горим руу шилжих" : "Бараан горим руу шилжих"}
-      className="relative flex h-8 w-[3.25rem] items-center rounded-full border border-border bg-muted transition-colors duration-200 hover:border-primary/50 active:scale-95"
+      className="relative flex h-8 w-[3.25rem] items-center rounded-full transition-colors duration-200 active:scale-95"
+      style={{ border: "1px solid var(--border-c)", background: "var(--surface-2)" }}
     >
       <span
-        className="absolute flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-all duration-300 ease-in-out"
-        style={{ left: dark ? "calc(100% - 1.625rem)" : "0.125rem" }}
+        className="absolute flex items-center justify-center rounded-full shadow-sm transition-all duration-300 ease-in-out"
+        style={{ width: "1.5rem", height: "1.5rem", left: dark ? "calc(100% - 1.625rem)" : "0.125rem", background: "var(--olive)" }}
       >
-        {dark ? <Moon className="size-3.5" /> : <Sun className="size-3.5" />}
+        {dark ? <MoonIcon className="h-3.5 w-3.5 text-black" /> : <SunIcon className="h-3.5 w-3.5 text-black" />}
       </span>
     </button>
   );
