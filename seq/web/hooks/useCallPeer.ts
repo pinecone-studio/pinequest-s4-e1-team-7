@@ -1,9 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { attachMediaStream } from "@/lib/video-utils";
+import { attachMediaStream, detachMediaStream } from "@/lib/video-utils";
 
-type CaptionMsg = { kind: "caption"; text: string };
+type PeerMsg = { kind: "caption"; text: string } | { kind: "phrase"; text: string };
+
+type CaptionHandlers = {
+  onCaption: (text: string) => void;
+  onPhrase: (text: string) => void;
+};
 type Role = "host" | "guest";
 export type PeerStatus = "idle" | "connecting" | "connected" | "error";
 
@@ -14,7 +19,26 @@ const safeId = (r: string) => r.replace(/[^a-zA-Z0-9-]/g, "").slice(0, 32) || "r
 const hostPeerId = (r: string) => `sbq-${safeId(r)}-host`;
 const guestPeerId = (r: string) => `sbq-${safeId(r)}-${Math.random().toString(36).slice(2, 8)}`;
 
-export function useCallPeer(roomId: string, onCaption: (text: string) => void, peerHint = "") {
+export function useCallPeer(
+  roomId: string,
+  handlers: CaptionHandlers,
+  peerHint = "",
+  onRemoteDisconnect?: () => void
+) {
+  const handlersRef = useRef(handlers);
+  handlersRef.current = handlers;
+  const onRemoteDisconnectRef = useRef(onRemoteDisconnect);
+  onRemoteDisconnectRef.current = onRemoteDisconnect;
+  const wasInCallRef = useRef(false);
+  const disconnectNotifiedRef = useRef(false);
+
+  const notifyRemoteDisconnect = useCallback(() => {
+    if (!wasInCallRef.current || disconnectNotifiedRef.current) return;
+    disconnectNotifiedRef.current = true;
+    wasInCallRef.current = false;
+    onRemoteDisconnectRef.current?.();
+  }, []);
+
   const [role, setRole] = useState<Role | null>(null);
   const [myPeerId, setMyPeerId] = useState("");
   const [status, setStatus] = useState<PeerStatus>("idle");
@@ -38,20 +62,27 @@ export function useCallPeer(roomId: string, onCaption: (text: string) => void, p
       setStatus("connecting");
       setMessage("");
       conn.on("open", () => {
+        wasInCallRef.current = true;
+        disconnectNotifiedRef.current = false;
         setStatus("connected");
         setMessage("");
       });
       conn.on("close", () => {
+        notifyRemoteDisconnect();
         setStatus("idle");
         connRef.current = null;
       });
       conn.on("error", () => setStatus("error"));
       conn.on("data", (d) => {
-        const m = d as CaptionMsg;
-        if (m?.kind === "caption" && typeof m.text === "string") onCaption(m.text);
+        const m = d as PeerMsg;
+        if (m?.kind === "caption" && typeof m.text === "string") {
+          handlersRef.current.onCaption(m.text);
+        } else if (m?.kind === "phrase" && typeof m.text === "string") {
+          handlersRef.current.onPhrase(m.text);
+        }
       });
     },
-    [onCaption]
+    [notifyRemoteDisconnect]
   );
 
   const attachCall = useCallback((call: import("peerjs").MediaConnection) => {
@@ -63,12 +94,13 @@ export function useCallPeer(roomId: string, onCaption: (text: string) => void, p
       }
     });
     call.on("close", () => {
+      notifyRemoteDisconnect();
       callRef.current = null;
       setHasRemoteStream(false);
       if (remoteVideoRef.current) attachMediaStream(remoteVideoRef.current, null);
     });
     call.on("error", () => setStatus("error"));
-  }, []);
+  }, [notifyRemoteDisconnect]);
 
   const stopDial = useCallback(() => {
     if (dialRef.current) {
@@ -238,14 +270,40 @@ export function useCallPeer(roomId: string, onCaption: (text: string) => void, p
 
   const sendCaption = useCallback((text: string) => {
     if (connRef.current?.open) {
-      connRef.current.send({ kind: "caption", text } satisfies CaptionMsg);
+      connRef.current.send({ kind: "caption", text } satisfies PeerMsg);
     }
+  }, []);
+
+  const sendPhrase = useCallback((text: string) => {
+    const t = text.trim();
+    if (!t || !connRef.current?.open) return;
+    connRef.current.send({ kind: "phrase", text: t } satisfies PeerMsg);
   }, []);
 
   const onStreamReady = useCallback((s: MediaStream) => {
     localStreamRef.current = s;
     setHasLocalStream(true);
   }, []);
+
+  /** Remote video салгах — local stream-ийг CameraView унтраана. */
+  const releaseLocalMedia = useCallback(() => {
+    localStreamRef.current = null;
+    detachMediaStream(remoteVideoRef.current);
+    setHasLocalStream(false);
+    setHasRemoteStream(false);
+  }, []);
+
+  useEffect(() => () => detachMediaStream(remoteVideoRef.current), []);
+
+  const hangUp = useCallback(() => {
+    wasInCallRef.current = false;
+    disconnectNotifiedRef.current = true;
+    connRef.current?.close();
+    callRef.current?.close();
+    connRef.current = null;
+    callRef.current = null;
+    releaseLocalMedia();
+  }, [releaseLocalMedia]);
 
   return {
     role,
@@ -256,7 +314,10 @@ export function useCallPeer(roomId: string, onCaption: (text: string) => void, p
     connRef,
     callRef,
     sendCaption,
+    sendPhrase,
     onStreamReady,
+    releaseLocalMedia,
+    hangUp,
     toggleCam: useCallback(
       () => localStreamRef.current?.getVideoTracks().forEach((t) => { t.enabled = !t.enabled; }),
       []

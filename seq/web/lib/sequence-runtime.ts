@@ -101,6 +101,8 @@ export type SeqMetadata = {
   noiseProneLabels?: string[];
   noiseProneExtraConf?: number;
   noiseProneExtraMargin?: number;
+  holdProneLabels?: string[];
+  holdProneSameLabelCooldownMs?: number;
 };
 
 export type SeqPrediction = {
@@ -340,6 +342,18 @@ export function emitterOptionsFromMeta(
     ],
     noiseProneExtraConf: meta.noiseProneExtraConf ?? 0.06,
     noiseProneExtraMargin: meta.noiseProneExtraMargin ?? 0.10,
+    holdProneLabels: meta.holdProneLabels ?? [
+      "сайн байна уу ?",
+      "би",
+      "миний",
+      "нэрийг",
+      "сурагч",
+      "сонсох",
+      "орох",
+      "баярлалаа",
+      "уучлаарай",
+    ],
+    holdProneSameLabelCooldownMs: meta.holdProneSameLabelCooldownMs ?? 7500,
     oneHandWordMinConfidence: meta.oneHandWordMinConfidence ?? 0.74,
     oneHandWordMinMargin: meta.oneHandWordMinMargin ?? 0.14,
     oneHandWordMinStreak: meta.oneHandWordMinStreak ?? 3,
@@ -350,8 +364,6 @@ export function emitterOptionsFromMeta(
     oneHandWordInstantConfidence: meta.oneHandWordInstantConfidence ?? 0.68,
     fragileOneHandLabels: meta.fragileOneHandLabels ?? [
       "Ганхөлөг гэдэг",
-      "сайн байна уу ?",
-      "нэрийг",
     ],
     fragileExtraConf:    meta.fragileExtraConf ?? 0.05,
     fragileExtraMargin:  meta.fragileExtraMargin ?? 0.10,
@@ -663,8 +675,8 @@ export class SequenceRecognizer {
 
     if (
       oneStatic &&
-      one.confidence >= 0.58 &&
-      (two.isNeutral || one.confidence >= two.confidence - 0.05)
+      one.confidence >= 0.52 &&
+      (two.isNeutral || one.confidence >= two.confidence - 0.08)
     ) {
       return { ...one, bothHands: false };
     }
@@ -794,6 +806,8 @@ export type SeqEmitterOptions = {
   noiseProneLabels?: string[];
   noiseProneExtraConf?: number;
   noiseProneExtraMargin?: number;
+  holdProneLabels?: string[];
+  holdProneSameLabelCooldownMs?: number;
 };
 
 type LabelBar = {
@@ -843,8 +857,6 @@ const DEFAULTS: Required<SeqEmitterOptions> = {
   oneHandWordInstantConfidence: 0.68,
   fragileOneHandLabels: [
     "Ганхөлөг гэдэг",
-    "сайн байна уу ?",
-    "нэрийг",
   ],
   fragileExtraConf:    0.05,
   fragileExtraMargin:  0.10,
@@ -879,6 +891,18 @@ const DEFAULTS: Required<SeqEmitterOptions> = {
   noiseProneLabels: ["та", "сайхан", "гарах", "зүгээр"],
   noiseProneExtraConf: 0.06,
   noiseProneExtraMargin: 0.10,
+  holdProneLabels: [
+    "сайн байна уу ?",
+    "би",
+    "миний",
+    "нэрийг",
+    "сурагч",
+    "сонсох",
+    "орох",
+    "баярлалаа",
+    "уучлаарай",
+  ],
+  holdProneSameLabelCooldownMs: 7500,
 };
 
 export type SeqEmitterStatus = {
@@ -910,6 +934,7 @@ export class SequenceEmitter {
   private rearmNeutralCount = 0;
   private noiseProneSet: Set<string>;
   private coreFastSet: Set<string>;
+  private holdProneSet: Set<string>;
   /** Consecutive null/weak frames before streak reset (MediaPipe dropout). */
   private missStreak = 0;
 
@@ -929,6 +954,11 @@ export class SequenceEmitter {
       this.coreFastSet = new Set(options.coreFastLabels);
     } else {
       this.coreFastSet = new Set(DEFAULTS.coreFastLabels);
+    }
+    if (options?.holdProneLabels) {
+      this.holdProneSet = new Set(options.holdProneLabels);
+    } else {
+      this.holdProneSet = new Set(DEFAULTS.holdProneLabels);
     }
   }
 
@@ -1027,6 +1057,9 @@ export class SequenceEmitter {
   }
 
   private _sameLabelCooldownMs(label: string): number {
+    if (this.holdProneSet.has(label)) {
+      return this.opts.holdProneSameLabelCooldownMs;
+    }
     if (isStaticSign(label, this.opts.neutralLabel)) {
       return this.opts.staticSameLabelCooldownMs;
     }
@@ -1074,18 +1107,25 @@ export class SequenceEmitter {
       return false;
     }
     if (isStaticSign(pred.label, this.opts.neutralLabel)) {
-      if (pred.handMotion < this.opts.staticHoldMinMotion) return false;
+      // Үсэг — гар байгаа бол хангалттай; тохой хөдөлгөөн шаардахгүй.
+      if (
+        !this.coreFastSet.has(pred.label) &&
+        pred.handMotion < this.opts.staticHoldMinMotion
+      ) {
+        return false;
+      }
       const cap = this.coreFastSet.has(pred.label)
-        ? Math.max(this.opts.staticMaxMotion, 0.04)
+        ? Math.max(this.opts.staticMaxMotion, 0.06)
         : this.opts.staticMaxMotion;
-      if (pred.handMotion > cap && pred.confidence < 0.74) return false;
+      if (pred.handMotion > cap && pred.confidence < 0.68) return false;
     }
     if (
       isOneHandWord(
         pred.label,
         this._handModeFor(pred.label),
         this.opts.neutralLabel
-      )
+      ) &&
+      !this.coreFastSet.has(pred.label)
     ) {
       if (pred.handMotion < this.opts.oneHandWordMinMotion) return false;
     }

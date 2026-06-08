@@ -10,18 +10,20 @@ import {
 
 type Props = {
   camMuted: boolean;
-  micMuted: boolean;
+  voiceListening: boolean;
+  voiceSupported: boolean;
   onCamToggle: () => void;
-  onMicToggle: () => void;
+  onVoiceToggle: () => void;
   onEnd: () => void;
   onVolumeChange: (v: number) => void;
 };
 
 export function CallControls({
   camMuted,
-  micMuted,
+  voiceListening,
+  voiceSupported,
   onCamToggle,
-  onMicToggle,
+  onVoiceToggle,
   onEnd,
   onVolumeChange,
 }: Props) {
@@ -55,15 +57,27 @@ export function CallControls({
 
         <button
           type="button"
-          onClick={onMicToggle}
-          aria-label={micMuted ? "Микрофон асаах" : "Микрофон унтраах"}
-          className={`${btn} h-11 w-11 ${micMuted ? "opacity-50" : ""}`}
+          onClick={onVoiceToggle}
+          disabled={!voiceSupported}
+          aria-label={voiceListening ? "Яриа зогсоох" : "Яриа эхлүүлэх"}
+          className={`${btn} h-11 w-11 disabled:opacity-40 ${
+            voiceListening ? "bg-[#FFE566]/90 text-black" : ""
+          }`}
+          style={
+            voiceListening
+              ? { boxShadow: "0 0 0 8px rgba(255,229,102,0.25), 0 0 0 16px rgba(255,229,102,0.1)" }
+              : undefined
+          }
         >
           <MicrophoneIcon className="h-5 w-5" />
         </button>
       </div>
 
-      <div className="mt-3 flex items-center gap-3 px-1">
+      <p className="mt-2 text-center text-[11px] font-medium text-white/50">
+        {voiceListening ? "Сонсож байна…" : "Микрофон — яриагаа текст болгоно"}
+      </p>
+
+      <div className="mt-2 flex items-center gap-3 px-1">
         <SpeakerWaveIcon className="h-3.5 w-3.5 shrink-0 text-white/40" />
         <input
           type="range"
