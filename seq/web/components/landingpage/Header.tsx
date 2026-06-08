@@ -64,10 +64,10 @@ export const Header = () => {
         <ThemeToggle />
 
         <Show when="signed-out">
-          <Link href="/auth/login" className="db-pillbtn hidden sm:inline-flex">
+          <Link href="/?auth=login" className="db-pillbtn hidden sm:inline-flex">
             Нэвтрэх
           </Link>
-          <Link href="/auth/register" className="db-pillbtn green">
+          <Link href="/?auth=register" className="db-pillbtn green">
             <UserPlusIcon className="h-4 w-4" /> Бүртгүүлэх
           </Link>
         </Show>
