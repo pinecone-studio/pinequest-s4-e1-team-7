@@ -13,6 +13,8 @@ import { useCallPeer } from "@/hooks/useCallPeer";
 import { useIsDesktop } from "@/hooks/useBreakpoint";
 import { useSignDetection } from "@/hooks/useSignDetection";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { DEMO_CALL_ROOM } from "@/lib/call-constants";
+import { releaseAllCameras } from "@/lib/camera-registry";
 import { VideoCameraSlashIcon } from "@heroicons/react/24/solid";
 
 const fmtDur = (s: number) => {
@@ -31,6 +33,7 @@ const STATUS_LABEL: Record<string, string> = {
 export function CallSession({ roomId }: { roomId: string }) {
   const router = useRouter();
   const isDesktop = useIsDesktop();
+  const effectiveRoomId = DEMO_CALL_ROOM;
   const peerHint = useSearchParams().get("peer") ?? "";
   const [linkCopied, setLinkCopied] = useState(false);
   const {
@@ -43,6 +46,7 @@ export function CallSession({ roomId }: { roomId: string }) {
     onTheirPhrase,
   } = useCallCaptions();
   const [camMuted, setCamMuted] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const connectedAtRef = useRef<number | null>(null);
   const leavingRef = useRef(false);
@@ -60,7 +64,7 @@ export function CallSession({ roomId }: { roomId: string }) {
     onStreamReady,
     hangUp,
   } = useCallPeer(
-    roomId,
+    effectiveRoomId,
     { onCaption: onTheirCaption, onPhrase: onTheirPhrase },
     peerHint,
     () => leaveSessionRef.current()
@@ -98,7 +102,8 @@ export function CallSession({ roomId }: { roomId: string }) {
     leavingRef.current = true;
     stop();
     hangUp();
-    router.back();
+    releaseAllCameras();
+    router.replace("/dashboard/call");
   }, [hangUp, router, stop]);
 
   useEffect(() => {
@@ -125,12 +130,20 @@ export function CallSession({ roomId }: { roomId: string }) {
 
   useEffect(() => () => stop(), [stop]);
 
+  useEffect(() => () => releaseAllCameras(), []);
+
+  useEffect(() => {
+    if (roomId !== effectiveRoomId) {
+      router.replace(`/call/${effectiveRoomId}`);
+    }
+  }, [effectiveRoomId, roomId, router]);
+
   const shareLink = useMemo(
     () =>
       typeof window !== "undefined"
-        ? `${window.location.origin}/call/${encodeURIComponent(roomId)}`
+        ? `${window.location.origin}/call/${encodeURIComponent(effectiveRoomId)}`
         : "",
-    [roomId]
+    [effectiveRoomId]
   );
 
   const copyLink = useCallback(async () => {
@@ -204,7 +217,7 @@ export function CallSession({ roomId }: { roomId: string }) {
         )}
 
         <div
-          className={`absolute left-3 top-3 z-20 h-[90px] w-[68px] overflow-hidden rounded-2xl border border-white/20 bg-black shadow-lg transition-opacity md:left-4 md:top-[calc(env(safe-area-inset-top)+3.5rem)] md:h-[120px] md:w-[90px] ${
+          className={`absolute left-3 top-3 z-20 overflow-hidden rounded-2xl border border-white/20 bg-black shadow-lg transition-opacity max-md:h-[140px] max-md:w-[105px] md:left-4 md:top-[calc(env(safe-area-inset-top)+3.5rem)] md:h-[240px] md:w-[180px] ${
             connected && hasRemoteStream ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
         >
@@ -222,15 +235,25 @@ export function CallSession({ roomId }: { roomId: string }) {
 
       {/* Mobile — chat доор, scroll */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:hidden">
-        <CallCaptionHistory entries={history} variant="mobile" />
+        <CallCaptionHistory
+          entries={history}
+          variant="mobile"
+          open={chatOpen}
+          onToggle={() => setChatOpen((o) => !o)}
+        />
       </div>
 
-      <CallCaptionHistory entries={history} variant="desktop" />
+      <CallCaptionHistory
+        entries={history}
+        variant="desktop"
+        open={chatOpen}
+        onToggle={() => setChatOpen((o) => !o)}
+      />
       <CallSubtitles
         layout="desktop"
         speaker={active?.speaker ?? null}
         text={active?.text ?? ""}
-        hasHistory={history.length > 0}
+        chatOpen={chatOpen}
       />
 
       <div className="z-40 shrink-0 px-3 pb-[max(env(safe-area-inset-bottom),12px)] pt-2 md:absolute md:inset-x-0 md:bottom-0 md:px-6 md:pt-4">
@@ -241,9 +264,6 @@ export function CallSession({ roomId }: { roomId: string }) {
           onCamToggle={handleCamToggle}
           onVoiceToggle={handleVoiceToggle}
           onEnd={leaveSession}
-          onVolumeChange={(v) => {
-            if (remoteVideoRef.current) remoteVideoRef.current.volume = v;
-          }}
         />
       </div>
     </div>

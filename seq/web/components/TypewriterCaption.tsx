@@ -93,8 +93,8 @@ export function TypewriterCaption({
 
   const subtitleClass =
     tone === "yellow"
-      ? "text-[#FFE566] text-[17px] font-semibold leading-snug tracking-wide sm:text-[19px]"
-      : "text-white/90 text-[15px] font-medium leading-snug sm:text-[17px]";
+      ? "text-[#FFE566] text-[21px] font-semibold leading-snug tracking-wide sm:text-[24px]"
+      : "text-white/90 text-[19px] font-medium leading-snug sm:text-[22px]";
 
   const shadowStyle = {
     textShadow:

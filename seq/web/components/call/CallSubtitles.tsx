@@ -6,8 +6,8 @@ import type { CaptionSpeaker } from "@/hooks/useCallCaptions";
 type Props = {
   speaker: CaptionSpeaker | null;
   text: string;
-  /** desktop sidebar байвал subtitle-ийг дээшлүүлнэ */
-  hasHistory?: boolean;
+  /** desktop sidebar нээлттэй эсэх */
+  chatOpen?: boolean;
   /** mobile = камерын доод ирмэг дээр */
   layout?: "mobile" | "desktop";
 };
@@ -16,7 +16,7 @@ type Props = {
 export function CallSubtitles({
   speaker,
   text,
-  hasHistory = false,
+  chatOpen = true,
   layout = "desktop",
 }: Props) {
   if (!text) return null;
@@ -37,8 +37,8 @@ export function CallSubtitles({
 
   return (
     <div
-      className={`pointer-events-none absolute inset-x-0 bottom-[calc(7.5rem+env(safe-area-inset-bottom))] z-30 hidden justify-center px-6 text-center md:right-[min(34vw,280px)] md:flex ${
-        hasHistory ? "md:bottom-[calc(8rem+env(safe-area-inset-bottom))]" : ""
+      className={`pointer-events-none absolute inset-x-0 bottom-[calc(7.5rem+env(safe-area-inset-bottom))] z-30 hidden justify-center px-6 text-center md:flex ${
+        chatOpen ? "md:right-[min(36vw,320px)]" : "md:right-0"
       }`}
     >
       <TypewriterCaption

@@ -1,13 +1,20 @@
 "use client";
 
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import type { Settings } from "@/lib/types";
+import type { Settings, TextScale } from "@/lib/types";
 
 const SPEEDS = [
   { label: "0.7×", value: 0.7 },
   { label: "1.0×", value: 1.0 },
   { label: "1.5×", value: 1.5 },
 ] as const;
+
+const TEXT_SCALES: { label: string; value: TextScale }[] = [
+  { label: "Жижиг", value: 0.9 },
+  { label: "Энгийн", value: 1 },
+  { label: "Том", value: 1.15 },
+  { label: "Маш том", value: 1.3 },
+];
 
 function SpeedLine({ rate, onChange }: { rate: number; onChange: (v: number) => void }) {
   const activeIdx = SPEEDS.findIndex((s) => s.value === rate);
@@ -65,24 +72,24 @@ export function TranslatorSettings({ settings, onUpdate, onClose }: Props) {
 
   return (
     <section
-      className="rounded-[20px] p-5"
+      className="rounded-[24px] p-6"
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border-c)",
         boxShadow: "var(--shadow-sm)",
       }}
     >
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
+      <div className="mb-5 flex items-center justify-between">
+        <p className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
           Тохиргоо
         </p>
         <button type="button" onClick={onClose} aria-label="Хаах">
-          <XMarkIcon className="h-4 w-4" style={{ color: "var(--text-3)" }} />
+          <XMarkIcon className="h-5 w-5" style={{ color: "var(--text-3)" }} />
         </button>
       </div>
 
-      <div className="mb-5">
-        <p className="mb-2 text-[12px] font-semibold" style={{ color: "var(--text-3)" }}>
+      <div className="mb-6">
+        <p className="mb-2 text-[13px] font-semibold" style={{ color: "var(--text-3)" }}>
           Дуу хоолой
         </p>
         <div className="flex gap-2">
@@ -91,7 +98,7 @@ export function TranslatorSettings({ settings, onUpdate, onClose }: Props) {
               key={g}
               type="button"
               onClick={() => onUpdate({ gender: g })}
-              className="flex-1 rounded-full py-2.5 text-[13px] font-semibold transition-all"
+              className="flex-1 rounded-full py-3 text-[14px] font-semibold transition-all"
               style={settings.gender === g ? activeStyle : inactiveStyle}
             >
               {g === "female" ? "Эмэгтэй" : "Эрэгтэй"}
@@ -100,11 +107,30 @@ export function TranslatorSettings({ settings, onUpdate, onClose }: Props) {
         </div>
       </div>
 
-      <div>
-        <p className="mb-3 text-[12px] font-semibold" style={{ color: "var(--text-3)" }}>
+      <div className="mb-6">
+        <p className="mb-3 text-[13px] font-semibold" style={{ color: "var(--text-3)" }}>
           Хурд
         </p>
         <SpeedLine rate={settings.rate} onChange={(v) => onUpdate({ rate: v })} />
+      </div>
+
+      <div>
+        <p className="mb-3 text-[13px] font-semibold" style={{ color: "var(--text-3)" }}>
+          Текстийн хэмжээ
+        </p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {TEXT_SCALES.map(({ label, value }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onUpdate({ textScale: value })}
+              className="rounded-full py-2.5 text-[13px] font-semibold transition-all"
+              style={settings.textScale === value ? activeStyle : inactiveStyle}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );
