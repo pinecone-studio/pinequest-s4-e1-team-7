@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { getLandmarkers, type AllLandmarks } from "@/lib/mediapipe";
+import { attachMediaStream, drawVideoCover } from "@/lib/video-utils";
 
 /** MediaPipe only — preview is live rAF from <video>. */
 const DETECT_HZ = 8;
@@ -13,7 +14,12 @@ type Props = {
   width?: number;
   height?: number;
   overlay?: ReactNode;
+  /** @deprecated Use mirrorPreview + mirrorDetect */
   mirror?: boolean;
+  /** Дэлгэцийн preview — false = бодит чиглэл (mirror биш) */
+  mirrorPreview?: boolean;
+  /** MediaPipe detect — true = сургалтын selfie flip-тэй ижил */
+  mirrorDetect?: boolean;
   onStreamReady?: (stream: MediaStream) => void;
   drawSkeleton?: boolean;
   showPreview?: boolean;
@@ -31,6 +37,8 @@ export function CameraView({
   height = 480,
   overlay,
   mirror = true,
+  mirrorPreview,
+  mirrorDetect,
   onStreamReady,
   drawSkeleton = false,
   showPreview = true,
@@ -40,6 +48,9 @@ export function CameraView({
   inferenceActive = false,
   fullscreen = false,
 }: Props) {
+  const previewMirror = mirrorPreview ?? mirror;
+  const detectMirror = mirrorDetect ?? mirror;
+
   const wrapRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -113,15 +124,7 @@ export function CameraView({
             const ctx = c.getContext("2d", { alpha: false });
             if (ctx) {
               ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-              ctx.fillStyle = "#000";
-              ctx.fillRect(0, 0, displayW, displayH);
-              ctx.save();
-              if (mirror) {
-                ctx.translate(displayW, 0);
-                ctx.scale(-1, 1);
-              }
-              ctx.drawImage(v, 0, 0, vw, vh, 0, 0, displayW, displayH);
-              ctx.restore();
+              drawVideoCover(ctx, v, displayW, displayH, previewMirror);
               if (drawSkeleton && lastLmRef.current) {
                 drawSkeletonOverlay(ctx, displayW, displayH, lastLmRef.current);
               }
@@ -140,7 +143,7 @@ export function CameraView({
         liveRafRef.current = null;
       }
     };
-  }, [cameraOn, drawSkeleton, mirror, showPreview]);
+  }, [cameraOn, drawSkeleton, previewMirror, showPreview]);
 
   /** MediaPipe + inference — preview-ийг блоклохгүй, TF дараагийн frame-д. */
   useEffect(() => {
@@ -168,7 +171,7 @@ export function CameraView({
       wctx.setTransform(1, 0, 0, 1, 0, 0);
       wctx.clearRect(0, 0, dw, dh);
       wctx.save();
-      if (mirror) {
+      if (detectMirror) {
         wctx.translate(dw, 0);
         wctx.scale(-1, 1);
       }
@@ -201,7 +204,7 @@ export function CameraView({
       stopped = true;
       clearInterval(detectId);
     };
-  }, [bundleReady, inferenceActive, mirror]);
+  }, [bundleReady, detectMirror, inferenceActive]);
 
   const startCamera = useCallback(async () => {
     if (streamRef.current) return;
@@ -223,9 +226,8 @@ export function CameraView({
       }
       streamRef.current = stream;
       const v = videoRef.current;
-      v.srcObject = stream;
       v.playsInline = true;
-      await v.play();
+      attachMediaStream(v, stream);
       onStreamReadyRef.current?.(stream);
       setStatus("MediaPipe: WASM...");
 

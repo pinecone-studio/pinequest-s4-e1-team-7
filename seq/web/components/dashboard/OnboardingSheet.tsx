@@ -23,10 +23,14 @@ export function OnboardingSheet({ onDismiss }: { onDismiss: () => void }) {
 
   return (
     <>
-      <div className="absolute inset-0 z-30" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }} onClick={onDismiss} />
       <div
-        className="absolute inset-x-0 z-40 select-none overflow-hidden rounded-[28px] mx-2"
-        style={{ bottom: "max(calc(env(safe-area-inset-bottom) + 73px), 81px)", background: "var(--surface)", boxShadow: "0 -8px 40px rgba(0,0,0,0.28)", animation: "sheet-up 0.32s var(--ease) both" }}
+        className="fixed inset-0 z-[70]"
+        style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
+        onClick={onDismiss}
+      />
+      <div
+        className="fixed inset-x-4 bottom-[max(env(safe-area-inset-bottom),16px)] z-[71] mx-auto max-w-lg select-none overflow-hidden rounded-[28px]"
+        style={{ background: "var(--surface)", boxShadow: "0 -8px 40px rgba(0,0,0,0.28)", animation: "sheet-up 0.32s var(--ease) both" }}
         onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }}
         onTouchEnd={(e) => { const dx = e.changedTouches[0].clientX - (touchX.current ?? 0); if (dx < -48) goNext(); else if (dx > 48) goPrev(); touchX.current = null; }}
       >

@@ -1,4 +1,4 @@
-import { VideoCameraIcon, LinkIcon, CheckIcon } from "@heroicons/react/24/solid";
+import { LinkIcon, CheckIcon } from "@heroicons/react/24/solid";
 import type { PeerStatus } from "@/hooks/useCallPeer";
 
 type Props = {
@@ -12,25 +12,39 @@ type Props = {
 
 export function CallWaiting({ role, status, message, shareLink, onCopyLink, linkCopied }: Props) {
   if (status === "connected") return null;
+
+  const title =
+    status === "error"
+      ? "Холбогдож чадсангүй"
+      : status === "connecting"
+        ? "Холбогдож байна…"
+        : role === "host"
+          ? "Хамтрагч хүлээж байна"
+          : "Дуудлага эхэлнэ";
+
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 p-6" style={{ background: "var(--bg)" }}>
-      <div className="flex h-20 w-20 items-center justify-center rounded-full" style={{ background: "var(--olive-soft)" }}>
-        <VideoCameraIcon className="h-10 w-10" style={{ color: "var(--olive)" }} />
+    <div className="absolute inset-0 z-20 flex flex-col items-center justify-end bg-black/55 px-6 pb-[calc(7rem+env(safe-area-inset-bottom))] backdrop-blur-[2px]">
+      <div className="mb-auto mt-[max(env(safe-area-inset-top),5rem)] w-full max-w-sm rounded-2xl bg-black/50 p-5 text-center backdrop-blur-md">
+        <p className="text-lg font-semibold text-white">{title}</p>
+        {message && <p className="mt-2 text-sm leading-relaxed text-white/60">{message}</p>}
+
+        {role === "host" && shareLink && status !== "error" && (
+          <button
+            type="button"
+            onClick={onCopyLink}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--olive)] px-5 py-3.5 text-[15px] font-semibold text-black transition active:scale-[0.98]"
+          >
+            {linkCopied ? <CheckIcon className="h-5 w-5" /> : <LinkIcon className="h-5 w-5" />}
+            {linkCopied ? "Хуулагдлаа!" : "Холбоос хуулах"}
+          </button>
+        )}
+
+        {role === "guest" && status !== "error" && (
+          <p className="mt-4 text-xs text-white/40">
+            Host эхлээд дуудлага нээсэн байх ёстой
+          </p>
+        )}
       </div>
-      <div className="text-center">
-        <p className="text-[18px] font-bold" style={{ color: "var(--text)" }}>
-          {status === "error" ? "Алдаа гарлаа" : status === "connecting" ? "Холбогдож байна…" : "Хүлээж байна"}
-        </p>
-        {message && <p className="mt-1 text-[13px]" style={{ color: "var(--text-3)" }}>{message}</p>}
-      </div>
-      {role === "host" && shareLink && (
-        <button onClick={onCopyLink}
-          className="flex items-center gap-2 rounded-full px-5 py-3 text-[14px] font-semibold transition-opacity active:opacity-70"
-          style={{ background: "var(--olive)", color: "black" }}>
-          {linkCopied ? <CheckIcon className="h-4 w-4" /> : <LinkIcon className="h-4 w-4" />}
-          {linkCopied ? "Хуулагдлаа!" : "Холбоос хуулах"}
-        </button>
-      )}
     </div>
   );
 }
