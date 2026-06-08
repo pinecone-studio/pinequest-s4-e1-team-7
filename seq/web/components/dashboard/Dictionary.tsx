@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { Upload, Trash2 } from "lucide-react";
@@ -23,6 +24,7 @@ export function Dictionary({
   category = "alphabet",
   signs: initial = [],
 }: Props) {
+  const router = useRouter();
   const { settings, toast } = useApp();
   const { speak } = useTextToSpeech();
   const [signs, setSigns] = useState<SignEntry[]>(initial);
@@ -51,6 +53,7 @@ export function Dictionary({
         return [...filtered, entry];
       });
       toast("success", `${label} зураг амжилттай нэмэгдлээ`, "check");
+      router.refresh();
     } catch {
       toast("warn", `${label} upload хийхэд алдаа гарлаа`, "alert-triangle");
     } finally {
@@ -63,6 +66,7 @@ export function Dictionary({
       await deleteSign(sign.id);
       setSigns((prev) => prev.filter((s) => s.id !== sign.id));
       toast("info", `${sign.label} зураг устгалаа`, "trash");
+      router.refresh();
     } catch {
       toast("warn", "Устгахад алдаа гарлаа", "alert-triangle");
     }
@@ -114,7 +118,7 @@ export function Dictionary({
                       className="w-full h-auto scale-[1.2] transition-transform group-hover:scale-[1.2]"
                     />
                   </div>
-                  <div className="p-2.5">
+                  <div className="px-2.5 py-1.5">
                     <div
                       className="text-sm font-semibold leading-tight"
                       style={{ color: "var(--text)" }}
