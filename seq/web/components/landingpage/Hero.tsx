@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export const Hero = () => (
   <section
-    className="relative flex min-h-screen flex-col overflow-hidden px-4 pb-0 pt-16 md:pt-20"
+    className="relative flex min-h-screen flex-col overflow-hidden px-4 pb-0 pt-5 md:pt-10"
     style={{ background: "var(--bg)" }}
     id="top"
   >
@@ -20,17 +20,8 @@ export const Hero = () => (
         className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed md:text-[19px]"
         style={{ color: "var(--text-2)" }}
       >
-        Монгол дохионы хэлнээс бичвэр хөрвүүлэж, видео дуудлага хийнэ.
+        Монгол дохионы хэлнээс бичвэр хөрвүүлж, видео дуудлага хийнэ.
       </p>
-
-      <div className="lhero-cta mt-8 justify-center">
-        <Link href="/?auth=register" className="db-pillbtn green lg">
-          Эхлэх
-        </Link>
-        <a href="#how" className="db-pillbtn lg">
-          Хэрхэн ажилладаг вэ?
-        </a>
-      </div>
     </div>
 
     {/* ── Floating visual composition — fills remaining viewport ── */}
