@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "@/context/AppContext";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { Upload, Trash2 } from "lucide-react";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { DICT_CATEGORIES } from "@/lib/constants";
 import type { DictCategory } from "@/lib/constants";
 import type { SignEntry } from "@/lib/api";
@@ -30,6 +30,7 @@ export function Dictionary({
   const { speak } = useTextToSpeech();
   const [signs, setSigns] = useState<SignEntry[]>(initial);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const items = category === "alphabet" ? ALPHABET : NUMBERS;
@@ -37,9 +38,18 @@ export function Dictionary({
     category === "numbers" ? "number" : "alphabet";
 
   const signMap = new Map(signs.map((s) => [s.label.toUpperCase(), s]));
+  const filteredItems = search.trim()
+    ? items.filter((i) => i.toLowerCase().includes(search.trim().toLowerCase()))
+    : items;
   const [activeItem, setActiveItem] = useState<number>(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLElement | null)[]>([]);
+
   const [stripHeight, setStripHeight] = useState(600);
+  const [winWidth, setWinWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1200
+  );
 
   useEffect(() => {
     const el = stripRef.current;
@@ -48,6 +58,25 @@ export function Dictionary({
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  useEffect(() => {
+    const onResize = () => setWinWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const isMobile = winWidth < 768;
+  const collapsedW = isMobile ? "2.25rem" : "4rem";
+  const activeW = isMobile ? Math.min(stripHeight, winWidth - 48) : stripHeight;
+
+  const handleActivate = (index: number) => {
+    setActiveItem(index);
+    const container = scrollContainerRef.current;
+    const card = cardRefs.current[index];
+    if (!container || !card) return;
+    const scrollLeft = card.offsetLeft - container.clientWidth / 2 + activeW / 2;
+    container.scrollTo({ left: Math.max(0, scrollLeft), behavior: "smooth" });
+  };
 
   const handleSpeak = (item: SignEntry) => {
     speak(item.label, settings);
@@ -117,16 +146,29 @@ export function Dictionary({
               {cat.label}
             </Link>
           ))}
-          <span className="ml-auto self-center text-[12px]" style={{ color: "var(--text-3)" }}>
+          <div
+            className="ml-auto flex items-center gap-2 rounded-full px-3 py-1.5"
+            style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
+          >
+            <MagnifyingGlassIcon className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--text-3)" }} />
+            <input
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setActiveItem(0); }}
+              placeholder="Хайх…"
+              className="w-20 bg-transparent text-[12px] outline-none placeholder:opacity-50 md:w-28"
+              style={{ color: "var(--text)" }}
+            />
+          </div>
+          <span className="self-center text-[12px]" style={{ color: "var(--text-3)" }}>
             {signs.length}/{items.length}
           </span>
         </div>
       </div>
 
       {/* Skiper expand strip — full width, fills remaining height */}
-      <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden px-4 pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:px-6 md:pb-4 lg:px-10 xl:px-16">
-        <div ref={stripRef} className="flex h-full items-stretch gap-2">
-            {items.map((item, index) => {
+      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden px-2 pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:px-6 md:pb-4 lg:px-10 xl:px-16">
+        <div ref={stripRef} className="flex h-full items-stretch gap-1 md:gap-2">
+            {filteredItems.map((item, index) => {
               const sign = signMap.get(item);
               const isActive = activeItem === index;
               const isUploading = uploading === item;
@@ -134,11 +176,12 @@ export function Dictionary({
               return (
                 <motion.div
                   key={item}
+                  ref={(el) => { cardRefs.current[index] = el; }}
                   className="relative shrink-0 cursor-pointer overflow-hidden rounded-[28px]"
-                  animate={{ width: isActive ? stripHeight : "4.5rem" }}
+                  animate={{ width: isActive ? activeW : collapsedW }}
                   transition={{ duration: 0.3, ease: "easeInOut" }}
-                  onClick={() => setActiveItem(index)}
-                  onHoverStart={() => setActiveItem(index)}
+                  onClick={() => handleActivate(index)}
+                  onHoverStart={() => handleActivate(index)}
                   style={{
                     height: "100%",
                     background: sign ? "var(--surface)" : "var(--surface-2)",
@@ -172,7 +215,7 @@ export function Dictionary({
                         className="absolute inset-0 flex items-center justify-center"
                       >
                         <span
-                          className="text-[15px] font-bold tracking-wide"
+                          className="text-[11px] font-bold tracking-wide md:text-[14px]"
                           style={{ color: "var(--text-2)" }}
                         >
                           {item}
@@ -189,7 +232,7 @@ export function Dictionary({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute inset-0 flex flex-col justify-between p-4"
+                        className="absolute inset-0 flex flex-col justify-between p-3 md:p-4"
                         style={{
                           background: sign
                             ? "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)"
@@ -222,7 +265,7 @@ export function Dictionary({
                         <div className="flex items-end justify-between">
                           <div>
                             <p
-                              className="text-[28px] font-bold leading-none"
+                              className="text-[20px] font-bold leading-none md:text-[28px]"
                               style={{ color: sign ? "white" : "var(--text)" }}
                             >
                               {item}
