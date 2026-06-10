@@ -33,6 +33,9 @@ import {
   editMessage,
   fetchConversations,
   fetchMessages,
+  fetchOlderMessages,
+  fetchRecentMessages,
+  MESSAGE_PAGE_SIZE,
   openConversation,
   searchUsers,
   sendCallInvite,
@@ -46,6 +49,8 @@ import {
   writeCachedMessages,
 } from "@/lib/chat-cache";
 import { cn } from "@/lib/utils";
+import { useChatRealtime } from "@/context/ChatRealtimeContext";
+import { createAdaptivePoller, FALLBACK_POLL_MS } from "@/lib/poll-schedule";
 
 function chatPath(conversationId: string) {
   return `/dashboard/call/${encodeURIComponent(conversationId)}`;
@@ -98,6 +103,13 @@ function mergeMessages(prev: ChatMessage[], incoming: ChatMessage[]): ChatMessag
   const seen = new Set(prev.map((m) => m.id));
   const added = incoming.filter((m) => !seen.has(m.id));
   return added.length ? [...prev, ...added] : prev;
+}
+
+function prependMessages(prev: ChatMessage[], older: ChatMessage[]): ChatMessage[] {
+  if (!older.length) return prev;
+  const seen = new Set(prev.map((m) => m.id));
+  const added = older.filter((m) => !seen.has(m.id));
+  return added.length ? [...added, ...prev] : prev;
 }
 
 function VoiceBubble({ url, durationMs, mine }: { url: string; durationMs: number | null; mine: boolean }) {
@@ -219,6 +231,7 @@ export function MessagesApp({
   const params = useParams();
   const routeConvId = params?.id ? decodeURIComponent(String(params.id)) : null;
   const { markInCall, markAvailable } = useIncomingCall();
+  const { connected: realtimeConnected, subscribe } = useChatRealtime();
   const hasServerConversations = initialConversations !== undefined;
   const hasServerMessages =
     initialMessages !== undefined && !!initialConvId && initialConvId === routeConvId;
@@ -241,7 +254,13 @@ export function MessagesApp({
   const [editText, setEditText] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
+  const pendingEnterScrollRef = useRef(false);
+  const loadingOlderRef = useRef(false);
+  const isNearBottomRef = useRef(true);
+  const shouldScrollToBottomRef = useRef(false);
+  const [hasMoreOlder, setHasMoreOlder] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -281,24 +300,53 @@ export function MessagesApp({
     }
   }, []);
 
-  const loadMessages = useCallback(async (convId: string, afterId = 0) => {
-    const rows = await fetchMessages(convId, afterId);
-    if (afterId > 0) {
+  const loadRecentMessages = useCallback(async (convId: string) => {
+    const rows = await fetchRecentMessages(convId, MESSAGE_PAGE_SIZE);
+    setMessages(rows);
+    writeCachedMessages(convId, rows);
+    lastMessageIdRef.current = rows[rows.length - 1]?.id ?? 0;
+    setHasMoreOlder(rows.length >= MESSAGE_PAGE_SIZE);
+  }, []);
+
+  const loadOlderMessages = useCallback(async () => {
+    if (!routeConvId || loadingOlderRef.current || !hasMoreOlder) return;
+    const firstId = messages[0]?.id;
+    if (!firstId) return;
+
+    const el = messagesScrollRef.current;
+    const prevHeight = el?.scrollHeight ?? 0;
+    const prevTop = el?.scrollTop ?? 0;
+
+    loadingOlderRef.current = true;
+    setLoadingOlder(true);
+    try {
+      const rows = await fetchOlderMessages(routeConvId, firstId, MESSAGE_PAGE_SIZE);
+      if (!rows.length) {
+        setHasMoreOlder(false);
+        return;
+      }
       setMessages((prev) => {
-        const merged = mergeMessages(prev, rows);
-        writeCachedMessages(convId, merged);
+        const merged = prependMessages(prev, rows);
+        writeCachedMessages(routeConvId, merged);
         return merged;
       });
-    } else {
-      setMessages(rows);
-      writeCachedMessages(convId, rows);
-      lastMessageIdRef.current = rows[rows.length - 1]?.id ?? 0;
+      setHasMoreOlder(rows.length >= MESSAGE_PAGE_SIZE);
+      requestAnimationFrame(() => {
+        if (!el) return;
+        el.scrollTop = prevTop + (el.scrollHeight - prevHeight);
+      });
+    } finally {
+      loadingOlderRef.current = false;
+      setLoadingOlder(false);
     }
-  }, []);
+  }, [hasMoreOlder, messages, routeConvId]);
 
   useEffect(() => {
     if (initialConversations) writeCachedConversations(initialConversations);
-    if (initialMessages && initialConvId) writeCachedMessages(initialConvId, initialMessages);
+    if (initialMessages && initialConvId) {
+      writeCachedMessages(initialConvId, initialMessages);
+      if (initialMessages.length >= MESSAGE_PAGE_SIZE) setHasMoreOlder(true);
+    }
 
     if (initialConversations === undefined) {
       const cached = readCachedConversations();
@@ -313,6 +361,7 @@ export function MessagesApp({
       if (cached?.length) {
         setMessages(cached);
         lastMessageIdRef.current = cached[cached.length - 1]!.id;
+        setHasMoreOlder(cached.length >= MESSAGE_PAGE_SIZE);
         skippedInitialMsgLoadRef.current = true;
       }
     }
@@ -320,12 +369,25 @@ export function MessagesApp({
 
   useEffect(() => {
     void refreshConversations(!hasServerConversations);
-    const id = setInterval(() => {
-      if (document.visibilityState !== "visible") return;
+    const poller = createAdaptivePoller(
+      () => refreshConversations(true),
+      () => (realtimeConnected ? null : FALLBACK_POLL_MS),
+    );
+    poller.start();
+    document.addEventListener("visibilitychange", poller.onVisibility);
+    window.addEventListener("focus", poller.poke);
+
+    const unsub = subscribe(() => {
       void refreshConversations(true);
-    }, 4000);
-    return () => clearInterval(id);
-  }, [refreshConversations, hasServerConversations]);
+    });
+
+    return () => {
+      unsub();
+      document.removeEventListener("visibilitychange", poller.onVisibility);
+      window.removeEventListener("focus", poller.poke);
+      poller.stop();
+    };
+  }, [refreshConversations, hasServerConversations, realtimeConnected, subscribe]);
 
   useEffect(() => {
     if (!pathname.startsWith("/dashboard/call")) return;
@@ -338,8 +400,12 @@ export function MessagesApp({
       setActivePeer(null);
       setMessages([]);
       lastMessageIdRef.current = 0;
+      setHasMoreOlder(true);
       return;
     }
+
+    setHasMoreOlder(true);
+    isNearBottomRef.current = true;
 
     setActiveId(routeConvId);
     const fromList = conversations.find((c) => c.id === routeConvId);
@@ -357,11 +423,22 @@ export function MessagesApp({
     const onVis = () => {
       if (document.visibilityState !== "visible") return;
       void refreshConversations(true);
-      if (activeId) void loadMessages(activeId, lastMessageIdRef.current);
+      if (activeId) {
+        shouldScrollToBottomRef.current = isNearBottomRef.current;
+        void fetchMessages(activeId, lastMessageIdRef.current).then((rows) => {
+          if (!rows.length) return;
+          setMessages((prev) => {
+            const merged = mergeMessages(prev, rows);
+            lastMessageIdRef.current = merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
+            writeCachedMessages(activeId, merged);
+            return merged;
+          });
+        });
+      }
     };
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
-  }, [activeId, loadMessages, refreshConversations]);
+  }, [activeId, refreshConversations]);
 
   useEffect(() => {
     if (!routeConvId) return;
@@ -370,15 +447,16 @@ export function MessagesApp({
       skippedInitialMsgLoadRef.current = false;
     } else {
       lastMessageIdRef.current = 0;
-      void loadMessages(routeConvId);
+      void loadRecentMessages(routeConvId);
     }
 
-    const id = setInterval(() => {
-      if (document.visibilityState !== "visible") return;
+    const pollNewMessages = () => {
       const afterId = lastMessageIdRef.current;
+      if (!afterId) return;
       void fetchMessages(routeConvId, afterId)
         .then((rows) => {
           if (!rows.length) return;
+          shouldScrollToBottomRef.current = isNearBottomRef.current;
           setMessages((prev) => {
             const merged = mergeMessages(prev, rows);
             lastMessageIdRef.current = merged[merged.length - 1]?.id ?? afterId;
@@ -387,14 +465,76 @@ export function MessagesApp({
           });
         })
         .catch(() => {});
-    }, 4000);
-    return () => clearInterval(id);
-  }, [routeConvId, loadMessages]);
+    };
+
+    const poller = createAdaptivePoller(
+      pollNewMessages,
+      () => (realtimeConnected ? null : FALLBACK_POLL_MS),
+    );
+    poller.start();
+    document.addEventListener("visibilitychange", poller.onVisibility);
+    window.addEventListener("focus", poller.poke);
+
+    const unsub = subscribe((event) => {
+      if (event.conversationId === routeConvId) pollNewMessages();
+    });
+
+    return () => {
+      unsub();
+      document.removeEventListener("visibilitychange", poller.onVisibility);
+      window.removeEventListener("focus", poller.poke);
+      poller.stop();
+    };
+  }, [routeConvId, loadRecentMessages, realtimeConnected, subscribe]);
+
+  const handleMessagesScroll = useCallback(() => {
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    isNearBottomRef.current = distanceFromBottom < 120;
+    if (el.scrollTop < 80 && hasMoreOlder && !loadingOlderRef.current) {
+      void loadOlderMessages();
+    }
+  }, [hasMoreOlder, loadOlderMessages]);
+
+  const scrollToBottom = useCallback((instant = false) => {
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: instant ? "auto" : "smooth",
+    });
+  }, []);
 
   useEffect(() => {
-    if (editingId) return;
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, editingId]);
+    if (!routeConvId) {
+      pendingEnterScrollRef.current = false;
+      return;
+    }
+    pendingEnterScrollRef.current = true;
+  }, [routeConvId]);
+
+  useEffect(() => {
+    if (editingId || !routeConvId || messages.length === 0) return;
+    if (loadingOlderRef.current) return;
+
+    const instant = pendingEnterScrollRef.current;
+    const shouldScroll =
+      instant || shouldScrollToBottomRef.current || isNearBottomRef.current;
+    if (instant) pendingEnterScrollRef.current = false;
+    shouldScrollToBottomRef.current = false;
+    if (!shouldScroll) return;
+
+    const run = () => scrollToBottom(instant);
+    run();
+    const raf = requestAnimationFrame(() => requestAnimationFrame(run));
+    const t = instant ? setTimeout(run, 80) : undefined;
+
+    return () => {
+      cancelAnimationFrame(raf);
+      if (t) clearTimeout(t);
+    };
+  }, [messages, editingId, routeConvId, scrollToBottom]);
 
   useEffect(() => {
     if (!editingId) return;
@@ -446,6 +586,7 @@ export function MessagesApp({
     setSending(true);
     try {
       const msg = await sendTextMessage(activeId, text.trim(), activePeer?.id);
+      shouldScrollToBottomRef.current = true;
       setMessages((p) => {
         const merged = mergeMessages(p, [msg]);
         lastMessageIdRef.current = merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
@@ -506,6 +647,7 @@ export function MessagesApp({
     markInCall();
     try {
       const msg = await sendCallInvite(activeId, activeId, activePeer?.id);
+      shouldScrollToBottomRef.current = true;
       setMessages((p) => {
         const merged = mergeMessages(p, [msg]);
         lastMessageIdRef.current = merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
@@ -536,6 +678,7 @@ export function MessagesApp({
         const durationMs = Date.now() - recordStartRef.current;
         if (blob.size > 0 && activeId) {
           const msg = await sendVoiceMessage(activeId, blob, durationMs, activePeer?.id);
+          shouldScrollToBottomRef.current = true;
           setMessages((p) => {
             const merged = mergeMessages(p, [msg]);
             lastMessageIdRef.current = merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
@@ -740,6 +883,8 @@ export function MessagesApp({
             </header>
 
             <div
+              ref={messagesScrollRef}
+              onScroll={handleMessagesScroll}
               className={cn(
                 "flex min-h-0 flex-1 flex-col overflow-y-auto",
                 editingId && "pb-28",
@@ -749,6 +894,14 @@ export function MessagesApp({
                 <ChatEmptyState />
               ) : (
                 <div className="space-y-3 px-3 py-4 md:px-6">
+                  {loadingOlder && (
+                    <p
+                      className="py-2 text-center text-[12px]"
+                      style={{ color: "var(--text-3)" }}
+                    >
+                      Хуучин мессеж уншиж байна…
+                    </p>
+                  )}
                   {messages.map((m) => {
                     if (callHiddenIds.has(m.id)) return null;
                     const log = callLogMap.get(m.id);
@@ -779,7 +932,6 @@ export function MessagesApp({
                   })}
                 </div>
               )}
-              <div ref={bottomRef} />
             </div>
 
             <footer

@@ -79,11 +79,33 @@ export function openConversation(peerId: string): Promise<{ id: string; peer: Ch
   });
 }
 
+export const MESSAGE_PAGE_SIZE = 30;
+
+export function fetchRecentMessages(
+  conversationId: string,
+  limit = MESSAGE_PAGE_SIZE,
+): Promise<ChatMessage[]> {
+  return chatFetch(
+    `/api/chat/conversations/${conversationId}/messages?limit=${limit}`,
+  );
+}
+
+export function fetchOlderMessages(
+  conversationId: string,
+  beforeId: number,
+  limit = MESSAGE_PAGE_SIZE,
+): Promise<ChatMessage[]> {
+  return chatFetch(
+    `/api/chat/conversations/${conversationId}/messages?beforeId=${beforeId}&limit=${limit}`,
+  );
+}
+
+/** Шинэ мессежүүд (polling / push дараа) */
 export function fetchMessages(
   conversationId: string,
   afterId = 0,
 ): Promise<ChatMessage[]> {
-  const qs = afterId > 0 ? `?afterId=${afterId}` : "";
+  const qs = afterId > 0 ? `?afterId=${afterId}` : `?limit=${MESSAGE_PAGE_SIZE}`;
   return chatFetch(`/api/chat/conversations/${conversationId}/messages${qs}`);
 }
 

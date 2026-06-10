@@ -151,3 +151,10 @@ web/
 ## Техникийн дэлгэрэнгүй
 
 Техникийн өөрчлөлт, хурдны харьцуулалт → [`CHANGES.md`](./CHANGES.md)
+
+# Backend өөрчлөгдсөн үед
+cd seq/server && npx wrangler deploy
+# Frontend өөрчлөгдсөн үед
+cd seq/web && npm run deploy
+# D1 migration — schema өөрчлөгдвөл
+cd seq/server && npx wrangler d1 migrations apply sign-bridge-db --remote

@@ -26,10 +26,22 @@ import {
   syncIncomingCallToStorage,
 } from "@/lib/incoming-call-notify";
 import { createIncomingCallRing } from "@/lib/incoming-call-ring";
+import { useChatRealtime } from "@/context/ChatRealtimeContext";
+import {
+  CALL_POLL_CHAT_MS,
+  CALL_POLL_IDLE_MS,
+  createAdaptivePoller,
+} from "@/lib/poll-schedule";
 
 const BUS = "sign-bridge-incoming-call";
-const POLL_MS = 500;
 const INVITE_TTL_MS = 120_000;
+
+function incomingCallPollMs(pathname: string): number | null {
+  if (pathname.startsWith("/call/")) return null;
+  if (pathname.startsWith("/dashboard/call")) return CALL_POLL_CHAT_MS;
+  if (pathname.startsWith("/dashboard")) return CALL_POLL_IDLE_MS;
+  return CALL_POLL_IDLE_MS;
+}
 
 type BusMsg =
   | { type: "incoming"; call: PendingCall }
@@ -66,6 +78,7 @@ function saveDismissed(set: Set<number>) {
 
 export function IncomingCallProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { connected: realtimeConnected, subscribe } = useChatRealtime();
   const router = useRouter();
   const pathname = usePathname();
   const [incomingCall, setIncomingCall] = useState<PendingCall | null>(null);
@@ -76,8 +89,18 @@ export function IncomingCallProvider({ children }: { children: ReactNode }) {
   const titleRef = useRef(typeof document !== "undefined" ? document.title : "");
   const titleTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const channelRef = useRef<BroadcastChannel | null>(null);
-  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const incomingCallRef = useRef<PendingCall | null>(null);
+  const pathnameRef = useRef(pathname);
+  const realtimeConnectedRef = useRef(realtimeConnected);
+  const pollerRef = useRef<ReturnType<typeof createAdaptivePoller> | null>(null);
+
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
+
+  useEffect(() => {
+    realtimeConnectedRef.current = realtimeConnected;
+  }, [realtimeConnected]);
 
   const inActiveCall = pathname.startsWith("/call/");
 
@@ -235,22 +258,39 @@ export function IncomingCallProvider({ children }: { children: ReactNode }) {
     };
     window.addEventListener("storage", onStorage);
 
-    void poll();
-    pollTimerRef.current = setInterval(() => void poll(), POLL_MS);
+    const poller = createAdaptivePoller(poll, () => {
+      if (realtimeConnectedRef.current) return null;
+      return incomingCallPollMs(pathnameRef.current);
+    });
+    pollerRef.current = poller;
+    poller.start();
+    document.addEventListener("visibilitychange", poller.onVisibility);
+    window.addEventListener("focus", poller.poke);
 
-    const onVis = () => void poll();
-    document.addEventListener("visibilitychange", onVis);
+    const unsubPush = subscribe((event) => {
+      if (event.kind === "call_invite") void poll();
+    });
 
     return () => {
+      unsubPush();
       document.removeEventListener("pointerdown", unlock);
       document.removeEventListener("keydown", unlock);
-      document.removeEventListener("visibilitychange", onVis);
+      document.removeEventListener("visibilitychange", poller.onVisibility);
+      window.removeEventListener("focus", poller.poke);
       window.removeEventListener("storage", onStorage);
-      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+      poller.stop();
+      pollerRef.current = null;
       channelRef.current?.close();
       stopRingAndTitle();
     };
-  }, [clearIncoming, poll, showIncoming, stopRingAndTitle, user?.id]);
+  }, [clearIncoming, poll, showIncoming, stopRingAndTitle, subscribe, user?.id]);
+
+  useEffect(() => {
+    realtimeConnectedRef.current = realtimeConnected;
+    if (!user?.id || !pollerRef.current) return;
+    if (realtimeConnected) pollerRef.current.stop();
+    else pollerRef.current.start();
+  }, [realtimeConnected, user?.id]);
 
   const acceptIncomingCall = useCallback(() => {
     if (!incomingCall) return;

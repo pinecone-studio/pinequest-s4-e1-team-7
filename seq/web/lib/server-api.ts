@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import type { ChatMessage, ConversationSummary } from "@/lib/chat-api";
+import { MESSAGE_PAGE_SIZE } from "@/lib/chat-api";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -27,5 +28,9 @@ export async function fetchServerConversations(): Promise<ConversationSummary[]>
 
 export async function fetchServerMessages(convId: string): Promise<ChatMessage[]> {
   const encoded = encodeURIComponent(convId);
-  return (await serverFetch<ChatMessage[]>(`/api/chat/conversations/${encoded}/messages`)) ?? [];
+  return (
+    (await serverFetch<ChatMessage[]>(
+      `/api/chat/conversations/${encoded}/messages?limit=${MESSAGE_PAGE_SIZE}`,
+    )) ?? []
+  );
 }

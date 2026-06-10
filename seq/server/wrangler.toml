@@ -13,6 +13,15 @@ migrations_dir = "drizzle/migrations"
 binding = "BUCKET"
 bucket_name = "sign-bridge-storage"
 
+[durable_objects]
+bindings = [
+  { name = "USER_NOTIFY", class_name = "UserNotify" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["UserNotify"]
+
 [vars]
 JWT_SECRET = "dev-sign-bridge-secret-change-me"
 

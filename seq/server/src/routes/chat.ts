@@ -8,7 +8,11 @@ import {
   users,
 } from "@/db/schema";
 import { getAuthUser, requireAuth } from "@/middleware/auth";
-import { and, desc, eq, gt, inArray, isNotNull, or, sql } from "drizzle-orm";
+import { pushToPeer } from "@/lib/push-notify";
+import { and, desc, eq, gt, inArray, isNotNull, lt, or, sql } from "drizzle-orm";
+
+const DEFAULT_MESSAGE_LIMIT = 30;
+const MAX_MESSAGE_LIMIT = 100;
 
 const PUBLIC_URL_BASE = "https://pub-0b4b208083b74e5293a1ae3ed2fa6ba1.r2.dev";
 
@@ -313,11 +317,16 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
     return c.json(pending);
   })
 
-  // GET /api/chat/conversations/:id/messages?afterId=
+  // GET /api/chat/conversations/:id/messages?afterId= | ?beforeId= | ?limit=
   .get("/conversations/:id/messages", async (c) => {
     const me = getAuthUser(c);
     const convId = c.req.param("id");
     const afterId = Number(c.req.query("afterId") ?? "0");
+    const beforeId = Number(c.req.query("beforeId") ?? "0");
+    const limit = Math.min(
+      Math.max(Number(c.req.query("limit") ?? DEFAULT_MESSAGE_LIMIT), 1),
+      MAX_MESSAGE_LIMIT,
+    );
 
     const db = createDb(c.env);
     const conv = await db.select().from(conversations).where(eq(conversations.id, convId)).get();
@@ -331,20 +340,29 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
       return c.json({ error: "Хандах эрхгүй" }, 403);
     }
 
-    const rows =
-      afterId > 0
-        ? await db
-            .select()
-            .from(messages)
-            .where(and(eq(messages.conversationId, convId), gt(messages.id, afterId)))
-            .orderBy(messages.id)
-            .limit(100)
-        : await db
-            .select()
-            .from(messages)
-            .where(eq(messages.conversationId, convId))
-            .orderBy(desc(messages.id))
-            .limit(80);
+    let rows;
+    if (afterId > 0) {
+      rows = await db
+        .select()
+        .from(messages)
+        .where(and(eq(messages.conversationId, convId), gt(messages.id, afterId)))
+        .orderBy(messages.id)
+        .limit(MAX_MESSAGE_LIMIT);
+    } else if (beforeId > 0) {
+      rows = await db
+        .select()
+        .from(messages)
+        .where(and(eq(messages.conversationId, convId), lt(messages.id, beforeId)))
+        .orderBy(desc(messages.id))
+        .limit(limit);
+    } else {
+      rows = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.conversationId, convId))
+        .orderBy(desc(messages.id))
+        .limit(limit);
+    }
 
     const sorted = afterId > 0 ? rows : [...rows].reverse();
     const names = await senderNamesFor(
@@ -423,6 +441,13 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
       .set({ lastPreview: preview, lastAt: new Date(), updatedAt: new Date() })
       .where(eq(conversations.id, convId));
 
+    pushToPeer(c.env, conv, me.id, {
+      type: "chat",
+      conversationId: convId,
+      messageId: inserted.id,
+      kind: inserted.kind,
+    });
+
     return c.json(
       {
         id: inserted.id,
@@ -479,6 +504,13 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
       ?? me.email
       ?? "Хэрэглэгч";
 
+    pushToPeer(c.env, conv, me.id, {
+      type: "chat",
+      conversationId: convId,
+      messageId: updated.id,
+      kind: updated.kind,
+    });
+
     return c.json({
       id: updated.id,
       conversationId: updated.conversationId,
@@ -519,6 +551,13 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
 
     await db.delete(messages).where(eq(messages.id, msgId));
     await refreshConversationPreview(db, convId);
+
+    pushToPeer(c.env, conv, me.id, {
+      type: "chat",
+      conversationId: convId,
+      messageId: msgId,
+      kind: msg.kind,
+    });
 
     return c.json({ ok: true });
   })
@@ -563,6 +602,13 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
       .update(conversations)
       .set({ lastPreview: "🎤 Дууны мессеж", lastAt: new Date(), updatedAt: new Date() })
       .where(eq(conversations.id, convId));
+
+    pushToPeer(c.env, conv, me.id, {
+      type: "chat",
+      conversationId: convId,
+      messageId: inserted.id,
+      kind: "voice",
+    });
 
     return c.json(
       {
