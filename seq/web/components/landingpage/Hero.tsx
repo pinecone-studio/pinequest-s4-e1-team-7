@@ -25,14 +25,14 @@ export const Hero = () => (
     </div>
 
     {/* ── Floating visual composition — fills remaining viewport ── */}
-    <div className="relative mx-auto mt-10 w-full flex-1 max-w-5xl max-h-screen">
+    <div className="relative mx-auto mt-10 w-full flex-1 max-w-5xl">
       {/* Warm circle behind center image */}
       <div
         className="pointer-events-none absolute"
         style={{
-          bottom: "-8%",
+          top: "40%",
           left: "50%",
-          transform: "translateX(-50%)",
+          transform: "translate(-50%, -50%)",
           width: "clamp(340px, 42vw, 540px)",
           height: "clamp(340px, 42vw, 540px)",
           borderRadius: "50%",
@@ -46,14 +46,14 @@ export const Hero = () => (
       <img
         src="/images/landing4.png"
         alt="Sign Bridge"
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 object-contain object-bottom md:hidden"
-        style={{ height: "92%", width: "auto", maxWidth: "80%", zIndex: 2 }}
+        className="absolute left-1/2 object-contain md:hidden"
+        style={{ top: "40%", transform: "translate(-50%, -50%)", height: "92%", width: "auto", maxWidth: "80%", zIndex: 2 }}
       />
       <img
         src="/images/landing3.png"
         alt="Sign Bridge"
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 object-contain object-bottom hidden md:block"
-        style={{ height: "96%", width: "auto", maxWidth: "54%", zIndex: 2 }}
+        className="absolute left-1/2 object-contain hidden md:block"
+        style={{ top: "40%", transform: "translate(-50%, -50%)", height: "92%", width: "auto", maxWidth: "54%", zIndex: 2 }}
       />
 
       {/* Top-left — landing1 */}

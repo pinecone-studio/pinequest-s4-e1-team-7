@@ -11,12 +11,9 @@ import { TranslatorSettings } from "./TranslatorSettings";
 import { TranslatorConversation } from "./TranslatorConversation";
 import { TranslatorControlBar } from "./TranslatorControlBar";
 import { OnboardingSheet } from "./OnboardingSheet";
-import { ChevronLeftIcon, Cog6ToothIcon, QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { PlayIcon, StopIcon } from "@heroicons/react/24/solid";
-import {
-  appendDetectedWord,
-  shouldAcceptWord,
-} from "@/lib/caption-utils";
+import { appendDetectedWord, shouldAcceptWord } from "@/lib/caption-utils";
 
 export function Translator() {
   const router = useRouter();
