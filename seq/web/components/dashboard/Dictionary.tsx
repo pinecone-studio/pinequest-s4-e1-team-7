@@ -5,9 +5,11 @@ import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "@/context/AppContext";
-import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { Upload, Trash2 } from "lucide-react";
-import { ChevronLeftIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronLeftIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
 import { DICT_CATEGORIES } from "@/lib/constants";
 import type { DictCategory } from "@/lib/constants";
 import type { SignEntry } from "@/lib/api";
@@ -26,8 +28,7 @@ export function Dictionary({
   signs: initial = [],
 }: Props) {
   const router = useRouter();
-  const { settings, toast } = useApp();
-  const { speak } = useTextToSpeech();
+  const { toast } = useApp();
   const [signs, setSigns] = useState<SignEntry[]>(initial);
   const [uploading, setUploading] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -41,20 +42,26 @@ export function Dictionary({
   const filteredItems = search.trim()
     ? items.filter((i) => i.toLowerCase().includes(search.trim().toLowerCase()))
     : items;
-  const [activeItem, setActiveItem] = useState<number>(0);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [activeItem, setActiveItem] = useState<number>(-1);
   const stripRef = useRef<HTMLDivElement>(null);
-  const cardRefs = useRef<(HTMLElement | null)[]>([]);
 
   const [stripHeight, setStripHeight] = useState(600);
   const [winWidth, setWinWidth] = useState(
-    typeof window !== "undefined" ? window.innerWidth : 1200
+    typeof window !== "undefined" ? window.innerWidth : 1200,
   );
+
+  useEffect(() => {
+    setSigns(initial);
+    setActiveItem(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category]);
 
   useEffect(() => {
     const el = stripRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => setStripHeight(e.contentRect.height));
+    const ro = new ResizeObserver(([e]) =>
+      setStripHeight(e.contentRect.height),
+    );
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
@@ -69,28 +76,8 @@ export function Dictionary({
   const collapsedW = isMobile ? "2rem" : "4rem";
   const activeW = stripHeight;
 
-  const scrollToCenter = (index: number, smooth = true) => {
-    const container = scrollContainerRef.current;
-    const card = cardRefs.current[index];
-    if (!container || !card) return;
-    const scrollLeft = card.offsetLeft - container.clientWidth / 2 + activeW / 2;
-    container.scrollTo({ left: Math.max(0, scrollLeft), behavior: smooth ? "smooth" : "instant" });
-  };
-
   const handleActivate = (index: number) => {
     setActiveItem(index);
-    scrollToCenter(index);
-  };
-
-  useEffect(() => {
-    const id = setTimeout(() => scrollToCenter(activeItem, false), 50);
-    return () => clearTimeout(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleSpeak = (item: SignEntry) => {
-    speak(item.label, settings);
-    toast("info", `Уншиж байна: ${item.label}`, "volume-2");
   };
 
   const handleUpload = async (label: string, file: File) => {
@@ -123,7 +110,6 @@ export function Dictionary({
 
   return (
     <div className="flex h-full flex-col" style={{ background: "var(--bg)" }}>
-
       {/* Header + tabs — constrained width */}
       <div className="mx-auto w-full px-4 md:px-6 lg:px-10 xl:px-16">
         <div className="flex items-center pb-2 pt-5">
@@ -131,11 +117,20 @@ export function Dictionary({
             onClick={() => router.back()}
             aria-label="Буцах"
             className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70"
-            style={{ background: "var(--surface)", border: "1px solid var(--border-c)" }}
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-c)",
+            }}
           >
-            <ChevronLeftIcon className="h-5 w-5" style={{ color: "var(--text)" }} />
+            <ChevronLeftIcon
+              className="h-5 w-5"
+              style={{ color: "var(--text)" }}
+            />
           </button>
-          <h1 className="flex-1 text-center text-[17px] font-bold md:text-[20px]" style={{ color: "var(--text)" }}>
+          <h1
+            className="flex-1 text-center text-[17px] font-bold md:text-[20px]"
+            style={{ color: "var(--text)" }}
+          >
             Толь бичиг
           </h1>
           <div className="h-10 w-10" />
@@ -148,7 +143,8 @@ export function Dictionary({
               href={`/dashboard/dict?cat=${cat.id}`}
               className="rounded-full px-4 py-2 text-[13px] font-semibold transition-all active:scale-95"
               style={{
-                background: category === cat.id ? "var(--olive)" : "var(--surface-2)",
+                background:
+                  category === cat.id ? "var(--olive)" : "var(--surface-2)",
                 color: category === cat.id ? "#0d1e35" : "var(--text-2)",
                 border: `1px solid ${category === cat.id ? "var(--olive)" : "var(--border-c)"}`,
               }}
@@ -158,18 +154,30 @@ export function Dictionary({
           ))}
           <div
             className="ml-auto flex items-center gap-2 rounded-full px-3 py-1.5"
-            style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
+            style={{
+              background: "var(--surface-2)",
+              border: "1px solid var(--border-c)",
+            }}
           >
-            <MagnifyingGlassIcon className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--text-3)" }} />
+            <MagnifyingGlassIcon
+              className="h-3.5 w-3.5 shrink-0"
+              style={{ color: "var(--text-3)" }}
+            />
             <input
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setActiveItem(0); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setActiveItem(0);
+              }}
               placeholder="Хайх…"
               className="w-20 bg-transparent text-[12px] outline-none placeholder:opacity-50 md:w-28"
               style={{ color: "var(--text)" }}
             />
           </div>
-          <span className="self-center text-[12px]" style={{ color: "var(--text-3)" }}>
+          <span
+            className="self-center text-[12px]"
+            style={{ color: "var(--text-3)" }}
+          >
             {signs.length}/{items.length}
           </span>
         </div>
@@ -178,11 +186,13 @@ export function Dictionary({
       {/* Skiper expand strip */}
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 md:block">
         <div
-          ref={scrollContainerRef}
           className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden h-[55vh] mx-6 md:mx-0 md:h-full md:px-8 lg:px-12 xl:px-20"
           style={{ scrollbarWidth: "none" }}
         >
-        <div ref={stripRef} className="flex h-full items-stretch gap-1 py-2 md:gap-2 md:py-4">
+          <div
+            ref={stripRef}
+            className="flex h-full items-stretch gap-1 py-2 md:gap-2 md:py-4"
+          >
             {filteredItems.map((item, index) => {
               const sign = signMap.get(item);
               const isActive = activeItem === index;
@@ -191,12 +201,10 @@ export function Dictionary({
               return (
                 <motion.div
                   key={item}
-                  ref={(el) => { cardRefs.current[index] = el; }}
                   className="relative shrink-0 cursor-pointer overflow-hidden rounded-[28px]"
                   animate={{ width: isActive ? activeW : collapsedW }}
                   transition={{ duration: 0.3, ease: "easeInOut" }}
                   onClick={() => handleActivate(index)}
-                  onHoverStart={() => handleActivate(index)}
                   style={{
                     height: "100%",
                     background: sign ? "var(--surface)" : "var(--surface-2)",
@@ -266,14 +274,20 @@ export function Dictionary({
                             <>
                               <button
                                 title="Зураг солих"
-                                onClick={(e) => { e.stopPropagation(); inputRefs.current[item]?.click(); }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  inputRefs.current[item]?.click();
+                                }}
                                 className="flex size-8 items-center justify-center rounded-xl bg-black/50 text-white hover:bg-black/70"
                               >
                                 <Upload className="size-3.5" />
                               </button>
                               <button
                                 title="Зураг устгах"
-                                onClick={(e) => { e.stopPropagation(); handleDelete(sign); }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(sign);
+                                }}
                                 className="flex size-8 items-center justify-center rounded-xl bg-red-500/70 text-white hover:bg-red-600"
                               >
                                 <Trash2 className="size-3.5" />
@@ -291,15 +305,6 @@ export function Dictionary({
                             >
                               {item}
                             </p>
-                            {sign && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleSpeak(sign); }}
-                                className="mt-2 rounded-full px-3 py-1 text-[11px] font-semibold"
-                                style={{ background: "var(--olive)", color: "#0d1e35" }}
-                              >
-                                Сонсох
-                              </button>
-                            )}
                           </div>
                           {!sign && (
                             <label className="cursor-pointer">
@@ -315,9 +320,19 @@ export function Dictionary({
                               />
                               <span
                                 className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold"
-                                style={{ background: "var(--olive)", color: "#0d1e35" }}
+                                style={{
+                                  background: "var(--olive)",
+                                  color: "#0d1e35",
+                                }}
                               >
-                                {isUploading ? "Хүлээнэ үү…" : <><Upload className="size-3" />Нэмэх</>}
+                                {isUploading ? (
+                                  "Хүлээнэ үү…"
+                                ) : (
+                                  <>
+                                    <Upload className="size-3" />
+                                    Нэмэх
+                                  </>
+                                )}
                               </span>
                             </label>
                           )}
@@ -328,7 +343,9 @@ export function Dictionary({
 
                   {/* Hidden file input for replace */}
                   <input
-                    ref={(el) => { inputRefs.current[item] = el; }}
+                    ref={(el) => {
+                      inputRefs.current[item] = el;
+                    }}
                     type="file"
                     accept="image/*"
                     className="hidden"
@@ -343,7 +360,7 @@ export function Dictionary({
             })}
           </div>
         </div>
-        </div>
+      </div>
     </div>
   );
 }
