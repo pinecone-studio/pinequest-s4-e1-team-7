@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
-import { Show, UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 
 const NAV_LINKS = [
@@ -12,22 +12,18 @@ const NAV_LINKS = [
 ];
 
 export const Header = () => {
+  const { user } = useAuth();
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    
     const checkDark = () => {
-      const theme = document.documentElement.getAttribute("data-theme");
-      setIsDark(theme === "dark");
+      setIsDark(document.documentElement.getAttribute("data-theme") === "dark");
     };
-    
     checkDark();
-    
     const observer = new MutationObserver(checkDark);
     observer.observe(document.documentElement, { attributes: true });
-    
     return () => observer.disconnect();
   }, []);
 
@@ -39,18 +35,10 @@ export const Header = () => {
   return (
     <nav className="lnav">
       <Link href="/" className="lnav-logo">
-        <img 
-          src={logoSrc}
-          alt="Sign Bridge" 
-          className="h-13 w-13 object-contain" 
-        />
-        <div className="flex gap-1 items-baseline ">
-          <span style={{ color: "#ffbf00ff", fontWeight: 900, fontSize: "20px" }}>
-            Sign
-          </span>
-          <span style={{ color: bridgeColor, fontWeight: 900, fontSize: "20px" }}>
-            Bridge
-          </span>
+        <img src={logoSrc} alt="Sign Bridge" className="h-13 w-13 object-contain" />
+        <div className="flex items-baseline gap-1">
+          <span style={{ color: "#ffbf00ff", fontWeight: 900, fontSize: "20px" }}>Sign</span>
+          <span style={{ color: bridgeColor, fontWeight: 900, fontSize: "20px" }}>Bridge</span>
         </div>
       </Link>
 
@@ -62,20 +50,16 @@ export const Header = () => {
 
       <div className="lnav-right">
         <ThemeToggle />
-
-        <Show when="signed-out">
-          <Link href="/?auth=login" className="db-pillbtn hidden sm:inline-flex">
-            Нэвтрэх
-          </Link>
-          <Link href="/?auth=register" className="db-pillbtn green">
-            <UserPlusIcon className="h-4 w-4" /> Бүртгүүлэх
-          </Link>
-        </Show>
-
-        <Show when="signed-in">
+        {!user ? (
+          <>
+            <Link href="/auth/login" className="db-pillbtn hidden sm:inline-flex">Нэвтрэх</Link>
+            <Link href="/auth/register" className="db-pillbtn green">
+              <UserPlusIcon className="h-4 w-4" /> Бүртгүүлэх
+            </Link>
+          </>
+        ) : (
           <Link href="/dashboard" className="db-pillbtn green">Эхлэх</Link>
-          <UserButton />
-        </Show>
+        )}
       </div>
     </nav>
   );

@@ -87,14 +87,3 @@ export async function deleteSign(id: number): Promise<void> {
   if (!res.ok) throw new Error("Delete failed");
 }
 
-export async function recordTranslation(payload: {
-  userId: string;
-  kind: TranslationKind;
-  text: string;
-}): Promise<void> {
-  await fetch(`${BASE}/api/translations`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-}

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
-import { ClerkProvider } from "@clerk/nextjs";
+import { AuthProvider } from "@/context/AuthContext";
+import { IncomingCallProvider } from "@/context/IncomingCallContext";
 import { AppProvider } from "@/context/AppContext";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -29,12 +30,14 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
       />
     </head>
     <body className={cn(geist.variable)}>
-      <ClerkProvider>
+      <AuthProvider>
         <AppProvider>
-          {children}
-          <Toaster />
+          <IncomingCallProvider>
+            {children}
+            <Toaster />
+          </IncomingCallProvider>
         </AppProvider>
-      </ClerkProvider>
+      </AuthProvider>
     </body>
   </html>
 );

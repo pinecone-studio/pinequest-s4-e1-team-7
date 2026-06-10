@@ -14,5 +14,5 @@ binding = "BUCKET"
 bucket_name = "sign-bridge-storage"
 
 [vars]
-# CLERK_WEBHOOK_SECRET = "whsec_..."  ← wrangler secret put CLERK_WEBHOOK_SECRET
+JWT_SECRET = "dev-sign-bridge-secret-change-me"
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
 import {
   createContext,
   useCallback,
@@ -15,7 +14,6 @@ import type {
   Toast,
   ToastKind,
 } from "@/lib/types";
-import { recordTranslation } from "@/lib/api";
 import { countWords } from "@/lib/utils";
 
 interface AppValue {
@@ -31,7 +29,6 @@ const AppContext = createContext<AppValue | null>(null);
 const EMPTY_STATS: Stats = { words: 0, sessions: 0, history: [] };
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useUser();
   const [settings, setSettings] = useState<Settings>({
     gender: "female",
     rate: 1,
@@ -46,16 +43,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const pushHistory = useCallback(async (kind: HistoryKind, text: string) => {
+  const pushHistory = useCallback((kind: HistoryKind, text: string) => {
     if (!text.trim()) return;
     setStats((s) => ({
       words: s.words + countWords(text),
       sessions: s.sessions + 1,
       history: [{ kind, text, time: "Дөнгөж сая" }, ...s.history].slice(0, 30),
     }));
-    if (!user?.id) return;
-    await recordTranslation({ userId: user.id, kind, text }).catch(() => {});
-  }, [user?.id]);
+  }, []);
 
   const toast = useCallback(
     (kind: ToastKind, message: string, icon = "info") => {
