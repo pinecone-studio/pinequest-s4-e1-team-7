@@ -1,19 +1,18 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import { Cog6ToothIcon, ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/outline";
 import { initial } from "@/lib/utils";
 
 export function AvatarMenu() {
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  const name = user?.firstName ?? user?.emailAddresses?.[0]?.emailAddress ?? "Хэрэглэгч";
-  const email = user?.emailAddresses?.[0]?.emailAddress ?? "";
-  const avatar = user?.imageUrl;
+  const name = user?.name ?? user?.email ?? "Хэрэглэгч";
+  const email = user?.email ?? "";
+  const phone = user?.phone ?? "";
 
   return (
     <div className="relative">
@@ -23,16 +22,12 @@ export function AvatarMenu() {
         className="flex h-10 w-10 overflow-hidden rounded-full transition-opacity hover:opacity-90"
         style={{ border: "2px solid var(--border-c)" }}
       >
-        {avatar ? (
-          <img src={avatar} alt={name} className="h-full w-full object-cover" />
-        ) : (
-          <div
-            className="flex h-full w-full items-center justify-center text-[14px] font-bold"
-            style={{ background: "linear-gradient(150deg, var(--olive-bright), var(--olive-deep))", color: "#0d1e35" }}
-          >
-            {initial(name)}
-          </div>
-        )}
+        <div
+          className="flex h-full w-full items-center justify-center text-[14px] font-bold"
+          style={{ background: "linear-gradient(150deg, var(--olive-bright), var(--olive-deep))", color: "#0d1e35" }}
+        >
+          {initial(name)}
+        </div>
       </button>
 
       {open && (
@@ -44,6 +39,7 @@ export function AvatarMenu() {
           >
             <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border-c)" }}>
               <p className="text-[13px] font-bold" style={{ color: "var(--text)" }}>{name}</p>
+              {phone && <p className="mt-0.5 text-[11px]" style={{ color: "var(--text-3)" }}>{phone}</p>}
               {email && <p className="mt-0.5 text-[11px]" style={{ color: "var(--text-3)" }}>{email}</p>}
             </div>
 
@@ -56,7 +52,7 @@ export function AvatarMenu() {
             </button>
 
             <button
-              onClick={() => { setOpen(false); signOut(() => router.push("/")); }}
+              onClick={() => { setOpen(false); logout(); router.push("/"); }}
               className="flex w-full items-center gap-2.5 px-4 py-3 text-[13px] font-semibold transition-colors hover:bg-[var(--surface-2)]"
               style={{ borderTop: "1px solid var(--border-c)", color: "#e53535" }}
             >

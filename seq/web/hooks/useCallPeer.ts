@@ -30,7 +30,8 @@ export function useCallPeer(
   roomId: string,
   handlers: CaptionHandlers,
   peerHint = "",
-  onRemoteDisconnect?: () => void
+  onRemoteDisconnect?: () => void,
+  preferredRole: "host" | "guest" | "auto" = "auto",
 ) {
   const handlersRef = useRef(handlers);
   handlersRef.current = handlers;
@@ -255,7 +256,13 @@ export function useCallPeer(
       setMessage("Peer холболт удаан байна — хуудсыг refresh хийнэ үү.");
     }, 12_000);
 
-    void setupHost();
+    if (preferredRole === "guest") {
+      void setupGuest();
+    } else if (preferredRole === "host") {
+      void setupHost();
+    } else {
+      void setupHost();
+    }
 
     return () => {
       stopped = true;
@@ -266,7 +273,7 @@ export function useCallPeer(
       peer?.destroy();
       peerRef.current = null;
     };
-  }, [attachCall, attachConn, roomId, stopDial]);
+  }, [attachCall, attachConn, preferredRole, roomId, stopDial]);
 
   useEffect(() => {
     if (sessionEndedRef.current) return;

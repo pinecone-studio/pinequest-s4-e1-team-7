@@ -3,14 +3,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { AvatarMenu } from "./AvatarMenu";
+import { ProfileAvatarButton } from "./ProfileAvatarButton";
 import {
   HomeIcon as HomeO, HandRaisedIcon as HandO, MicrophoneIcon as MicO,
-  VideoCameraIcon as VideoO, BookOpenIcon as BookO,
+  ChatBubbleLeftRightIcon as ChatO, BookOpenIcon as BookO,
 } from "@heroicons/react/24/outline";
 import {
   HomeIcon as HomeS, HandRaisedIcon as HandS, MicrophoneIcon as MicS,
-  VideoCameraIcon as VideoS, BookOpenIcon as BookS,
+  ChatBubbleLeftRightIcon as ChatS, BookOpenIcon as BookS,
 } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ const NAV = [
   { id: "overview",   label: "Нүүр",  O: HomeO,  S: HomeS  },
   { id: "translator", label: "Дохио", O: HandO,  S: HandS  },
   { id: "voice",      label: "Яриа",  O: MicO,   S: MicS   },
-  { id: "call",       label: "Видео", O: VideoO, S: VideoS },
+  { id: "call",       label: "Чат",   O: ChatO, S: ChatS },
   { id: "dict",       label: "Толь",  O: BookO,  S: BookS  },
 ] as const;
 
@@ -86,7 +86,7 @@ export const TopNav = () => {
       {/* Right: theme toggle + avatar */}
       <div className="flex shrink-0 items-center gap-2">
         <ThemeToggle />
-        <AvatarMenu />
+        <ProfileAvatarButton size={40} />
       </div>
     </header>
   );

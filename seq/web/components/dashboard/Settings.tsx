@@ -1,13 +1,21 @@
 "use client";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/hooks/useTheme";
-import { MoonIcon, SunIcon, SpeakerWaveIcon, ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/outline";
-import { initial } from "@/lib/utils";
+import { UserAvatar } from "@/components/dashboard/UserAvatar";
+import { updateProfile, uploadAvatar } from "@/lib/auth-api";
+import { CameraIcon, MoonIcon, SunIcon, SpeakerWaveIcon, ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/outline";
 
 const SPEEDS = [{ label: "Удаан", value: 0.7 }, { label: "Хэвийн", value: 1.0 }, { label: "Хурдан", value: 1.5 }] as const;
 const GENDERS = [{ label: "Эмэгтэй", value: "female" }, { label: "Эрэгтэй", value: "male" }] as const;
+
+const inputStyle = {
+  background: "var(--surface-2)",
+  border: "1px solid var(--border-c)",
+  color: "var(--text)",
+};
 
 function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
   return (
@@ -21,13 +29,56 @@ function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
 export function Settings() {
   const { settings, updateSettings } = useApp();
   const { theme, toggle } = useTheme();
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const { user, logout, refresh } = useAuth();
   const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
-  const name = user?.firstName ?? user?.emailAddresses?.[0]?.emailAddress ?? "Хэрэглэгч";
-  const email = user?.emailAddresses?.[0]?.emailAddress ?? "";
-  const avatar = user?.imageUrl;
+  const displayName = user?.name ?? user?.email ?? "Хэрэглэгч";
+  const email = user?.email ?? "";
+
+  useEffect(() => {
+    setEditName(user?.name ?? "");
+    setEditPhone(user?.phone ?? "");
+  }, [user?.name, user?.phone]);
+
+  const handleAvatarPick = async (file: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      await uploadAvatar(file);
+      await refresh();
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Алдаа гарлаа");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editName.trim()) return;
+    setSavingProfile(true);
+    setProfileError(null);
+    try {
+      await updateProfile({ name: editName.trim(), phone: editPhone.trim() });
+      await refresh();
+    } catch (err) {
+      setProfileError(err instanceof Error ? err.message : "Алдаа гарлаа");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const profileDirty =
+    editName.trim() !== (user?.name ?? "").trim() ||
+    editPhone.trim() !== (user?.phone ?? "").trim();
+
   const activeBtn = { background: "var(--olive)", color: "#0d1e35" };
   const inactiveBtn = { background: "var(--surface-2)", color: "var(--text-2)", border: "1px solid var(--border-c)" };
   const card = { background: "var(--surface)", border: "1px solid var(--border-c)" };
@@ -37,16 +88,86 @@ export function Settings() {
     <div className="mx-auto max-w-lg px-4 md:px-6 pb-[max(calc(env(safe-area-inset-bottom)+1rem),1.5rem)] pt-5 lg:max-w-2xl lg:px-10 xl:px-16">
 
       <div className="mb-4 rounded-[22px] p-5" style={card}>
-        <div className="flex items-center gap-4">
-          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full" style={{ border: "2px solid var(--border-c)" }}>
-            {avatar
-              ? <img src={avatar} alt={name} className="h-full w-full object-cover" />
-              : <div className="flex h-full w-full items-center justify-center text-[20px] font-bold"
-                  style={{ background: "linear-gradient(150deg, var(--olive-bright), var(--olive-deep))", color: "#0d1e35" }}>{initial(name)}</div>}
-          </div>
-          <div>
-            <p className="text-[17px] font-bold" style={{ color: "var(--text)" }}>{name}</p>
-            {email && <p className="mt-0.5 text-[13px]" style={{ color: "var(--text-3)" }}>{email}</p>}
+        <p className="mb-4 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
+          Профайл
+        </p>
+        <div className="flex items-start gap-4">
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => fileRef.current?.click()}
+            className="relative shrink-0 disabled:opacity-60"
+            aria-label="Профайл зураг солих"
+          >
+            <UserAvatar name={displayName} avatarUrl={user?.avatarUrl} size={72} />
+            <span
+              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full"
+              style={{ background: "var(--olive)", color: "#0d1e35", border: "2px solid var(--surface)" }}
+            >
+              <CameraIcon className="h-4 w-4" />
+            </span>
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => void handleAvatarPick(e.target.files?.[0] ?? null)}
+          />
+          <div className="min-w-0 flex-1 space-y-3">
+            <div>
+              <label className="mb-1 block text-[12px] font-semibold" style={{ color: "var(--text-3)" }}>
+                Нэр
+              </label>
+              <input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="w-full rounded-xl px-3 py-2.5 text-[15px] outline-none"
+                style={inputStyle}
+                placeholder="Нэр"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[12px] font-semibold" style={{ color: "var(--text-3)" }}>
+                Утас
+              </label>
+              <input
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
+                inputMode="tel"
+                className="w-full rounded-xl px-3 py-2.5 text-[15px] outline-none"
+                style={inputStyle}
+                placeholder="Утасны дугаар"
+              />
+            </div>
+            {email && (
+              <div>
+                <label className="mb-1 block text-[12px] font-semibold" style={{ color: "var(--text-3)" }}>
+                  Email
+                </label>
+                <input
+                  value={email}
+                  readOnly
+                  className="w-full rounded-xl px-3 py-2.5 text-[15px] opacity-70 outline-none"
+                  style={inputStyle}
+                />
+              </div>
+            )}
+            <button
+              type="button"
+              disabled={!profileDirty || !editName.trim() || savingProfile}
+              onClick={() => void handleSaveProfile()}
+              className="rounded-xl px-4 py-2 text-[13px] font-bold disabled:opacity-40"
+              style={{ background: "var(--olive)", color: "#0d1e35" }}
+            >
+              {savingProfile ? "Хадгалж байна…" : "Хадгалах"}
+            </button>
+            {uploadError && (
+              <p className="text-[12px] font-medium text-[#e53535]">{uploadError}</p>
+            )}
+            {profileError && (
+              <p className="text-[12px] font-medium text-[#e53535]">{profileError}</p>
+            )}
           </div>
         </div>
       </div>
@@ -92,7 +213,7 @@ export function Settings() {
         </div>
       </div>
 
-      <button onClick={() => signOut(() => router.push("/"))}
+      <button onClick={() => { logout(); router.push("/"); }}
         className="flex w-full items-center justify-center gap-2 rounded-[22px] px-5 py-4 text-[15px] font-semibold transition-all duration-150 hover:bg-[rgba(229,53,53,0.06)] active:scale-[0.98] active:opacity-80"
         style={{ ...card, color: "#e53535" }}>
         <ArrowRightEndOnRectangleIcon className="h-5 w-5" />

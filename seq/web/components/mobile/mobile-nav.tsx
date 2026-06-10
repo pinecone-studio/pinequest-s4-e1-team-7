@@ -6,14 +6,14 @@ import {
   HomeIcon as HomeO,
   HandRaisedIcon as HandO,
   MicrophoneIcon as MicO,
-  VideoCameraIcon as VideoO,
+  ChatBubbleLeftRightIcon as ChatO,
   BookOpenIcon as BookO,
 } from "@heroicons/react/24/outline";
 import {
   HomeIcon as HomeS,
   HandRaisedIcon as HandS,
   MicrophoneIcon as MicS,
-  VideoCameraIcon as VideoS,
+  ChatBubbleLeftRightIcon as ChatS,
   BookOpenIcon as BookS,
 } from "@heroicons/react/24/solid";
 
@@ -21,7 +21,7 @@ const tabs = [
   { href: "/dashboard/overview",   O: HomeO,  S: HomeS,  label: "Нүүр"   },
   { href: "/dashboard/translator", O: HandO,  S: HandS,  label: "Дохио"  },
   { href: "/dashboard/voice",      O: MicO,   S: MicS,   label: "Яриа"   },
-  { href: "/dashboard/call",       O: VideoO, S: VideoS, label: "Видео"  },
+  { href: "/dashboard/call",       O: ChatO,  S: ChatS,  label: "Чат"    },
   { href: "/dashboard/dict",       O: BookO,  S: BookS,  label: "Толь"   },
 ];
 
@@ -30,7 +30,7 @@ export function MobileNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 md:hidden"
+      className="z-40 shrink-0 md:hidden"
       style={{
         background: "var(--surface)",
         borderTop: "1px solid var(--border-c)",

@@ -1,18 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { ProfileAvatarButton } from "@/components/dashboard/ProfileAvatarButton";
 import { FeatureCarousel } from "./FeatureCarousel";
 import { useState, useEffect } from "react";
 import type { CarouselFeature } from "./FeatureCarousel";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 
 const FEATURES: CarouselFeature[] = [
   {
     id: "call",
-    title: "Видео дуудлага",
-    sub: "Дуудлага хийх үед дохионы хэлнээс бичвэр, яриа",
+    title: "Чат",
+    sub: "Нэр, утсаар хайж чат, дуу, видео дуудлага",
     img: "/images/video.png",
     dark: true,
     bg: "linear-gradient(135deg, #1a3d5c 0%, var(--teal-2) 100%)",
@@ -54,8 +54,8 @@ const FEATURES: CarouselFeature[] = [
 export function Overview() {
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { user } = useUser();
-  const displayName = user?.firstName ?? user?.emailAddresses?.[0]?.emailAddress ?? "Хэрэглэгч";
+  const { user } = useAuth();
+  const displayName = user?.name ?? user?.email ?? "Хэрэглэгч";
 
   useEffect(() => {
     setMounted(true);
@@ -120,20 +120,7 @@ export function Overview() {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link
-            href="/dashboard/settings"
-            aria-label="Тохиргоо"
-            className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70"
-            style={{
-              border: "1px solid var(--border-c)",
-              background: "var(--surface)",
-            }}
-          >
-            <Cog6ToothIcon
-              className="h-[18px] w-[18px]"
-              style={{ color: "var(--text)" }}
-            />
-          </Link>
+          <ProfileAvatarButton size={40} />
         </div>
       </div>
 

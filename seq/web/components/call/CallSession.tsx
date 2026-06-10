@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CameraView } from "@/components/CameraView";
 import { CallControls } from "./CallControls";
@@ -13,7 +13,7 @@ import { useCallPeer } from "@/hooks/useCallPeer";
 import { useIsDesktop } from "@/hooks/useBreakpoint";
 import { useSignDetection } from "@/hooks/useSignDetection";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
-import { DEMO_CALL_ROOM } from "@/lib/call-constants";
+import { sendCallEnded, fetchMessages } from "@/lib/chat-api";
 import { releaseAllCameras } from "@/lib/camera-registry";
 import { VideoCameraSlashIcon } from "@heroicons/react/24/solid";
 
@@ -33,9 +33,12 @@ const STATUS_LABEL: Record<string, string> = {
 export function CallSession({ roomId }: { roomId: string }) {
   const router = useRouter();
   const isDesktop = useIsDesktop();
-  const effectiveRoomId = DEMO_CALL_ROOM;
-  const peerHint = useSearchParams().get("peer") ?? "";
-  const [linkCopied, setLinkCopied] = useState(false);
+  const searchParams = useSearchParams();
+  const asRole = searchParams.get("as") === "guest" ? "guest" : "host";
+  const returnTo = searchParams.get("returnTo") ?? "/dashboard/call";
+  const peerHint = searchParams.get("peer") ?? "";
+  const [hostNotice, setHostNotice] = useState<string | null>(null);
+  const callStartedAtRef = useRef(Date.now());
   const {
     active,
     history,
@@ -49,11 +52,11 @@ export function CallSession({ roomId }: { roomId: string }) {
   const [chatOpen, setChatOpen] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const connectedAtRef = useRef<number | null>(null);
+  const elapsedRef = useRef(0);
   const leavingRef = useRef(false);
-  const leaveSessionRef = useRef<() => void>(() => {});
+  const leaveSessionRef = useRef<(reportEnd?: boolean) => void>(() => {});
 
   const {
-    role,
     status,
     message,
     hasRemoteStream,
@@ -64,10 +67,11 @@ export function CallSession({ roomId }: { roomId: string }) {
     onStreamReady,
     hangUp,
   } = useCallPeer(
-    effectiveRoomId,
+    roomId,
     { onCaption: onTheirCaption, onPhrase: onTheirPhrase },
     peerHint,
-    () => leaveSessionRef.current()
+    () => leaveSessionRef.current(false),
+    asRole,
   );
 
   const connected = status === "connected";
@@ -77,7 +81,7 @@ export function CallSession({ roomId }: { roomId: string }) {
       const next = onMyWord(word);
       sendCaption(next);
     },
-    [onMyWord, sendCaption]
+    [onMyWord, sendCaption],
   );
 
   const handleSpeech = useCallback(
@@ -89,25 +93,55 @@ export function CallSession({ roomId }: { roomId: string }) {
         onMyVoiceInterim(text);
       }
     },
-    [onMyVoiceFinal, onMyVoiceInterim, sendPhrase]
+    [onMyVoiceFinal, onMyVoiceInterim, sendPhrase],
   );
 
   const { listening, start, stop, supported } = useSpeechRecognition(handleSpeech);
 
-  const { modelReady, modelError, modelLoading, startLoad, handleLandmarks } =
+  const { modelReady, modelError, modelLoading, startLoad, handleLandmarks, reset } =
     useSignDetection(onWord);
 
-  const leaveSession = useCallback(() => {
-    if (leavingRef.current) return;
-    leavingRef.current = true;
-    stop();
-    hangUp();
-    releaseAllCameras();
-    router.replace("/dashboard/call");
-  }, [hangUp, router, stop]);
+  useEffect(() => {
+    if (!connected) {
+      reset();
+      return;
+    }
+    startLoad();
+  }, [connected, reset, startLoad]);
+
+  const leaveSession = useCallback(
+    async (reportEnd = false) => {
+      if (leavingRef.current) return;
+      leavingRef.current = true;
+
+      const connectedMs = connectedAtRef.current ? Date.now() - connectedAtRef.current : 0;
+      const durationMs = connectedMs > 0 ? connectedMs : elapsedRef.current * 1000;
+
+      stop();
+      hangUp();
+      releaseAllCameras();
+
+      if (reportEnd && roomId.startsWith("c_") && durationMs >= 1000) {
+        try {
+          await sendCallEnded(roomId, durationMs);
+        } catch {
+          /* navigation may still proceed */
+        }
+      }
+
+      router.replace(returnTo);
+    },
+    [hangUp, returnTo, roomId, router, stop],
+  );
 
   useEffect(() => {
-    leaveSessionRef.current = leaveSession;
+    elapsedRef.current = elapsed;
+  }, [elapsed]);
+
+  useEffect(() => {
+    leaveSessionRef.current = (reportEnd) => {
+      void leaveSession(reportEnd);
+    };
   }, [leaveSession]);
 
   useEffect(() => {
@@ -129,28 +163,31 @@ export function CallSession({ roomId }: { roomId: string }) {
   }, [connected]);
 
   useEffect(() => () => stop(), [stop]);
-
   useEffect(() => () => releaseAllCameras(), []);
 
+  // Host: exit waiting room when callee declines
   useEffect(() => {
-    if (roomId !== effectiveRoomId) {
-      router.replace(`/call/${effectiveRoomId}`);
-    }
-  }, [effectiveRoomId, roomId, router]);
+    if (asRole !== "host" || connected || !roomId.startsWith("c_") || leavingRef.current) return;
 
-  const shareLink = useMemo(
-    () =>
-      typeof window !== "undefined"
-        ? `${window.location.origin}/call/${encodeURIComponent(effectiveRoomId)}`
-        : "",
-    [effectiveRoomId]
-  );
+    const tick = async () => {
+      try {
+        const rows = await fetchMessages(roomId);
+        const since = callStartedAtRef.current - 3000;
+        const recent = rows.filter((m) => new Date(m.createdAt).getTime() >= since);
+        const declined = recent.find((m) => m.kind === "call_declined" && !m.mine);
+        if (declined && !leavingRef.current) {
+          setHostNotice(`${declined.senderName} дуудлага татгалзлаа`);
+          window.setTimeout(() => void leaveSession(false), 1800);
+        }
+      } catch {
+        /* ignore */
+      }
+    };
 
-  const copyLink = useCallback(async () => {
-    await navigator.clipboard.writeText(shareLink);
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 1500);
-  }, [shareLink]);
+    void tick();
+    const id = window.setInterval(() => void tick(), 700);
+    return () => clearInterval(id);
+  }, [asRole, connected, leaveSession, roomId]);
 
   const handleCamToggle = () => {
     toggleCam();
@@ -158,6 +195,7 @@ export function CallSession({ roomId }: { roomId: string }) {
   };
 
   const handleVoiceToggle = () => {
+    if (!connected) return;
     if (listening) stop();
     else start();
   };
@@ -175,29 +213,21 @@ export function CallSession({ roomId }: { roomId: string }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-black">
-      <CallWaiting
-        role={role}
-        status={status}
-        message={message}
-        shareLink={shareLink}
-        onCopyLink={copyLink}
-        linkCopied={linkCopied}
-      />
+      <CallWaiting status={status} message={message} />
 
       <CallTopBar
-        statusLabel={STATUS_LABEL[status] ?? "…"}
+        statusLabel={hostNotice ?? STATUS_LABEL[status] ?? "…"}
         statusDot={statusDot}
         timer={connected ? fmtDur(elapsed) : undefined}
-        onBack={leaveSession}
+        onBack={() => void leaveSession(true)}
       />
 
-      {(modelError || modelLoading) && !connected && (
+      {(modelError || modelLoading) && connected && (
         <p className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+3.5rem)] z-30 text-center text-xs text-white/50">
           {modelError ?? "Ачааллаж байна…"}
         </p>
       )}
 
-      {/* Камер — mobile: дээд талд contain, md+: бүтэн дэлгэц cover */}
       <div className="relative z-0 aspect-[4/3] w-full max-h-[min(42dvh,72vw)] min-h-[200px] shrink-0 bg-black md:absolute md:inset-0 md:aspect-auto md:max-h-none">
         <CameraView
           fullscreen
@@ -205,10 +235,9 @@ export function CallSession({ roomId }: { roomId: string }) {
           mirrorPreview
           mirrorDetect
           previewFit={previewFit}
-          onLandmarks={handleLandmarks}
+          onLandmarks={connected ? handleLandmarks : undefined}
           onStreamReady={onStreamReady}
-          onMediaPipeReady={startLoad}
-          inferenceActive={modelReady}
+          inferenceActive={connected && modelReady}
         />
         {camMuted && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80">
@@ -233,7 +262,6 @@ export function CallSession({ roomId }: { roomId: string }) {
         </div>
       </div>
 
-      {/* Mobile — chat доор, scroll */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:hidden">
         <CallCaptionHistory
           entries={history}
@@ -263,7 +291,7 @@ export function CallSession({ roomId }: { roomId: string }) {
           voiceSupported={supported}
           onCamToggle={handleCamToggle}
           onVoiceToggle={handleVoiceToggle}
-          onEnd={leaveSession}
+          onEnd={() => void leaveSession(true)}
         />
       </div>
     </div>
