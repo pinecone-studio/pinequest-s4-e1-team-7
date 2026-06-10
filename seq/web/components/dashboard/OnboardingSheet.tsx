@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import type { ComponentType, SVGProps } from "react";
 import {
   ChevronLeftIcon,
-  ArrowRightIcon,
   LightBulbIcon,
   HandRaisedIcon,
   VideoCameraIcon,
@@ -20,19 +19,46 @@ type Step = {
 };
 
 const STEPS: Step[] = [
-  { Icon: VideoCameraIcon, iconBg: "linear-gradient(135deg, var(--teal) 0%, var(--teal-2) 100%)", iconColor: "#eaf0f8", title: "Камер нээхийг зөвшөөрөх", desc: "Дохиог хөрвүүлэхийн тулд камер зөвшөөрөх шаардлагатай.", tip: "Нэг удаад зөвшөөрөх" },
-  { Icon: HandRaisedIcon, iconBg: "var(--olive)", iconColor: "#0d1e35", title: "Камер байрлуулах", desc: "Эхлүүлэх товчийг дарснаар хөдөлгөөнийг танина.", tip: "Эгц урдаас голлуулж гэрэлтүүлэгтэй орчинд байрлуулна." },
-  { Icon: SpeakerWaveIcon, iconBg: "linear-gradient(135deg, var(--teal) 0%, var(--teal-2) 100%)", iconColor: "#eaf0f8", title: "Яриаг сонсох", desc: "Бичвэрийг сонсох боломжтой.", tip: "Дууны тохиргоог өөрт тааруулна уу." },
+  {
+    Icon: VideoCameraIcon,
+    iconBg: "linear-gradient(135deg, var(--teal) 0%, var(--teal-2) 100%)",
+    iconColor: "#eaf0f8",
+    title: "Камер нээхийг зөвшөөрөх",
+    desc: "Дохиог хөрвүүлэхийн тулд камер зөвшөөрөх шаардлагатай.",
+    tip: "Нэг удаад зөвшөөрөх",
+  },
+  {
+    Icon: HandRaisedIcon,
+    iconBg: "var(--olive)",
+    iconColor: "#0d1e35",
+    title: "Камер байрлуулах",
+    desc: "Эхлүүлэх товчийг дарснаар хөдөлгөөнийг танина.",
+    tip: "Эгц урдаас голлуулж гэрэлтүүлэгтэй орчинд байрлуулна.",
+  },
+  {
+    Icon: SpeakerWaveIcon,
+    iconBg: "linear-gradient(135deg, var(--teal) 0%, var(--teal-2) 100%)",
+    iconColor: "#eaf0f8",
+    title: "Яриаг сонсох",
+    desc: "Бичвэрийг сонсох боломжтой.",
+    tip: "Дууны тохиргоог өөрт тааруулна уу.",
+  },
 ];
 
-export function OnboardingSheet({ onDismiss }: { onDismiss: () => void }) {
+export function OnboardingSheet({ onDismiss, onComplete }: { onDismiss: () => void; onComplete?: () => void }) {
   const [step, setStep] = useState(0);
   const touchX = useRef<number | null>(null);
   const total = STEPS.length;
   const isLast = step === total - 1;
   const cur = STEPS[step];
 
-  const goNext = () => (isLast ? onDismiss() : setStep((s) => s + 1));
+  const goNext = () => {
+    if (isLast) {
+      onComplete ? onComplete() : onDismiss();
+    } else {
+      setStep((s) => s + 1);
+    }
+  };
   const goPrev = () => {
     if (step > 0) setStep((s) => s - 1);
   };
@@ -46,11 +72,25 @@ export function OnboardingSheet({ onDismiss }: { onDismiss: () => void }) {
       />
       <div
         className="fixed inset-x-4 bottom-[max(calc(env(safe-area-inset-bottom)+4.5rem),5.5rem)] z-[71] mx-auto max-w-lg select-none overflow-hidden rounded-[28px] md:bottom-4"
-        style={{ background: "var(--surface)", boxShadow: "0 -8px 40px rgba(0,0,0,0.28)", animation: "sheet-up 0.32s var(--ease) both" }}
-        onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }}
-        onTouchEnd={(e) => { const dx = e.changedTouches[0].clientX - (touchX.current ?? 0); if (dx < -48) goNext(); else if (dx > 48) goPrev(); touchX.current = null; }}
+        style={{
+          background: "var(--surface)",
+          boxShadow: "0 -8px 40px rgba(0,0,0,0.28)",
+          animation: "sheet-up 0.32s var(--ease) both",
+        }}
+        onTouchStart={(e) => {
+          touchX.current = e.touches[0].clientX;
+        }}
+        onTouchEnd={(e) => {
+          const dx = e.changedTouches[0].clientX - (touchX.current ?? 0);
+          if (dx < -48) goNext();
+          else if (dx > 48) goPrev();
+          touchX.current = null;
+        }}
       >
-        <div className="mx-auto mt-3 h-1 w-10 rounded-full lg:hidden" style={{ background: "var(--border-c)" }} />
+        <div
+          className="mx-auto mt-3 h-1 w-10 rounded-full lg:hidden"
+          style={{ background: "var(--border-c)" }}
+        />
         <div className="flex items-center justify-between px-5 pt-3 pb-1 lg:pt-5">
           <div className="flex items-center gap-1.5">
             {STEPS.map((_, i) => (
@@ -81,34 +121,58 @@ export function OnboardingSheet({ onDismiss }: { onDismiss: () => void }) {
         >
           <div
             className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
-            style={{ background: cur.iconBg, boxShadow: "0 6px 18px rgba(0,0,0,0.18)" }}
+            style={{
+              background: cur.iconBg,
+              boxShadow: "0 6px 18px rgba(0,0,0,0.18)",
+            }}
           >
             <cur.Icon className="h-7 w-7" style={{ color: cur.iconColor }} />
             {step === 1 && (
               <div
                 className="absolute inset-0 rounded-2xl"
-                style={{ border: "2px solid var(--olive)", animation: "ripple 1.8s ease-out infinite" }}
+                style={{
+                  border: "2px solid var(--olive)",
+                  animation: "ripple 1.8s ease-out infinite",
+                }}
               />
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="mb-0.5 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
+            <p
+              className="mb-0.5 text-[11px] font-bold uppercase tracking-widest"
+              style={{ color: "var(--text-3)" }}
+            >
               {step + 1} / {total}
             </p>
-            <h3 className="mb-1 text-[16px] font-bold leading-snug" style={{ color: "var(--text)" }}>
+            <h3
+              className="mb-1 text-[16px] font-bold leading-snug"
+              style={{ color: "var(--text)" }}
+            >
               {cur.title}
             </h3>
-            <p className="text-[13px] leading-relaxed" style={{ color: "var(--text-2)" }}>
+            <p
+              className="text-[13px] leading-relaxed"
+              style={{ color: "var(--text-2)" }}
+            >
               {cur.desc}
             </p>
           </div>
         </div>
         <div
           className="mx-5 mb-4 flex items-center gap-2 rounded-xl px-3 py-2"
-          style={{ background: "var(--olive-soft)", border: "1px solid var(--border-2)" }}
+          style={{
+            background: "var(--olive-soft)",
+            border: "1px solid var(--border-2)",
+          }}
         >
-          <LightBulbIcon className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--olive)" }} />
-          <span className="text-[12px] font-semibold" style={{ color: "var(--text-2)" }}>
+          <LightBulbIcon
+            className="h-3.5 w-3.5 shrink-0"
+            style={{ color: "var(--olive)" }}
+          />
+          <span
+            className="text-[12px] font-semibold"
+            style={{ color: "var(--text-2)" }}
+          >
             {cur.tip}
           </span>
         </div>
@@ -118,13 +182,22 @@ export function OnboardingSheet({ onDismiss }: { onDismiss: () => void }) {
               onClick={goPrev}
               aria-label="Өмнөх"
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all active:scale-90"
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
+              style={{
+                background: "var(--surface-2)",
+                border: "1px solid var(--border-c)",
+              }}
             >
-              <ChevronLeftIcon className="h-4 w-4" style={{ color: "var(--text-2)" }} />
+              <ChevronLeftIcon
+                className="h-4 w-4"
+                style={{ color: "var(--text-2)" }}
+              />
             </button>
           )}
-          <button onClick={goNext} className="flex flex-1 items-center justify-center gap-2 rounded-full py-3 text-[14px] font-bold transition-all hover:brightness-110 active:scale-[0.97]"
-            style={{ background: "var(--olive)", color: "#0d1e35" }}>
+          <button
+            onClick={goNext}
+            className="flex flex-1 items-center justify-center gap-2 rounded-full py-3 text-[14px] font-bold transition-all hover:brightness-110 active:scale-[0.97]"
+            style={{ background: "var(--olive)", color: "#0d1e35" }}
+          >
             {isLast ? "Эхлүүлэх" : "Дараах"}
           </button>
         </div>

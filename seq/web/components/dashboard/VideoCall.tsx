@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { VideoCameraIcon } from "@heroicons/react/24/solid";
-import { ChevronLeftIcon, LinkIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { OnboardingSheet } from "./OnboardingSheet";
 
 function genId() {
   return Array.from(crypto.getRandomValues(new Uint8Array(8)))
@@ -13,18 +14,17 @@ function genId() {
 export function VideoCall() {
   const router = useRouter();
   const [starting, setStarting] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [sessionId] = useState(genId);
+  const [showOnboarding, setShowOnboarding] = useState(true);
 
   const startCall = () => {
+    setShowOnboarding(false);
     setStarting(true);
     router.push(`/call/${sessionId}`);
   };
 
-  const copyLink = async () => {
-    await navigator.clipboard.writeText(`${window.location.origin}/call/${sessionId}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  const dismissOnboarding = () => {
+    setShowOnboarding(false);
   };
 
   return (
@@ -44,9 +44,9 @@ export function VideoCall() {
           <div className="h-10 w-10" />
         </div>
 
-        {/* Big action button — same style as VoiceToText mic */}
-        <div className="flex justify-center py-4">
-          <div className="flex flex-col items-center gap-3 pb-1">
+        {/* Start button */}
+        <div className="flex flex-1 items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
             <button onClick={startCall} disabled={starting} aria-label="Эхлүүлэх"
               className="flex h-[100px] w-[100px] items-center justify-center rounded-full transition-all duration-300 active:scale-95 disabled:opacity-50 md:h-[120px] md:w-[120px]"
               style={{
@@ -64,41 +64,11 @@ export function VideoCall() {
           </div>
         </div>
 
-        {/* Info card */}
-        <div className="rounded-[24px] p-5 md:p-6"
-          style={{ background: "var(--surface)", border: "1px solid var(--border-c)" }}>
-          <div className="mb-3 flex items-center gap-2">
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--olive)" }} />
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--text-3)" }}>
-              Холбоос
-            </p>
-          </div>
-          <p className="mb-4 text-[15px] leading-relaxed" style={{ color: "var(--text-2)" }}>
-            Эхлүүлэх дарж холбоосыг нөгөө хүндээ илгээнэ үү.
-          </p>
-          <div className="flex items-center gap-3 rounded-[14px] px-4 py-3"
-            style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}>
-            <LinkIcon className="h-4 w-4 shrink-0" style={{ color: "var(--olive)" }} />
-            <span className="flex-1 truncate font-mono text-[12px]" style={{ color: "var(--text-3)" }}>
-              /call/{sessionId}
-            </span>
-          </div>
-
-          <div className="mt-3 flex justify-center">
-            <button
-              onClick={copyLink}
-              className="flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold transition-all duration-150 active:scale-95"
-              style={{ background: "var(--olive)", color: "#0d1e35" }}
-            >
-              <LinkIcon className="h-4 w-4 shrink-0" />
-              {copied ? "Хуулагдлаа ✓" : "Холбоос хуулах"}
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1" />
-
       </div>
+
+      {showOnboarding && (
+        <OnboardingSheet onDismiss={dismissOnboarding} onComplete={startCall} />
+      )}
     </div>
   );
 }

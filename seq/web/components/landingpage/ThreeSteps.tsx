@@ -1,5 +1,10 @@
 import React from "react";
-import { CameraIcon, MicrophoneIcon, VideoCameraIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
+import {
+  CameraIcon,
+  MicrophoneIcon,
+  VideoCameraIcon,
+  ChevronRightIcon,
+} from "@heroicons/react/24/solid";
 
 const steps = [
   {
@@ -36,22 +41,14 @@ export const ThreeSteps = () => (
     id="how"
   >
     <div className="mx-auto max-w-4xl">
-
       {/* Section header */}
       <div className="mb-14 text-center">
-        <span className="ltag">Гурван алхам</span>
         <h2
           className="font-display mt-3 text-[28px] font-bold tracking-tight md:text-[38px]"
           style={{ color: "var(--text)" }}
         >
           Хэрхэн ажилладаг вэ?
         </h2>
-        <p
-          className="mx-auto mt-3 max-w-lg text-[15px] leading-relaxed"
-          style={{ color: "var(--text-2)" }}
-        >
-          Татаж авснаас хойш хэдхэн секундын дотор — хялбар, хурдан, бодит цагт.
-        </p>
       </div>
 
       {/* Steps + connectors */}
@@ -110,7 +107,10 @@ export const ThreeSteps = () => (
 
               {/* Connector arrow between steps */}
               {i < steps.length - 1 && (
-                <div className="hidden items-center justify-center sm:flex" style={{ width: "36px", flexShrink: 0 }}>
+                <div
+                  className="hidden items-center justify-center sm:flex"
+                  style={{ width: "36px", flexShrink: 0 }}
+                >
                   <ChevronRightIcon
                     className="h-5 w-5"
                     style={{ color: "var(--border-c)" }}
