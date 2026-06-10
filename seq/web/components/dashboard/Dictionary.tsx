@@ -66,17 +66,27 @@ export function Dictionary({
   }, []);
 
   const isMobile = winWidth < 768;
-  const collapsedW = isMobile ? "2.25rem" : "4rem";
-  const activeW = isMobile ? Math.min(stripHeight, winWidth - 48) : stripHeight;
+  const collapsedW = isMobile ? "2rem" : "4rem";
+  const activeW = stripHeight;
 
-  const handleActivate = (index: number) => {
-    setActiveItem(index);
+  const scrollToCenter = (index: number, smooth = true) => {
     const container = scrollContainerRef.current;
     const card = cardRefs.current[index];
     if (!container || !card) return;
     const scrollLeft = card.offsetLeft - container.clientWidth / 2 + activeW / 2;
-    container.scrollTo({ left: Math.max(0, scrollLeft), behavior: "smooth" });
+    container.scrollTo({ left: Math.max(0, scrollLeft), behavior: smooth ? "smooth" : "instant" });
   };
+
+  const handleActivate = (index: number) => {
+    setActiveItem(index);
+    scrollToCenter(index);
+  };
+
+  useEffect(() => {
+    const id = setTimeout(() => scrollToCenter(activeItem, false), 50);
+    return () => clearTimeout(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSpeak = (item: SignEntry) => {
     speak(item.label, settings);
@@ -165,9 +175,14 @@ export function Dictionary({
         </div>
       </div>
 
-      {/* Skiper expand strip — full width, fills remaining height */}
-      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden px-2 pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:px-6 md:pb-4 lg:px-10 xl:px-16">
-        <div ref={stripRef} className="flex h-full items-stretch gap-1 md:gap-2">
+      {/* Skiper expand strip */}
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 md:block">
+        <div
+          ref={scrollContainerRef}
+          className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden h-[55vh] mx-6 md:mx-0 md:h-full md:px-8 lg:px-12 xl:px-20"
+          style={{ scrollbarWidth: "none" }}
+        >
+        <div ref={stripRef} className="flex h-full items-stretch gap-1 py-2 md:gap-2 md:py-4">
             {filteredItems.map((item, index) => {
               const sign = signMap.get(item);
               const isActive = activeItem === index;
@@ -204,7 +219,7 @@ export function Dictionary({
                     )}
                   </AnimatePresence>
 
-                  {/* Collapsed: centered letter */}
+                  {/* Collapsed: vertical letter + image dot */}
                   <AnimatePresence>
                     {!isActive && (
                       <motion.div
@@ -212,14 +227,20 @@ export function Dictionary({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute inset-0 flex items-center justify-center"
+                        className="absolute inset-0 flex flex-col items-center justify-center gap-2 pb-3 pt-3"
                       >
                         <span
-                          className="text-[11px] font-bold tracking-wide md:text-[14px]"
+                          className="text-[12px] font-bold md:text-[14px]"
                           style={{ color: "var(--text-2)" }}
                         >
                           {item}
                         </span>
+                        {sign && (
+                          <span
+                            className="h-1.5 w-1.5 rounded-full shrink-0"
+                            style={{ background: "var(--olive)" }}
+                          />
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -321,6 +342,7 @@ export function Dictionary({
               );
             })}
           </div>
+        </div>
         </div>
     </div>
   );
