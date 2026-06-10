@@ -4,6 +4,7 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
 import { IncomingCallProvider } from "@/context/IncomingCallContext";
+import { ChatRealtimeProvider } from "@/context/ChatRealtimeContext";
 import { AppProvider } from "@/context/AppContext";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -32,10 +33,12 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
     <body className={cn(geist.variable)}>
       <AuthProvider>
         <AppProvider>
-          <IncomingCallProvider>
-            {children}
-            <Toaster />
-          </IncomingCallProvider>
+          <ChatRealtimeProvider>
+            <IncomingCallProvider>
+              {children}
+              <Toaster />
+            </IncomingCallProvider>
+          </ChatRealtimeProvider>
         </AppProvider>
       </AuthProvider>
     </body>

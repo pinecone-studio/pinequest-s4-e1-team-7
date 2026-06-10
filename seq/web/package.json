@@ -8,12 +8,15 @@
     "start": "next start",
     "export-model": "python3 ../training/export_model.py",
     "download-models": "bash scripts/download-models.sh",
-    "postinstall": "bash scripts/download-models.sh"
+    "postinstall": "bash scripts/download-models.sh",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.3",
     "@heroicons/react": "^2.2.0",
     "@mediapipe/tasks-vision": "^0.10.18",
+    "@opennextjs/cloudflare": "^1.19.11",
     "@tensorflow/tfjs": "^4.22.0",
     "@tensorflow/tfjs-backend-wasm": "^4.22.0",
     "class-variance-authority": "^0.7.1",
@@ -42,6 +45,7 @@
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.19",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "wrangler": "^4.99.0"
   }
 }

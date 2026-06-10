@@ -4,6 +4,7 @@ import * as schema from "./schema";
 export type Env = {
   DB: D1Database;
   BUCKET: R2Bucket;
+  USER_NOTIFY?: DurableObjectNamespace;
   CLERK_WEBHOOK_SECRET?: string;
   JWT_SECRET?: string;
 };

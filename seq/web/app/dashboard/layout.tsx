@@ -24,6 +24,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (loading) return <DashboardSkeleton />;
   if (!user) return null;
 
+  const inChatThread = pathname.startsWith("/dashboard/call/");
+
   return (
     <div className="flex h-dvh flex-col">
       <TopNav />
@@ -32,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="h-full">{children}</div>
         </PageTransition>
       </main>
-      <MobileNav />
+      {!inChatThread && <MobileNav />}
     </div>
   );
 }

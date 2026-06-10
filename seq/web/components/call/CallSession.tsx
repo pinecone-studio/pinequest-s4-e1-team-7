@@ -14,6 +14,8 @@ import { useIsDesktop } from "@/hooks/useBreakpoint";
 import { useSignDetection } from "@/hooks/useSignDetection";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { sendCallEnded, fetchMessages } from "@/lib/chat-api";
+import { useChatRealtime } from "@/context/ChatRealtimeContext";
+import { CALL_DECLINE_POLL_MS, createAdaptivePoller } from "@/lib/poll-schedule";
 import { releaseAllCameras } from "@/lib/camera-registry";
 import { VideoCameraSlashIcon } from "@heroicons/react/24/solid";
 
@@ -39,6 +41,7 @@ export function CallSession({ roomId }: { roomId: string }) {
   const peerHint = searchParams.get("peer") ?? "";
   const [hostNotice, setHostNotice] = useState<string | null>(null);
   const callStartedAtRef = useRef(Date.now());
+  const { connected: realtimeConnected, subscribe } = useChatRealtime();
   const {
     active,
     history,
@@ -165,29 +168,56 @@ export function CallSession({ roomId }: { roomId: string }) {
   useEffect(() => () => stop(), [stop]);
   useEffect(() => () => releaseAllCameras(), []);
 
-  // Host: exit waiting room when callee declines
+  // Host: exit waiting room when callee declines (incremental poll only)
   useEffect(() => {
     if (asRole !== "host" || connected || !roomId.startsWith("c_") || leavingRef.current) return;
 
+    let afterId = 0;
+
+    const handleDecline = (rows: Awaited<ReturnType<typeof fetchMessages>>) => {
+      const since = callStartedAtRef.current - 3000;
+      const declined = rows.find(
+        (m) =>
+          m.kind === "call_declined" &&
+          !m.mine &&
+          new Date(m.createdAt).getTime() >= since,
+      );
+      if (declined && !leavingRef.current) {
+        setHostNotice(`${declined.senderName} дуудлага татгалзлаа`);
+        window.setTimeout(() => void leaveSession(false), 1800);
+      }
+    };
+
     const tick = async () => {
       try {
-        const rows = await fetchMessages(roomId);
-        const since = callStartedAtRef.current - 3000;
-        const recent = rows.filter((m) => new Date(m.createdAt).getTime() >= since);
-        const declined = recent.find((m) => m.kind === "call_declined" && !m.mine);
-        if (declined && !leavingRef.current) {
-          setHostNotice(`${declined.senderName} дуудлага татгалзлаа`);
-          window.setTimeout(() => void leaveSession(false), 1800);
-        }
+        const rows = await fetchMessages(roomId, afterId);
+        if (rows.length) afterId = rows[rows.length - 1]!.id;
+        handleDecline(rows);
       } catch {
         /* ignore */
       }
     };
 
-    void tick();
-    const id = window.setInterval(() => void tick(), 700);
-    return () => clearInterval(id);
-  }, [asRole, connected, leaveSession, roomId]);
+    const poller = createAdaptivePoller(tick, () =>
+      realtimeConnected ? null : CALL_DECLINE_POLL_MS,
+    );
+    poller.start();
+    document.addEventListener("visibilitychange", poller.onVisibility);
+
+    const unsub = subscribe((event) => {
+      if (event.conversationId !== roomId || event.kind !== "call_declined") return;
+      void fetchMessages(roomId, afterId).then((rows) => {
+        if (rows.length) afterId = rows[rows.length - 1]!.id;
+        handleDecline(rows);
+      });
+    });
+
+    return () => {
+      unsub();
+      document.removeEventListener("visibilitychange", poller.onVisibility);
+      poller.stop();
+    };
+  }, [asRole, connected, leaveSession, realtimeConnected, roomId, subscribe]);
 
   const handleCamToggle = () => {
     toggleCam();

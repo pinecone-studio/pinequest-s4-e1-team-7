@@ -9,6 +9,10 @@ import { webhooksRoute } from "./routes/webhooks";
 import { authRoute } from "./routes/auth";
 import { chatRoute } from "./routes/chat";
 import type { Env } from "./db";
+import { handleChatWebSocket } from "./lib/chat-ws";
+import { UserNotify } from "./durable-objects/UserNotify";
+
+export { UserNotify };
 
 type Variables = { user: { id: string; email: string; name: string; phone: string } };
 
@@ -20,7 +24,7 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>()
       origin: (origin) => origin ?? "*",
       allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowHeaders: ["Content-Type", "Authorization"],
-    })
+    }),
   )
   .get("/", (c) => c.json({ ok: true, message: "Sign Bridge API" }))
   .route("/api/auth", authRoute)
@@ -31,4 +35,12 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>()
   .route("/api/dictionary", dictionaryRoute)
   .route("/api/webhooks", webhooksRoute);
 
-export default app;
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+    if (url.pathname === "/api/chat/ws") {
+      return handleChatWebSocket(request, env);
+    }
+    return app.fetch(request, env, ctx);
+  },
+};

@@ -1,15 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "@/context/AppContext";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { Upload, Trash2 } from "lucide-react";
-import {
-  ChevronLeftIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { DICT_CATEGORIES } from "@/lib/constants";
 import type { DictCategory } from "@/lib/constants";
 import type { SignEntry } from "@/lib/api";
@@ -28,10 +26,10 @@ export function Dictionary({
   signs: initial = [],
 }: Props) {
   const router = useRouter();
-  const { toast } = useApp();
+  const { settings, toast } = useApp();
+  const { speak } = useTextToSpeech();
   const [signs, setSigns] = useState<SignEntry[]>(initial);
   const [uploading, setUploading] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const items = category === "alphabet" ? ALPHABET : NUMBERS;
@@ -39,51 +37,11 @@ export function Dictionary({
     category === "numbers" ? "number" : "alphabet";
 
   const signMap = new Map(signs.map((s) => [s.label.toUpperCase(), s]));
-  const filteredItems = search.trim()
-    ? items.filter((i) => i.toLowerCase().includes(search.trim().toLowerCase()))
-    : items;
-  const [activeItem, setActiveItem] = useState<number>(-1);
-  const stripRef = useRef<HTMLDivElement>(null);
-  const cardRefs = useRef<(HTMLElement | null)[]>([]);
+  const allFilled = items.every((item) => signMap.has(item));
 
-  const [stripHeight, setStripHeight] = useState(600);
-  const [winWidth, setWinWidth] = useState(
-    typeof window !== "undefined" ? window.innerWidth : 1200,
-  );
-
-  useEffect(() => {
-    setSigns(initial);
-    setActiveItem(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category]);
-
-  useEffect(() => {
-    const el = stripRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([e]) =>
-      setStripHeight(e.contentRect.height),
-    );
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const onResize = () => setWinWidth(window.innerWidth);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  const isMobile = winWidth < 768;
-  const collapsedW = isMobile ? "2rem" : "4rem";
-  const activeW = stripHeight;
-
-  const handleActivate = (index: number) => {
-    setActiveItem(index);
-    if (isMobile) {
-      setTimeout(() => {
-        cardRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-      }, 300);
-    }
+  const handleSpeak = (item: SignEntry) => {
+    speak(item.label, settings);
+    toast("info", `Уншиж байна: ${item.label}`, "volume-2");
   };
 
   const handleUpload = async (label: string, file: File) => {
@@ -116,8 +74,8 @@ export function Dictionary({
 
   return (
     <div className="flex h-full flex-col" style={{ background: "var(--bg)" }}>
-      {/* Header + tabs — constrained width */}
-      <div className="mx-auto w-full px-4 md:px-6 lg:px-10 xl:px-16">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col min-h-0 px-4 md:px-6 md:max-w-4xl lg:max-w-none lg:px-10 xl:px-16">
+        {/* Header */}
         <div className="flex items-center pb-2 pt-5">
           <button
             onClick={() => router.back()}
@@ -142,6 +100,7 @@ export function Dictionary({
           <div className="h-10 w-10" />
         </div>
 
+        {/* Category tabs */}
         <div className="flex gap-2 pb-3">
           {DICT_CATEGORIES.map((cat) => (
             <Link
@@ -158,201 +117,101 @@ export function Dictionary({
               {cat.label}
             </Link>
           ))}
-          <div
-            className="ml-auto flex items-center gap-2 rounded-full px-3 py-1.5"
-            style={{
-              background: "var(--surface-2)",
-              border: "1px solid var(--border-c)",
-            }}
-          >
-            <MagnifyingGlassIcon
-              className="h-3.5 w-3.5 shrink-0"
-              style={{ color: "var(--text-3)" }}
-            />
-            <input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setActiveItem(0);
-              }}
-              placeholder="Хайх…"
-              className="w-20 bg-transparent text-[12px] outline-none placeholder:opacity-50 md:w-28"
-              style={{ color: "var(--text)" }}
-            />
-          </div>
           <span
-            className="self-center text-[12px]"
+            className="ml-auto self-center text-[12px]"
             style={{ color: "var(--text-3)" }}
           >
             {signs.length}/{items.length}
           </span>
         </div>
-      </div>
 
-      {/* Skiper expand strip */}
-      <div className="flex-1 min-h-0 flex flex-col justify-center pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 md:block">
-        <div
-          className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden h-[55vh] mx-6 md:mx-0 md:h-full md:px-8 lg:px-12 xl:px-20"
-          style={{ scrollbarWidth: "none" }}
-        >
-          <div
-            ref={stripRef}
-            className="flex h-full items-stretch gap-1 py-2 md:gap-2 md:py-4"
-          >
-            {filteredItems.map((item, index) => {
+        {/* Scrollable grid */}
+        <div className="flex-1 min-h-0 overflow-y-auto pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-6">
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
+            {items.map((item) => {
               const sign = signMap.get(item);
-              const isActive = activeItem === index;
               const isUploading = uploading === item;
 
-              return (
-                <motion.div
-                  key={item}
-                  ref={(el) => { cardRefs.current[index] = el; }}
-                  className="relative shrink-0 cursor-pointer overflow-hidden rounded-[28px]"
-                  animate={{ width: isActive ? activeW : collapsedW }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  onClick={() => handleActivate(index)}
-                  style={{
-                    height: "100%",
-                    background: sign ? "var(--surface)" : "var(--surface-2)",
-                    border: "1px solid var(--border-c)",
-                  }}
-                >
-                  {/* Image — only rendered when active so it fills properly */}
-                  <AnimatePresence>
-                    {isActive && sign && (
-                      <motion.img
-                        key="img"
-                        src={sign.url}
-                        alt={item}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute inset-0 h-full w-full object-cover"
-                      />
-                    )}
-                  </AnimatePresence>
-
-                  {/* Collapsed: vertical letter + image dot */}
-                  <AnimatePresence>
-                    {!isActive && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute inset-0 flex flex-col items-center justify-center gap-2 pb-3 pt-3"
-                      >
-                        <span
-                          className="text-[12px] font-bold md:text-[14px]"
-                          style={{ color: "var(--text-2)" }}
+              if (sign) {
+                return (
+                  <div
+                    key={item}
+                    className="group relative overflow-hidden rounded-2xl"
+                    style={{
+                      background: "var(--surface)",
+                      border: "1px solid var(--border-c)",
+                    }}
+                  >
+                    <button
+                      onClick={() => handleSpeak(sign)}
+                      className="w-full text-left"
+                    >
+                      <div className="overflow-hidden rounded-t-2xl bg-[#e8ede9]">
+                        <Image
+                          src={sign.url}
+                          alt={item}
+                          width={400}
+                          height={500}
+                          unoptimized
+                          className="h-auto w-full scale-[1.2] transition-transform group-hover:scale-[1.2]"
+                        />
+                      </div>
+                      <div className="p-2.5">
+                        <div
+                          className="text-sm font-semibold leading-tight"
+                          style={{ color: "var(--text)" }}
                         >
                           {item}
-                        </span>
-                        {sign && (
-                          <span
-                            className="h-1.5 w-1.5 rounded-full shrink-0"
-                            style={{ background: "var(--olive)" }}
-                          />
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        </div>
+                      </div>
+                    </button>
 
-                  {/* Expanded overlay */}
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute inset-0 flex flex-col justify-between p-3 md:p-4"
-                        style={{
-                          background: sign
-                            ? "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)"
-                            : "var(--surface-2)",
-                        }}
+                    <div className="absolute right-1 top-1 z-20 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                      <button
+                        title="Зураг солих"
+                        onClick={() => inputRefs.current[item]?.click()}
+                        className="flex size-7 items-center justify-center rounded-lg bg-black/60 text-white hover:bg-black/80"
                       >
-                        {/* Top controls */}
-                        <div className="flex justify-end gap-1.5">
-                          {sign && (
-                            <>
-                              <button
-                                title="Зураг солих"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  inputRefs.current[item]?.click();
-                                }}
-                                className="flex size-8 items-center justify-center rounded-xl bg-black/50 text-white hover:bg-black/70"
-                              >
-                                <Upload className="size-3.5" />
-                              </button>
-                              <button
-                                title="Зураг устгах"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(sign);
-                                }}
-                                className="flex size-8 items-center justify-center rounded-xl bg-red-500/70 text-white hover:bg-red-600"
-                              >
-                                <Trash2 className="size-3.5" />
-                              </button>
-                            </>
-                          )}
-                        </div>
+                        <Upload className="size-3.5" />
+                      </button>
+                      <button
+                        title="Зураг устгах"
+                        onClick={() => handleDelete(sign)}
+                        className="flex size-7 items-center justify-center rounded-lg bg-red-500/80 text-white hover:bg-red-600"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </div>
 
-                        {/* Bottom label + actions */}
-                        <div className="flex items-end justify-between">
-                          <div>
-                            <p
-                              className="text-[20px] font-bold leading-none md:text-[28px]"
-                              style={{ color: sign ? "white" : "var(--text)" }}
-                            >
-                              {item}
-                            </p>
-                          </div>
-                          {!sign && (
-                            <label className="cursor-pointer">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleUpload(item, file);
-                                  e.target.value = "";
-                                }}
-                              />
-                              <span
-                                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold"
-                                style={{
-                                  background: "var(--olive)",
-                                  color: "#0d1e35",
-                                }}
-                              >
-                                {isUploading ? (
-                                  "Хүлээнэ үү…"
-                                ) : (
-                                  <>
-                                    <Upload className="size-3" />
-                                    Нэмэх
-                                  </>
-                                )}
-                              </span>
-                            </label>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                    <input
+                      ref={(el) => {
+                        inputRefs.current[item] = el;
+                      }}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUpload(item, file);
+                        e.target.value = "";
+                      }}
+                    />
+                  </div>
+                );
+              }
 
-                  {/* Hidden file input for replace */}
+              if (allFilled) return null;
+
+              return (
+                <label
+                  key={item}
+                  className="group cursor-pointer overflow-hidden rounded-2xl transition-all"
+                  style={{
+                    background: "var(--surface)",
+                    border: `2px dashed var(--border-c)`,
+                  }}
+                >
                   <input
-                    ref={(el) => {
-                      inputRefs.current[item] = el;
-                    }}
                     type="file"
                     accept="image/*"
                     className="hidden"
@@ -362,7 +221,50 @@ export function Dictionary({
                       e.target.value = "";
                     }}
                   />
-                </motion.div>
+                  <div
+                    className="relative flex aspect-square flex-col items-center justify-center gap-1"
+                    style={{
+                      background: isUploading ? "var(--olive-soft)" : undefined,
+                    }}
+                  >
+                    {isUploading ? (
+                      <span
+                        className="animate-pulse text-xs"
+                        style={{ color: "var(--olive)" }}
+                      >
+                        Хүлээнэ үү…
+                      </span>
+                    ) : (
+                      <>
+                        <Upload
+                          className="size-5 transition-transform group-hover:scale-110"
+                          style={{ color: "var(--olive)", opacity: 0.5 }}
+                        />
+                        <span
+                          className="text-3xl font-bold"
+                          style={{ color: "var(--olive)", opacity: 0.4 }}
+                        >
+                          {item}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <div className="p-2.5">
+                    <div
+                      className="text-sm font-semibold leading-tight"
+                      style={{ color: "var(--text)" }}
+                    >
+                      {item}
+                    </div>
+                    <div
+                      className="mt-1 flex items-center gap-1 text-xs"
+                      style={{ color: "var(--olive)", opacity: 0.6 }}
+                    >
+                      <Upload className="size-3" />
+                      Зураг нэмэх
+                    </div>
+                  </div>
+                </label>
               );
             })}
           </div>
