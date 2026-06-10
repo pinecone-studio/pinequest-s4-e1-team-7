@@ -38,7 +38,11 @@ yarn-error.log*
 # turbo
 .turbo
 
-# public model files
+# public model files (download-models.sh татна, postinstall-д ажиллана)
 public/models/*.task
 public/models/*.bin
 public/models/*.tflite
+
+# generated wasm binaries (node_modules-аас copy хийгддэг)
+public/mediapipe-wasm/
+public/tfjs-wasm/
