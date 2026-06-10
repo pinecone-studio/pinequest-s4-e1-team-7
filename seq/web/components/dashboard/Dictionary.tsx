@@ -74,7 +74,7 @@ export function Dictionary({
 
   return (
     <div className="flex h-full flex-col" style={{ background: "var(--bg)" }}>
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 md:px-6 md:max-w-4xl lg:max-w-none lg:px-10 xl:px-16">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col min-h-0 px-4 md:px-6 md:max-w-4xl lg:max-w-none lg:px-10 xl:px-16">
         {/* Header */}
         <div className="flex items-center pb-2 pt-5">
           <button
@@ -126,7 +126,7 @@ export function Dictionary({
         </div>
 
         {/* Scrollable grid */}
-        <div className="flex-1 overflow-x-auto pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-6">
+        <div className="flex-1 min-h-0 overflow-y-auto pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-6">
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
             {items.map((item) => {
               const sign = signMap.get(item);
