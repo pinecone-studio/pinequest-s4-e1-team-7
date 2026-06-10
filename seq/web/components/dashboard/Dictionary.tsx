@@ -44,6 +44,7 @@ export function Dictionary({
     : items;
   const [activeItem, setActiveItem] = useState<number>(-1);
   const stripRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLElement | null)[]>([]);
 
   const [stripHeight, setStripHeight] = useState(600);
   const [winWidth, setWinWidth] = useState(
@@ -78,6 +79,11 @@ export function Dictionary({
 
   const handleActivate = (index: number) => {
     setActiveItem(index);
+    if (isMobile) {
+      setTimeout(() => {
+        cardRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }, 300);
+    }
   };
 
   const handleUpload = async (label: string, file: File) => {
@@ -184,7 +190,7 @@ export function Dictionary({
       </div>
 
       {/* Skiper expand strip */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 md:block">
+      <div className="flex-1 min-h-0 flex flex-col justify-center pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 md:block">
         <div
           className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden h-[55vh] mx-6 md:mx-0 md:h-full md:px-8 lg:px-12 xl:px-20"
           style={{ scrollbarWidth: "none" }}
@@ -201,6 +207,7 @@ export function Dictionary({
               return (
                 <motion.div
                   key={item}
+                  ref={(el) => { cardRefs.current[index] = el; }}
                   className="relative shrink-0 cursor-pointer overflow-hidden rounded-[28px]"
                   animate={{ width: isActive ? activeW : collapsedW }}
                   transition={{ duration: 0.3, ease: "easeInOut" }}
