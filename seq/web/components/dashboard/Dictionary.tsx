@@ -13,7 +13,6 @@ import type { DictCategory } from "@/lib/constants";
 import type { SignEntry } from "@/lib/api";
 import { uploadSign, deleteSign } from "@/lib/api";
 
-
 const ALPHABET = "АБВГДЕЁЖЗИЙКЛМНОӨПРСТУҮФХЦЧШЩЪЫЬЭЮЯ".split("");
 const NUMBERS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
@@ -76,16 +75,21 @@ export function Dictionary({
   return (
     <div className="flex h-full flex-col" style={{ background: "var(--bg)" }}>
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 md:px-6 md:max-w-4xl lg:max-w-none lg:px-10 xl:px-16">
-
         {/* Header */}
         <div className="flex items-center pb-2 pt-5">
           <button
             onClick={() => router.back()}
             aria-label="Буцах"
             className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70"
-            style={{ background: "var(--surface)", border: "1px solid var(--border-c)" }}
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-c)",
+            }}
           >
-            <ChevronLeftIcon className="h-5 w-5" style={{ color: "var(--text)" }} />
+            <ChevronLeftIcon
+              className="h-5 w-5"
+              style={{ color: "var(--text)" }}
+            />
           </button>
           <h1
             className="flex-1 text-center text-[17px] font-bold md:text-[20px]"
@@ -104,7 +108,8 @@ export function Dictionary({
               href={`/dashboard/dict?cat=${cat.id}`}
               className="rounded-full px-4 py-2 text-[13px] font-semibold transition-all active:scale-95"
               style={{
-                background: category === cat.id ? "var(--olive)" : "var(--surface-2)",
+                background:
+                  category === cat.id ? "var(--olive)" : "var(--surface-2)",
                 color: category === cat.id ? "#0d1e35" : "var(--text-2)",
                 border: `1px solid ${category === cat.id ? "var(--olive)" : "var(--border-c)"}`,
               }}
@@ -112,13 +117,16 @@ export function Dictionary({
               {cat.label}
             </Link>
           ))}
-          <span className="ml-auto self-center text-[12px]" style={{ color: "var(--text-3)" }}>
+          <span
+            className="ml-auto self-center text-[12px]"
+            style={{ color: "var(--text-3)" }}
+          >
             {signs.length}/{items.length}
           </span>
         </div>
 
         {/* Scrollable grid */}
-        <div className="flex-1 overflow-y-auto pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-6">
+        <div className="flex-1 overflow-x-auto pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-6">
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
             {items.map((item) => {
               const sign = signMap.get(item);
@@ -129,9 +137,15 @@ export function Dictionary({
                   <div
                     key={item}
                     className="group relative overflow-hidden rounded-2xl"
-                    style={{ background: "var(--surface)", border: "1px solid var(--border-c)" }}
+                    style={{
+                      background: "var(--surface)",
+                      border: "1px solid var(--border-c)",
+                    }}
                   >
-                    <button onClick={() => handleSpeak(sign)} className="w-full text-left">
+                    <button
+                      onClick={() => handleSpeak(sign)}
+                      className="w-full text-left"
+                    >
                       <div className="overflow-hidden rounded-t-2xl bg-[#e8ede9]">
                         <Image
                           src={sign.url}
@@ -143,7 +157,10 @@ export function Dictionary({
                         />
                       </div>
                       <div className="p-2.5">
-                        <div className="text-sm font-semibold leading-tight" style={{ color: "var(--text)" }}>
+                        <div
+                          className="text-sm font-semibold leading-tight"
+                          style={{ color: "var(--text)" }}
+                        >
                           {item}
                         </div>
                       </div>
@@ -167,7 +184,9 @@ export function Dictionary({
                     </div>
 
                     <input
-                      ref={(el) => { inputRefs.current[item] = el; }}
+                      ref={(el) => {
+                        inputRefs.current[item] = el;
+                      }}
                       type="file"
                       accept="image/*"
                       className="hidden"
@@ -204,10 +223,15 @@ export function Dictionary({
                   />
                   <div
                     className="relative flex aspect-square flex-col items-center justify-center gap-1"
-                    style={{ background: isUploading ? "var(--olive-soft)" : undefined }}
+                    style={{
+                      background: isUploading ? "var(--olive-soft)" : undefined,
+                    }}
                   >
                     {isUploading ? (
-                      <span className="animate-pulse text-xs" style={{ color: "var(--olive)" }}>
+                      <span
+                        className="animate-pulse text-xs"
+                        style={{ color: "var(--olive)" }}
+                      >
                         Хүлээнэ үү…
                       </span>
                     ) : (
@@ -216,17 +240,26 @@ export function Dictionary({
                           className="size-5 transition-transform group-hover:scale-110"
                           style={{ color: "var(--olive)", opacity: 0.5 }}
                         />
-                        <span className="text-3xl font-bold" style={{ color: "var(--olive)", opacity: 0.4 }}>
+                        <span
+                          className="text-3xl font-bold"
+                          style={{ color: "var(--olive)", opacity: 0.4 }}
+                        >
                           {item}
                         </span>
                       </>
                     )}
                   </div>
                   <div className="p-2.5">
-                    <div className="text-sm font-semibold leading-tight" style={{ color: "var(--text)" }}>
+                    <div
+                      className="text-sm font-semibold leading-tight"
+                      style={{ color: "var(--text)" }}
+                    >
                       {item}
                     </div>
-                    <div className="mt-1 flex items-center gap-1 text-xs" style={{ color: "var(--olive)", opacity: 0.6 }}>
+                    <div
+                      className="mt-1 flex items-center gap-1 text-xs"
+                      style={{ color: "var(--olive)", opacity: 0.6 }}
+                    >
                       <Upload className="size-3" />
                       Зураг нэмэх
                     </div>
@@ -236,7 +269,6 @@ export function Dictionary({
             })}
           </div>
         </div>
-
       </div>
     </div>
   );

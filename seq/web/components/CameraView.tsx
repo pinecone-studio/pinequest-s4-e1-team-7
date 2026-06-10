@@ -257,6 +257,12 @@ export function CameraView({
         releaseMediaStream(stream);
         return;
       }
+      // Guard: another concurrent getUserMedia (React Strict Mode double-invoke)
+      // resolved first and already claimed the slot — release this stream immediately.
+      if (streamRef.current) {
+        releaseMediaStream(stream);
+        return;
+      }
       streamRef.current = stream;
       const v = videoRef.current;
       v.playsInline = true;

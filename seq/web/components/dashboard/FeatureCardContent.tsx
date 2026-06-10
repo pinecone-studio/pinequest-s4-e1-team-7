@@ -16,10 +16,13 @@ export function FeatureCardContent({ f, size = "normal" }: { f: CarouselFeature;
       />
       <div className="absolute inset-0" style={{
         background: f.dark
-          ? "linear-gradient(100deg, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.22) 44%, transparent 64%)"
-          : "linear-gradient(100deg, var(--surface) 22%, rgba(255,255,255,0.90) 44%, transparent 62%)",
+          ? "linear-gradient(100deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.32) 55%, transparent 72%)"
+          : "linear-gradient(100deg, var(--surface) 30%, rgba(255,255,255,0.90) 55%, transparent 72%)",
       }} />
-      <div className={`relative z-10 flex h-full flex-col justify-between ${big ? "p-8 lg:p-10" : medium ? "p-5 md:p-6 lg:p-7" : "p-5 md:p-6"}`}>
+      <div
+        className={`relative z-10 flex h-full flex-col justify-between ${big ? "p-8 lg:p-10" : medium ? "p-5 md:p-6 lg:p-7" : "p-5 md:p-6"}`}
+        style={{ maxWidth: big ? "55%" : "60%" }}
+      >
         <div>
           <h3
             className={`font-bold leading-snug ${big ? "text-[28px] md:text-[36px] lg:text-[44px]" : medium ? "text-[20px] md:text-[24px] lg:text-[28px]" : "text-[18px] md:text-[20px] lg:text-[22px]"}`}
