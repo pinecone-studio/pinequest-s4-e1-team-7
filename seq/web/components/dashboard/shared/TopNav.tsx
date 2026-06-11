@@ -1,8 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useTheme } from "@/hooks/useTheme";
 import { ProfileAvatarButton } from "../shared/ProfileAvatarButton";
 import {
   HomeIcon as HomeO, HandRaisedIcon as HandO, MicrophoneIcon as MicO,
@@ -24,24 +25,15 @@ const NAV = [
 
 export const TopNav = () => {
   const active = usePathname().split("/")[2] ?? "overview";
-  const [isDark, setIsDark] = useState(false);
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    const checkDark = () => {
-      setIsDark(document.documentElement.getAttribute("data-theme") === "dark");
-    };
-    checkDark();
-    const observer = new MutationObserver(checkDark);
-    observer.observe(document.documentElement, { attributes: true });
-    return () => observer.disconnect();
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   if (!mounted) return null;
 
+  const isDark = theme === "dark";
   const logoSrc = isDark ? "/images/logoShar.png" : "/images/logoBlue.png";
-  const bridgeColor = isDark ? "#E5EEFF" : "#0D1E35";
 
   return (
     <header
@@ -53,12 +45,13 @@ export const TopNav = () => {
         <Link href="/dashboard" className="flex shrink-0 items-center" aria-label="Нүүр хуудас">
           <img src={logoSrc} alt="Sign Bridge" className="h-13 w-13 rounded-xl object-contain" />
           <div className="flex items-baseline gap-1">
-            <span style={{ color: "#ffbf00ff", fontWeight: 900, fontSize: "20px" }}>Sign</span>
-            <span style={{ color: bridgeColor, fontWeight: 900, fontSize: "20px" }}>Bridge</span>
+            <span style={{ color: "var(--olive)", fontWeight: 900, fontSize: "20px" }}>Sign</span>
+            <span style={{ color: "var(--text)", fontWeight: 900, fontSize: "20px" }}>Bridge</span>
           </div>
         </Link>
 
         <nav
+          aria-label="Хяналтын самбар цэс"
           className="flex items-center gap-1 rounded-full px-2 py-1.5"
           style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
         >
@@ -69,6 +62,7 @@ export const TopNav = () => {
               <Link
                 key={id}
                 href={`/dashboard/${id}`}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-all duration-200",
                   !isActive && "hover:opacity-80",

@@ -150,8 +150,7 @@
 .toast .t-msg { font-size:13.5px; font-weight:500; }
 
 /* ── Landing nav ── */
-:root[data-theme="light"] .lnav { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:16px 32px; backdrop-filter:blur(14px); background:rgba(245,253,255,0.85); border-bottom:1px solid var(--border-c); }
-:root[data-theme="dark"]  .lnav { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:16px 32px; backdrop-filter:blur(14px); background:color-mix(in srgb,var(--bg) 82%,transparent); border-bottom:1px solid var(--border-c); }
+.lnav { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:16px 32px; backdrop-filter:blur(12px); background:var(--surface); border-bottom:1px solid var(--border-c); }
 .lnav-logo { display:flex; align-items:center; font-family:var(--font-display); font-weight:700; font-size:21px; }
 .lnav-links { display:flex; gap:8px; }
 .lnav-links a { padding:9px 15px; border-radius:999px; font-size:14.5px; font-weight:500; color:var(--text-2); }

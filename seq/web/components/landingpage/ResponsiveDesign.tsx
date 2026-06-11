@@ -4,12 +4,12 @@ export const ResponsiveDesign = () => {
   return (
     <>
       <style>{`
-        @keyframes lscan {
+        @keyframes rd-scan {
           0% { top: 0; }
           50% { top: 100%; }
           100% { top: 0; }
         }
-        @keyframes pulse {
+        @keyframes rd-pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
         }
@@ -79,7 +79,7 @@ export const ResponsiveDesign = () => {
                       background:
                         "linear-gradient(90deg,transparent,var(--olive-bright),transparent)",
                       boxShadow: "0 0 14px var(--olive-bright)",
-                      animation: "lscan 2.4s ease-in-out infinite",
+                      animation: "rd-scan 2.4s ease-in-out infinite",
                     }}
                   />
                   <div
@@ -125,7 +125,7 @@ export const ResponsiveDesign = () => {
                           borderRadius: "50%",
                           background: "var(--olive-bright)",
                           display: "inline-block",
-                          animation: "pulse 1.2s infinite",
+                          animation: "rd-pulse 1.2s infinite",
                         }}
                       />
                       Хөрвүүлж байна
@@ -300,7 +300,7 @@ export const ResponsiveDesign = () => {
                       background:
                         "linear-gradient(90deg,transparent,var(--olive-bright),transparent)",
                       boxShadow: "0 0 14px var(--olive-bright)",
-                      animation: "lscan 2.4s ease-in-out infinite",
+                      animation: "rd-scan 2.4s ease-in-out infinite",
                     }}
                   />
                   <div
@@ -321,7 +321,7 @@ export const ResponsiveDesign = () => {
                         borderRadius: "50%",
                         background: "var(--olive-bright)",
                         display: "inline-block",
-                        animation: "pulse 1.2s infinite",
+                        animation: "rd-pulse 1.2s infinite",
                       }}
                     />
                     Дохио → Яриа

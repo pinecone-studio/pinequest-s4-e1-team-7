@@ -183,7 +183,7 @@ function MessageBubble({
               </DropdownMenuItem>
             )}
             {canDelete && (
-              <DropdownMenuItem onClick={onDelete} className="text-[#e53535] focus:text-[#e53535]">
+              <DropdownMenuItem onClick={onDelete} className="text-[hsl(var(--destructive))] focus:text-[hsl(var(--destructive))]">
                 <TrashIcon />
                 Устгах
               </DropdownMenuItem>
@@ -986,7 +986,7 @@ export function MessagesApp({
                     </button>
                   </div>
                   {editError && (
-                    <p className="mt-2 text-center text-[12px] font-medium text-[#e53535]">{editError}</p>
+                    <p className="mt-2 text-center text-[12px] font-medium text-[hsl(var(--destructive))]">{editError}</p>
                   )}
                 </>
               ) : (

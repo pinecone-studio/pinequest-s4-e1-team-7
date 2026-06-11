@@ -7,8 +7,8 @@ const config: Config = {
     container: { center: true, padding: "1.5rem", screens: { "2xl": "1280px" } },
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "Onest", "sans-serif"],
-        display: ["var(--font-display)", "Unbounded", "sans-serif"],
+        sans: ["var(--font-sans)", "Montserrat", "sans-serif"],
+        display: ["var(--font-display)", "Montserrat", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -54,7 +54,7 @@ export function AvatarMenu() {
             <button
               onClick={() => { setOpen(false); logout(); router.push("/"); }}
               className="flex w-full items-center gap-2.5 px-4 py-3 text-[13px] font-semibold transition-colors hover:bg-[var(--surface-2)]"
-              style={{ borderTop: "1px solid var(--border-c)", color: "#e53535" }}
+              style={{ borderTop: "1px solid var(--border-c)", color: "hsl(var(--destructive))" }}
             >
               <ArrowRightEndOnRectangleIcon className="h-4 w-4" /> Гарах
             </button>
