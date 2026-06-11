@@ -224,10 +224,10 @@ export function CallSession({ roomId }: { roomId: string }) {
     setCamMuted((m) => !m);
   };
 
-  const handleVoiceToggle = () => {
+  const handleVoiceToggle = async () => {
     if (!connected) return;
     if (listening) stop();
-    else start();
+    else await start();
   };
 
   const statusDot =

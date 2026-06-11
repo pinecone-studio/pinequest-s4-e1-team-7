@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { ProfileAvatarButton } from "./ProfileAvatarButton";
+import { ProfileAvatarButton } from "../shared/ProfileAvatarButton";
 import {
   HomeIcon as HomeO, HandRaisedIcon as HandO, MicrophoneIcon as MicO,
   ChatBubbleLeftRightIcon as ChatO, BookOpenIcon as BookO,

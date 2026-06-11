@@ -2,11 +2,11 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { TopNav } from "@/components/dashboard/TopNav";
+import { TopNav } from "@/components/dashboard/shared/TopNav";
 import { MobileNav } from "@/components/mobile/mobile-nav";
 import { PageTransition } from "@/components/PageTransition";
 import { releaseAllCameras } from "@/lib/camera-registry";
-import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { DashboardSkeleton } from "@/components/dashboard/shared/DashboardSkeleton";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();

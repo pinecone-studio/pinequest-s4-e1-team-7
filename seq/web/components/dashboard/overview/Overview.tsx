@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { ProfileAvatarButton } from "@/components/dashboard/ProfileAvatarButton";
+import { ProfileAvatarButton } from "../shared/ProfileAvatarButton";
 import { FeatureCarousel } from "./FeatureCarousel";
 import { useState, useEffect } from "react";
 import type { CarouselFeature } from "./FeatureCarousel";

@@ -1,4 +1,4 @@
-import { VoiceToText } from "@/components/dashboard/VoiceToText";
+import { VoiceToText } from "@/components/dashboard/voice/VoiceToText";
 
 export default function VoicePage() {
   return <VoiceToText />;

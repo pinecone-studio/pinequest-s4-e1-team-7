@@ -18,7 +18,7 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: "Sign Bridge — Realtime",
-  description: "Дохионы хэл ↔ текст бодит цагийн орчуулга",
+  description: "Монгол дохионы хэлнээс шууд хөрвүүлэгч",
 };
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
@@ -31,12 +31,16 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
       />
     </head>
     <body className={cn(geist.variable, montserrat.variable)}>
-      <ClerkProvider>
-        <AppProvider>
-          {children}
-          <Toaster />
-          <SpeedInsights />
-        </AppProvider>
+      <AuthProvider>
+        <IncomingCallProvider>
+          <ChatRealtimeProvider>
+            <AppProvider>
+              {children}
+              <Toaster />
+              <SpeedInsights />
+            </AppProvider>
+          </ChatRealtimeProvider>
+        </IncomingCallProvider>
       </AuthProvider>
     </body>
   </html>
