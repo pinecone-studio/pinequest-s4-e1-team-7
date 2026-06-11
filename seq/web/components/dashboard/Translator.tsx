@@ -1,11 +1,23 @@
 "use client";
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { useSignDetection } from "@/hooks/useSignDetection";
-import { CameraView } from "@/components/CameraView";
+
+const CameraView = dynamic(
+  () => import("@/components/CameraView").then((m) => ({ default: m.CameraView })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="absolute inset-0 flex items-center justify-center bg-black">
+        <span className="text-sm text-white/50">Камер ачааллаж байна…</span>
+      </div>
+    ),
+  },
+);
 import { TranslatorCard } from "./TranslatorCard";
 import { TranslatorSettings } from "./TranslatorSettings";
 import { TranslatorConversation } from "./TranslatorConversation";
@@ -301,7 +313,7 @@ export function Translator() {
         </div>
 
         {showOnboarding && (
-          <OnboardingSheet onDismiss={() => setShowOnboarding(false)} />
+          <OnboardingSheet onDismiss={dismissOnboarding} />
         )}
       </div>
     </div>

@@ -1,14 +1,20 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Geist } from "next/font/google";
+import { Geist, Montserrat } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
 import { IncomingCallProvider } from "@/context/IncomingCallContext";
 import { ChatRealtimeProvider } from "@/context/ChatRealtimeContext";
 import { AppProvider } from "@/context/AppContext";
 import { Toaster } from "@/components/ui/sonner";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Sign Bridge — Realtime",
@@ -23,22 +29,13 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
           __html: `(function(){var t=localStorage.getItem('dohio-theme');if(!t){t=window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';}document.documentElement.setAttribute('data-theme',t);})();`,
         }}
       />
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-      />
     </head>
-    <body className={cn(geist.variable)}>
-      <AuthProvider>
+    <body className={cn(geist.variable, montserrat.variable)}>
+      <ClerkProvider>
         <AppProvider>
-          <ChatRealtimeProvider>
-            <IncomingCallProvider>
-              {children}
-              <Toaster />
-            </IncomingCallProvider>
-          </ChatRealtimeProvider>
+          {children}
+          <Toaster />
+          <SpeedInsights />
         </AppProvider>
       </AuthProvider>
     </body>
