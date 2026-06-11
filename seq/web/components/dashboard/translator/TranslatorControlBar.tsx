@@ -31,7 +31,7 @@ export function TranslatorControlBar({
       <button
         type="button"
         onClick={onToggle}
-        disabled={!modelReady && !running}
+        disabled={running && !modelReady}
         aria-label={running ? "Зогсоох" : "Эхлүүлэх"}
         className="flex h-11 shrink-0 items-center gap-2 rounded-full px-5 text-[13px] font-bold transition-all active:scale-[0.98] disabled:opacity-50"
         style={{

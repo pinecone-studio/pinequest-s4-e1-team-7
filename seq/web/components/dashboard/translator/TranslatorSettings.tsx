@@ -116,7 +116,7 @@ export function TranslatorSettings({ settings, onUpdate, onClose }: Props) {
 
       <div>
         <p className="mb-3 text-[13px] font-semibold" style={{ color: "var(--text-3)" }}>
-          Текстийн хэмжээ
+          Бичвэрийн хэмжээ
         </p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {TEXT_SCALES.map(({ label, value }) => (

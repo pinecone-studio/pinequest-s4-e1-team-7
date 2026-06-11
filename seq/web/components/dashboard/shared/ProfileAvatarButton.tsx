@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { UserAvatar } from "@/components/dashboard/UserAvatar";
+import { UserAvatar } from "./UserAvatar";
 
 export function ProfileAvatarButton({ size = 40 }: { size?: number }) {
   const { user } = useAuth();

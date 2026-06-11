@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { VideoCameraIcon } from "@heroicons/react/24/solid";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
-import { OnboardingSheet } from "./OnboardingSheet";
+import { OnboardingSheet } from "../shared/OnboardingSheet";
 
 function genId() {
   return Array.from(crypto.getRandomValues(new Uint8Array(8)))

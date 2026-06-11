@@ -23,8 +23,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ProfileAvatarButton } from "@/components/dashboard/ProfileAvatarButton";
-import { UserAvatar } from "@/components/dashboard/UserAvatar";
+import { ProfileAvatarButton } from "@/components/dashboard/shared/ProfileAvatarButton";
+import { UserAvatar } from "@/components/dashboard/shared/UserAvatar";
 import {
   type ChatMessage,
   type ChatPeer,

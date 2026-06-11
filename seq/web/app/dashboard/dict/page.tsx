@@ -1,4 +1,4 @@
-import { Dictionary } from "@/components/dashboard/Dictionary";
+import { Dictionary } from "@/components/dashboard/dict/Dictionary";
 import { getSigns } from "@/lib/api";
 import type { DictCategory } from "@/lib/constants";
 

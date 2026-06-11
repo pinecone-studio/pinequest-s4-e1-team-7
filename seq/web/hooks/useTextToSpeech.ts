@@ -1,43 +1,81 @@
 "use client";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { Gender } from "@/lib/types";
 
 interface SpeakOptions {
   rate: number;
   gender: Gender;
-  volume?: number; // 0–1
+  volume?: number;
 }
 
-const pickVoice = (gender: Gender): SpeechSynthesisVoice | null => {
-  const voices = window.speechSynthesis?.getVoices() ?? [];
-  const mn = voices.find((v) => /mn(-|_)?/i.test(v.lang));
-  if (mn) return mn;
-  const hint = gender === "female" ? /female|samantha|zira|aria/i : /male|daniel|david/i;
-  return voices.find((v) => hint.test(v.name)) ?? voices[0] ?? null;
-};
-
-export function useTextToSpeech() {
-  const supported = typeof window !== "undefined" && "speechSynthesis" in window;
+export const useTextToSpeech = () => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastRef = useRef("");
+  const [speaking, setSpeaking] = useState(false);
 
-  const speak = useCallback(
-    (text: string, { rate, gender, volume }: SpeakOptions) => {
-      lastRef.current = text;
-      if (!supported) return;
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "mn-MN";
-      u.rate = rate;
-      u.pitch = gender === "female" ? 1.08 : 0.9;
-      u.volume = volume ?? 1;
-      const v = pickVoice(gender);
-      if (v) u.voice = v;
-      window.speechSynthesis.speak(u);
-    },
-    [supported],
-  );
+  const speak = useCallback(async (text: string, { volume, gender }: SpeakOptions): Promise<boolean> => {
+    if (!text.trim()) return false;
+    lastRef.current = text;
 
-  const stop = useCallback(() => window.speechSynthesis?.cancel(), []);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      URL.revokeObjectURL(audioRef.current.src);
+      audioRef.current = null;
+    }
 
-  return { speak, stop, supported, last: lastRef };
-}
+    try {
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, gender }),
+      });
+
+      if (!response.ok) {
+        console.error("[TTS] API error:", response.status, await response.text().catch(() => ""));
+        return false;
+      }
+
+      const blob = await response.blob();
+      if (blob.size < 100) {
+        console.error("[TTS] Empty audio response from Chimege");
+        return false;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.volume = volume ?? 1;
+      audioRef.current = audio;
+
+      setSpeaking(true);
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+        setSpeaking(false);
+      };
+      audio.onerror = (e) => {
+        console.error("[TTS] Audio playback error:", e);
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+        setSpeaking(false);
+      };
+
+      await audio.play();
+      return true;
+    } catch (err) {
+      console.error("[TTS] speak() error:", err);
+      setSpeaking(false);
+      return false;
+    }
+  }, []);
+
+  const stop = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      URL.revokeObjectURL(audioRef.current.src);
+      audioRef.current = null;
+    }
+    setSpeaking(false);
+  }, []);
+
+  return { speak, stop, speaking, supported: true, last: lastRef };
+};

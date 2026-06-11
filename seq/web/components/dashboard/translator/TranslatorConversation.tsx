@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SpeakerWaveIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { TypewriterCaption } from "@/components/TypewriterCaption";
+import { FontSizeControl } from "@/components/ui/FontSizeControl";
 import type { LivePred } from "@/hooks/useSignDetection";
 
 type Props = {
@@ -42,13 +43,18 @@ export function TranslatorConversation({
         boxShadow: "var(--shadow-sm)",
       }}
     >
-      {/* Label + live status */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--olive)" }} />
           <p className="text-[11px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--text-3)" }}>
             Хөрвүүлсэн бичвэр
           </p>
+          {speaking && (
+            <span className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: "var(--olive)" }}>
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full" style={{ background: "var(--olive)" }} />
+              Уншиж байна…
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1.5">
           <span
@@ -61,7 +67,6 @@ export function TranslatorConversation({
         </div>
       </div>
 
-      {/* Scrollable text — font size applies to both detected and placeholder */}
       <div className="relative flex-1 overflow-y-auto">
         <button
           type="button" onClick={onReset} aria-label="Цэвэрлэх"
@@ -71,17 +76,12 @@ export function TranslatorConversation({
           <ArrowPathIcon className="h-[18px] w-[18px]" style={{ color: "var(--text-2)" }} />
         </button>
         {detected ? (
-          <div
-            style={{ fontSize: `${fontSize}px` }}
-            className="font-semibold leading-relaxed [&>div]:min-h-0 [&>div]:border-0 [&>div]:bg-transparent [&>div]:p-0 [&>div]:font-semibold [&>div]:leading-relaxed [&>div]:shadow-none [&>div]:text-[var(--text)]"
-          >
-            <TypewriterCaption text={detected} charMs={14} wordPauseMs={30} />
+          <div className="w-full break-words font-bold leading-snug" style={{ fontSize: `${fontSize}px`, color: "var(--text)" }}>
+            <TypewriterCaption text={detected} charMs={14} wordPauseMs={30} variant="plain" />
           </div>
         ) : running && livePred ? (
           <p className="leading-relaxed" style={{ fontSize: `${fontSize}px`, color: "var(--text-2)" }}>
-            <span className="font-semibold" style={{ color: "var(--text)" }}>
-              {livePred.label}
-            </span>
+            <span className="font-bold" style={{ color: "var(--text)" }}>{livePred.label}</span>
             <span className="ml-2 font-mono" style={{ fontSize: `${Math.round(fontSize * 0.78)}px`, color: "var(--text-3)" }}>
               {(livePred.confidence * 100).toFixed(0)}%
             </span>
@@ -93,38 +93,9 @@ export function TranslatorConversation({
         )}
       </div>
 
-      {/* Controls — font size row + speak/volume row */}
       <div className="mt-3 space-y-2 border-t pt-3" style={{ borderColor: "var(--border-c)" }}>
-        {/* Font size row */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setFontSize((s) => Math.max(14, s - 2))}
-            aria-label="Фонт багасгах"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[13px] font-bold transition-all active:scale-90"
-            style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)", color: "var(--text-3)" }}
-          >
-            A
-          </button>
-          <input
-            type="range" min={14} max={32} step={2} value={fontSize}
-            onChange={(e) => setFontSize(Number(e.target.value))}
-            className="range-line flex-1 cursor-pointer"
-            aria-label="Фонтын хэмжээ"
-            style={{
-              background: `linear-gradient(to right, var(--olive) ${((fontSize - 14) / 18) * 100}%, var(--border-c) ${((fontSize - 14) / 18) * 100}%)`,
-            }}
-          />
-          <button
-            onClick={() => setFontSize((s) => Math.min(32, s + 2))}
-            aria-label="Фонт томруулах"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[18px] font-bold transition-all active:scale-90"
-            style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)", color: "var(--text-3)" }}
-          >
-            A
-          </button>
-        </div>
+        <FontSizeControl size={fontSize} onChange={setFontSize} />
 
-        {/* Speak + volume row */}
         <div className="flex items-center gap-2">
           <button
             type="button" onClick={onSpeak} aria-label="Дуугаар унших"
