@@ -3,28 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useIncomingCall } from "@/context/IncomingCallContext";
-import { CallLogCard } from "@/components/messages/CallLogCard";
 import { buildCallLogs, callLogByAnchor, callLogMessageIds, type CallLogEntry } from "@/lib/call-log";
-import {
-  MagnifyingGlassIcon,
-  PaperAirplaneIcon,
-  PhoneIcon,
-  MicrophoneIcon,
-  XMarkIcon,
-  UserPlusIcon,
-  EllipsisVerticalIcon,
-  PencilIcon,
-  TrashIcon,
-} from "@heroicons/react/24/solid";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ProfileAvatarButton } from "@/components/dashboard/shared/ProfileAvatarButton";
-import { UserAvatar } from "@/components/dashboard/shared/UserAvatar";
 import {
   type ChatMessage,
   type ChatPeer,
@@ -51,169 +30,11 @@ import {
 import { cn } from "@/lib/utils";
 import { useChatRealtime } from "@/context/ChatRealtimeContext";
 import { createAdaptivePoller, FALLBACK_POLL_MS } from "@/lib/poll-schedule";
-
-function chatPath(conversationId: string) {
-  return `/dashboard/call/${encodeURIComponent(conversationId)}`;
-}
-
-function persistChatPeer(conversationId: string, peer: ChatPeer) {
-  try {
-    sessionStorage.setItem(`sb-chat-peer:${conversationId}`, JSON.stringify(peer));
-  } catch {
-    /* ignore */
-  }
-}
-
-function loadStoredChatPeer(conversationId: string): ChatPeer | null {
-  try {
-    const raw = sessionStorage.getItem(`sb-chat-peer:${conversationId}`);
-    return raw ? (JSON.parse(raw) as ChatPeer) : null;
-  } catch {
-    return null;
-  }
-}
-
-function ChatEmptyState() {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-10 text-center">
-      <div
-        className="flex h-24 w-24 items-center justify-center rounded-full text-4xl shadow-sm"
-        style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
-      >
-        💬
-      </div>
-      <p className="text-[17px] font-bold" style={{ color: "var(--text)" }}>
-        Чат эхлүүлэх
-      </p>
-    </div>
-  );
-}
-
-function formatTime(iso: string) {
-  const d = new Date(iso);
-  const now = new Date();
-  if (d.toDateString() === now.toDateString()) {
-    return d.toLocaleTimeString("mn-MN", { hour: "2-digit", minute: "2-digit" });
-  }
-  return d.toLocaleDateString("mn-MN", { month: "short", day: "numeric" });
-}
-
-function mergeMessages(prev: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] {
-  if (!incoming.length) return prev;
-  const seen = new Set(prev.map((m) => m.id));
-  const added = incoming.filter((m) => !seen.has(m.id));
-  return added.length ? [...prev, ...added] : prev;
-}
-
-function prependMessages(prev: ChatMessage[], older: ChatMessage[]): ChatMessage[] {
-  if (!older.length) return prev;
-  const seen = new Set(prev.map((m) => m.id));
-  const added = older.filter((m) => !seen.has(m.id));
-  return added.length ? [...added, ...prev] : prev;
-}
-
-function VoiceBubble({ url, durationMs, mine }: { url: string; durationMs: number | null; mine: boolean }) {
-  const ref = useRef<HTMLAudioElement>(null);
-  const [playing, setPlaying] = useState(false);
-  const secs = durationMs ? Math.round(durationMs / 1000) : null;
-
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        const el = ref.current;
-        if (!el) return;
-        if (playing) {
-          el.pause();
-        } else {
-          void el.play();
-        }
-      }}
-      className={cn(
-        "flex min-w-[140px] items-center gap-2 rounded-2xl px-3 py-2 text-left",
-        mine ? "bg-[var(--olive)] text-[#0d1e35]" : "bg-[var(--surface-2)]",
-      )}
-    >
-      <span className="text-lg">{playing ? "⏸" : "▶"}</span>
-      <span className="text-[13px] font-semibold">{secs ? `${secs}s` : "Дуу"}</span>
-      <audio ref={ref} src={url} onEnded={() => setPlaying(false)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} />
-    </button>
-  );
-}
-
-function MessageBubble({
-  msg,
-  editing,
-  onStartEdit,
-  onDelete,
-}: {
-  msg: ChatMessage;
-  editing: boolean;
-  onStartEdit: () => void;
-  onDelete: () => void;
-}) {
-  const canEdit = msg.mine && msg.kind === "text";
-  const canDelete = msg.mine && (msg.kind === "text" || msg.kind === "voice");
-  const showMenu = canEdit || canDelete;
-
-  return (
-    <div className={cn("group flex min-w-0 items-end gap-1", msg.mine ? "justify-end" : "justify-start")}>
-      {showMenu && !editing && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label="Үйлдэл"
-              className="mb-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full opacity-60 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100"
-              style={{ color: "var(--text-3)" }}
-            >
-              <EllipsisVerticalIcon className="h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align={msg.mine ? "end" : "start"}>
-            {canEdit && (
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  onStartEdit();
-                }}
-              >
-                <PencilIcon />
-                Засах
-              </DropdownMenuItem>
-            )}
-            {canDelete && (
-              <DropdownMenuItem onClick={onDelete} className="text-[#e53535] focus:text-[#e53535]">
-                <TrashIcon />
-                Устгах
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-      <div
-        id={editing ? `msg-edit-${msg.id}` : undefined}
-        className={cn(
-          "min-w-0 max-w-[85%] overflow-hidden rounded-2xl px-4 py-2.5 shadow-sm",
-          editing && "ring-2 ring-[var(--olive)] ring-offset-2 ring-offset-[var(--bg)]",
-          msg.mine ? "rounded-br-md bg-[var(--olive)] text-[#0d1e35]" : "rounded-bl-md bg-[var(--surface-2)]",
-        )}
-        style={!msg.mine ? { border: "1px solid var(--border-c)" } : undefined}
-      >
-        {msg.kind === "voice" && msg.voiceUrl ? (
-          <VoiceBubble url={msg.voiceUrl} durationMs={msg.voiceDurationMs} mine={msg.mine} />
-        ) : (
-          <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed [overflow-wrap:anywhere]">
-            {msg.body}
-          </p>
-        )}
-        <p className={cn("mt-1 text-[10px] opacity-60", msg.mine ? "text-right" : "text-left")}>
-          {editing ? "Засаж байна…" : formatTime(msg.createdAt)}
-        </p>
-      </div>
-    </div>
-  );
-}
+import { chatPath, persistChatPeer, loadStoredChatPeer, mergeMessages, prependMessages } from "./utils/chatHelpers";
+import { ConversationSidebar } from "./components/ConversationSidebar";
+import { ChatThreadHeader } from "./components/ChatThreadHeader";
+import { MessagesList } from "./components/MessagesList";
+import { ChatInputFooter } from "./components/ChatInputFooter";
 
 type MessagesAppProps = {
   initialConversations?: ConversationSummary[];
@@ -500,10 +321,7 @@ export function MessagesApp({
   const scrollToBottom = useCallback((instant = false) => {
     const el = messagesScrollRef.current;
     if (!el) return;
-    el.scrollTo({
-      top: el.scrollHeight,
-      behavior: instant ? "auto" : "smooth",
-    });
+    el.scrollTo({ top: el.scrollHeight, behavior: instant ? "auto" : "smooth" });
   }, []);
 
   useEffect(() => {
@@ -705,123 +523,19 @@ export function MessagesApp({
 
   return (
     <div className="flex h-full min-h-0" style={{ background: "var(--bg)" }}>
-      {/* Sidebar — conversation list */}
-      <aside
-        className={cn(
-          "flex min-h-0 w-full shrink-0 flex-col border-r md:w-[min(380px,38vw)]",
-          showMobileChat ? "hidden md:flex" : "flex",
-        )}
-        style={{ borderColor: "var(--border-c)", background: "var(--surface)" }}
-      >
-        <div className="px-4 pb-3 pt-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-[22px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>
-              Чат
-            </h1>
-            <div className="md:hidden">
-              <ProfileAvatarButton size={36} />
-            </div>
-          </div>
+      <ConversationSidebar
+        conversations={conversations}
+        activeId={activeId}
+        search={search}
+        searchResults={searchResults}
+        searching={searching}
+        loadingList={loadingList}
+        showMobileChat={showMobileChat}
+        onSearch={setSearch}
+        onSelectConversation={selectConversation}
+        onStartWithPeer={startWithPeer}
+      />
 
-          <div
-            className="flex items-center gap-2 rounded-2xl px-3 py-2.5"
-            style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
-          >
-            <MagnifyingGlassIcon className="h-5 w-5 shrink-0" style={{ color: "var(--text-3)" }} />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Нэр, утас, email..."
-              className="min-w-0 flex-1 bg-transparent text-[15px] outline-none"
-              style={{ color: "var(--text)" }}
-            />
-            {search && (
-              <button type="button" onClick={() => setSearch("")} aria-label="Цэвэрлэх">
-                <XMarkIcon className="h-4 w-4" style={{ color: "var(--text-3)" }} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {search.trim().length >= 2 && (
-          <div className="border-b px-2 pb-2" style={{ borderColor: "var(--border-c)" }}>
-            <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--text-3)" }}>
-              {searching ? "Хайж байна..." : "Хэрэглэгч"}
-            </p>
-            {searchResults.map((peer) => (
-              <button
-                key={peer.id}
-                type="button"
-                onClick={() => void startWithPeer(peer)}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[var(--surface-2)]"
-              >
-                <UserAvatar
-                  name={peer.name ?? peer.email}
-                  avatarUrl={peer.avatarUrl}
-                  size={40}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-semibold" style={{ color: "var(--text)" }}>
-                    {peer.name ?? "Хэрэглэгч"}
-                  </p>
-                  <p className="truncate text-[12px]" style={{ color: "var(--text-3)" }}>
-                    {peer.phone ?? peer.email}
-                  </p>
-                </div>
-                <UserPlusIcon className="h-5 w-5 shrink-0" style={{ color: "var(--olive)" }} />
-              </button>
-            ))}
-            {!searching && searchResults.length === 0 && (
-              <p className="px-3 py-2 text-[13px]" style={{ color: "var(--text-3)" }}>Олдсонгүй</p>
-            )}
-          </div>
-        )}
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
-          {loadingList ? (
-            <p className="p-4 text-center text-[13px]" style={{ color: "var(--text-3)" }}>Ачааллаж байна...</p>
-          ) : conversations.length === 0 ? (
-            <p className="p-6 text-center text-[14px] leading-relaxed" style={{ color: "var(--text-3)" }}>
-              Хайлтаар найз олоод чат эхлүүлнэ үү
-            </p>
-          ) : (
-            conversations.map((conv) => (
-              <button
-                key={conv.id}
-                type="button"
-                onClick={() => selectConversation(conv)}
-                className={cn(
-                  "mb-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all",
-                  activeId === conv.id ? "bg-[var(--surface-2)]" : "hover:bg-[var(--surface-2)]/70",
-                )}
-              >
-                <UserAvatar
-                  name={conv.peer.name ?? conv.peer.email}
-                  avatarUrl={conv.peer.avatarUrl}
-                  size={44}
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <p className="truncate text-[15px] font-semibold" style={{ color: "var(--text)" }}>
-                      {conv.peer.name ?? conv.peer.email}
-                    </p>
-                    {conv.lastAt && (
-                      <span className="shrink-0 text-[11px]" style={{ color: "var(--text-3)" }}>
-                        {formatTime(conv.lastAt)}
-                      </span>
-                    )}
-                  </div>
-                  <p className="truncate text-[13px]" style={{ color: "var(--text-3)" }}>
-                    {conv.lastPreview ?? "—"}
-                  </p>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
-      </aside>
-
-      {/* Chat thread */}
       <section
         className={cn(
           "flex min-h-0 min-w-0 flex-1 flex-col",
@@ -846,198 +560,46 @@ export function MessagesApp({
           </div>
         ) : (
           <>
-            <header
-              className="flex shrink-0 items-center gap-3 border-b px-3 py-3 md:px-5"
-              style={{ borderColor: "var(--border-c)", background: "var(--surface)" }}
-            >
-              <button
-                type="button"
-                className="md:hidden"
-                onClick={closeChat}
-                aria-label="Буцах"
-              >
-                <ChevronLeftIcon className="h-6 w-6" style={{ color: "var(--text)" }} />
-              </button>
-              <UserAvatar
-                name={activePeer.name ?? activePeer.email}
-                avatarUrl={activePeer.avatarUrl}
-                size={40}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[16px] font-bold" style={{ color: "var(--text)" }}>
-                  {activePeer.name ?? "Хэрэглэгч"}
-                </p>
-                <p className="truncate text-[12px]" style={{ color: "var(--text-3)" }}>
-                  {activePeer.phone ?? activePeer.email}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => void startCall()}
-                aria-label="Дуудлага"
-                className="flex h-11 w-11 items-center justify-center rounded-full transition-transform active:scale-95"
-                style={{ background: "var(--olive)", color: "#0d1e35" }}
-              >
-                <PhoneIcon className="h-5 w-5" />
-              </button>
-            </header>
-
-            <div
-              ref={messagesScrollRef}
+            <ChatThreadHeader
+              activePeer={activePeer}
+              onClose={closeChat}
+              onCall={() => void startCall()}
+            />
+            <MessagesList
+              messages={messages}
+              callHiddenIds={callHiddenIds}
+              callLogMap={callLogMap}
+              activePeer={activePeer}
+              editingId={editingId}
+              loadingOlder={loadingOlder}
+              scrollRef={messagesScrollRef}
               onScroll={handleMessagesScroll}
-              className={cn(
-                "flex min-h-0 flex-1 flex-col overflow-y-auto",
-                editingId && "pb-28",
-              )}
-            >
-              {messages.length === 0 ? (
-                <ChatEmptyState />
-              ) : (
-                <div className="space-y-3 px-3 py-4 md:px-6">
-                  {loadingOlder && (
-                    <p
-                      className="py-2 text-center text-[12px]"
-                      style={{ color: "var(--text-3)" }}
-                    >
-                      Хуучин мессеж уншиж байна…
-                    </p>
-                  )}
-                  {messages.map((m) => {
-                    if (callHiddenIds.has(m.id)) return null;
-                    const log = callLogMap.get(m.id);
-                    if (log && activePeer) {
-                      return (
-                        <CallLogCard
-                          key={m.id}
-                          entry={log}
-                          peer={activePeer}
-                          onCallAgain={() => void startCall()}
-                          onDelete={() => void handleDeleteCallLog(log)}
-                        />
-                      );
-                    }
-                    return (
-                      <MessageBubble
-                        key={m.id}
-                        msg={m}
-                        editing={editingId === m.id}
-                        onStartEdit={() => {
-                          setEditingId(m.id);
-                          setEditText(m.body ?? "");
-                          setEditError(null);
-                        }}
-                        onDelete={() => void handleDeleteMessage(m)}
-                      />
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <footer
-              className="relative z-20 shrink-0 border-t px-3 py-3 pb-[max(env(safe-area-inset-bottom),12px)] md:px-5"
-              style={{ borderColor: "var(--border-c)", background: "var(--surface)" }}
-            >
-              {editingId ? (
-                <>
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <p className="text-[13px] font-bold" style={{ color: "var(--text)" }}>
-                      Мессеж засах
-                    </p>
-                    <button
-                      type="button"
-                      onClick={cancelEdit}
-                      aria-label="Болих"
-                      className="flex h-8 w-8 items-center justify-center rounded-full"
-                      style={{ color: "var(--text-3)" }}
-                    >
-                      <XMarkIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                  <div className="flex items-end gap-2">
-                    <textarea
-                      ref={editInputRef}
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          void handleSaveEdit();
-                        }
-                        if (e.key === "Escape") cancelEdit();
-                      }}
-                      rows={2}
-                      placeholder="Мессеж..."
-                      className="max-h-32 min-h-[52px] flex-1 resize-none rounded-2xl px-4 py-3 text-[15px] outline-none"
-                      style={{
-                        background: "var(--surface-2)",
-                        border: "1px solid var(--border-c)",
-                        color: "var(--text)",
-                      }}
-                    />
-                    <button
-                      type="button"
-                      disabled={!editText.trim() || savingEdit}
-                      onClick={() => void handleSaveEdit()}
-                      className="flex h-11 shrink-0 items-center justify-center rounded-2xl px-4 text-[14px] font-bold disabled:opacity-40"
-                      style={{ background: "var(--olive)", color: "#0d1e35" }}
-                    >
-                      {savingEdit ? "…" : "Хадгалах"}
-                    </button>
-                  </div>
-                  {editError && (
-                    <p className="mt-2 text-center text-[12px] font-medium text-[#e53535]">{editError}</p>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div className="flex items-end gap-2">
-                    <button
-                      type="button"
-                      aria-label={recording ? "Зогсоох" : "Дуу бичих"}
-                      onPointerDown={() => void startRecording()}
-                      onPointerUp={stopRecording}
-                      onPointerLeave={stopRecording}
-                      className={cn(
-                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all",
-                        recording && "scale-110 ring-4 ring-red-400/40",
-                      )}
-                      style={{ background: recording ? "#e53535" : "var(--surface-2)", color: recording ? "#fff" : "var(--text)" }}
-                    >
-                      <MicrophoneIcon className="h-5 w-5" />
-                    </button>
-                    <textarea
-                      value={text}
-                      onChange={(e) => setText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          void handleSend();
-                        }
-                      }}
-                      rows={1}
-                      placeholder="Мессеж..."
-                      className="max-h-28 min-h-[44px] flex-1 resize-none rounded-2xl px-4 py-3 text-[15px] outline-none"
-                      style={{
-                        background: "var(--surface-2)",
-                        border: "1px solid var(--border-c)",
-                        color: "var(--text)",
-                      }}
-                    />
-                    <button
-                      type="button"
-                      disabled={!text.trim() || sending}
-                      onClick={() => void handleSend()}
-                      aria-label="Илгээх"
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full disabled:opacity-40"
-                      style={{ background: "var(--olive)", color: "#0d1e35" }}
-                    >
-                      <PaperAirplaneIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                </>
-              )}
-            </footer>
+              onStartEdit={(id, body) => {
+                setEditingId(id);
+                setEditText(body);
+                setEditError(null);
+              }}
+              onDeleteMessage={(msg) => void handleDeleteMessage(msg)}
+              onDeleteCallLog={(entry) => void handleDeleteCallLog(entry)}
+              onCallAgain={() => void startCall()}
+            />
+            <ChatInputFooter
+              text={text}
+              sending={sending}
+              recording={recording}
+              editingId={editingId}
+              editText={editText}
+              savingEdit={savingEdit}
+              editError={editError}
+              editInputRef={editInputRef}
+              onTextChange={setText}
+              onSend={() => void handleSend()}
+              onStartRecording={() => void startRecording()}
+              onStopRecording={stopRecording}
+              onCancelEdit={cancelEdit}
+              onEditTextChange={setEditText}
+              onSaveEdit={() => void handleSaveEdit()}
+            />
           </>
         )}
       </section>
