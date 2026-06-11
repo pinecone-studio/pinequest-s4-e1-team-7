@@ -51,7 +51,7 @@ export async function getSigns(
 ): Promise<SignEntry[]> {
   try {
     const res = await fetch(`${BASE}/api/signs?category=${category}`, {
-      cache: "no-store",
+      next: { revalidate: 60, tags: ["signs"] },
     });
     if (!res.ok) return [];
     return res.json();
