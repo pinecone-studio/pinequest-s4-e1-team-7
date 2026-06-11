@@ -7,6 +7,7 @@ import { FeatureCarousel } from "./FeatureCarousel";
 import { useState, useEffect } from "react";
 import type { CarouselFeature } from "./FeatureCarousel";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/hooks/useTheme";
 
 const FEATURES: CarouselFeature[] = [
   {
@@ -52,29 +53,15 @@ const FEATURES: CarouselFeature[] = [
 ];
 
 export function Overview() {
-  const [isDark, setIsDark] = useState(false);
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { user } = useAuth();
   const displayName = user?.name ?? user?.email ?? "Хэрэглэгч";
 
-  useEffect(() => {
-    setMounted(true);
+  useEffect(() => { setMounted(true); }, []);
 
-    const checkDark = () => {
-      const theme = document.documentElement.getAttribute("data-theme");
-      setIsDark(theme === "dark");
-    };
-
-    checkDark();
-
-    const observer = new MutationObserver(checkDark);
-    observer.observe(document.documentElement, { attributes: true });
-
-    return () => observer.disconnect();
-  }, []);
-
+  const isDark = theme === "dark";
   const logoSrc = isDark ? "/images/logoShar.png" : "/images/logoBlue.png";
-  const bridgeColor = isDark ? "#E5EEFF" : "#0D1E35";
 
   return (
     <div
@@ -98,7 +85,7 @@ export function Overview() {
               <div className="flex gap-1 items-baseline">
                 <span
                   style={{
-                    color: "#ffbf00ff",
+                    color: "var(--olive)",
                     fontWeight: 900,
                     fontSize: "20px",
                   }}
@@ -107,7 +94,7 @@ export function Overview() {
                 </span>
                 <span
                   style={{
-                    color: bridgeColor,
+                    color: "var(--text)",
                     fontWeight: 900,
                     fontSize: "20px",
                   }}
