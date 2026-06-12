@@ -3,28 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useIncomingCall } from "@/context/IncomingCallContext";
-import { CallLogCard } from "@/components/messages/CallLogCard";
 import { buildCallLogs, callLogByAnchor, callLogMessageIds, type CallLogEntry } from "@/lib/call-log";
-import {
-  MagnifyingGlassIcon,
-  PaperAirplaneIcon,
-  PhoneIcon,
-  MicrophoneIcon,
-  XMarkIcon,
-  UserPlusIcon,
-  EllipsisVerticalIcon,
-  PencilIcon,
-  TrashIcon,
-} from "@heroicons/react/24/solid";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ProfileAvatarButton } from "@/components/dashboard/shared/ProfileAvatarButton";
-import { UserAvatar } from "@/components/dashboard/shared/UserAvatar";
 import {
   type ChatMessage,
   type ChatPeer,
@@ -500,10 +479,7 @@ export function MessagesApp({
   const scrollToBottom = useCallback((instant = false) => {
     const el = messagesScrollRef.current;
     if (!el) return;
-    el.scrollTo({
-      top: el.scrollHeight,
-      behavior: instant ? "auto" : "smooth",
-    });
+    el.scrollTo({ top: el.scrollHeight, behavior: instant ? "auto" : "smooth" });
   }, []);
 
   useEffect(() => {
@@ -705,123 +681,19 @@ export function MessagesApp({
 
   return (
     <div className="flex h-full min-h-0" style={{ background: "var(--bg)" }}>
-      {/* Sidebar — conversation list */}
-      <aside
-        className={cn(
-          "flex min-h-0 w-full shrink-0 flex-col border-r md:w-[min(380px,38vw)]",
-          showMobileChat ? "hidden md:flex" : "flex",
-        )}
-        style={{ borderColor: "var(--border-c)", background: "var(--surface)" }}
-      >
-        <div className="px-4 pb-3 pt-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-[22px] font-extrabold tracking-tight" style={{ color: "var(--text)" }}>
-              Чат
-            </h1>
-            <div className="md:hidden">
-              <ProfileAvatarButton size={36} />
-            </div>
-          </div>
+      <ConversationSidebar
+        conversations={conversations}
+        activeId={activeId}
+        search={search}
+        searchResults={searchResults}
+        searching={searching}
+        loadingList={loadingList}
+        showMobileChat={showMobileChat}
+        onSearch={setSearch}
+        onSelectConversation={selectConversation}
+        onStartWithPeer={startWithPeer}
+      />
 
-          <div
-            className="flex items-center gap-2 rounded-2xl px-3 py-2.5"
-            style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
-          >
-            <MagnifyingGlassIcon className="h-5 w-5 shrink-0" style={{ color: "var(--text-3)" }} />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Нэр, утас, email..."
-              className="min-w-0 flex-1 bg-transparent text-[15px] outline-none"
-              style={{ color: "var(--text)" }}
-            />
-            {search && (
-              <button type="button" onClick={() => setSearch("")} aria-label="Цэвэрлэх">
-                <XMarkIcon className="h-4 w-4" style={{ color: "var(--text-3)" }} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {search.trim().length >= 2 && (
-          <div className="border-b px-2 pb-2" style={{ borderColor: "var(--border-c)" }}>
-            <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--text-3)" }}>
-              {searching ? "Хайж байна..." : "Хэрэглэгч"}
-            </p>
-            {searchResults.map((peer) => (
-              <button
-                key={peer.id}
-                type="button"
-                onClick={() => void startWithPeer(peer)}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[var(--surface-2)]"
-              >
-                <UserAvatar
-                  name={peer.name ?? peer.email}
-                  avatarUrl={peer.avatarUrl}
-                  size={40}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-semibold" style={{ color: "var(--text)" }}>
-                    {peer.name ?? "Хэрэглэгч"}
-                  </p>
-                  <p className="truncate text-[12px]" style={{ color: "var(--text-3)" }}>
-                    {peer.phone ?? peer.email}
-                  </p>
-                </div>
-                <UserPlusIcon className="h-5 w-5 shrink-0" style={{ color: "var(--olive)" }} />
-              </button>
-            ))}
-            {!searching && searchResults.length === 0 && (
-              <p className="px-3 py-2 text-[13px]" style={{ color: "var(--text-3)" }}>Олдсонгүй</p>
-            )}
-          </div>
-        )}
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
-          {loadingList ? (
-            <p className="p-4 text-center text-[13px]" style={{ color: "var(--text-3)" }}>Ачааллаж байна...</p>
-          ) : conversations.length === 0 ? (
-            <p className="p-6 text-center text-[14px] leading-relaxed" style={{ color: "var(--text-3)" }}>
-              Хайлтаар найз олоод чат эхлүүлнэ үү
-            </p>
-          ) : (
-            conversations.map((conv) => (
-              <button
-                key={conv.id}
-                type="button"
-                onClick={() => selectConversation(conv)}
-                className={cn(
-                  "mb-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all",
-                  activeId === conv.id ? "bg-[var(--surface-2)]" : "hover:bg-[var(--surface-2)]/70",
-                )}
-              >
-                <UserAvatar
-                  name={conv.peer.name ?? conv.peer.email}
-                  avatarUrl={conv.peer.avatarUrl}
-                  size={44}
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <p className="truncate text-[15px] font-semibold" style={{ color: "var(--text)" }}>
-                      {conv.peer.name ?? conv.peer.email}
-                    </p>
-                    {conv.lastAt && (
-                      <span className="shrink-0 text-[11px]" style={{ color: "var(--text-3)" }}>
-                        {formatTime(conv.lastAt)}
-                      </span>
-                    )}
-                  </div>
-                  <p className="truncate text-[13px]" style={{ color: "var(--text-3)" }}>
-                    {conv.lastPreview ?? "—"}
-                  </p>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
-      </aside>
-
-      {/* Chat thread */}
       <section
         className={cn(
           "flex min-h-0 min-w-0 flex-1 flex-col",
@@ -846,44 +718,19 @@ export function MessagesApp({
           </div>
         ) : (
           <>
-            <header
-              className="flex shrink-0 items-center gap-3 border-b px-3 py-3 md:px-5"
-              style={{ borderColor: "var(--border-c)", background: "var(--surface)" }}
-            >
-              <button
-                type="button"
-                className="md:hidden"
-                onClick={closeChat}
-                aria-label="Буцах"
-              >
-                <ChevronLeftIcon className="h-6 w-6" style={{ color: "var(--text)" }} />
-              </button>
-              <UserAvatar
-                name={activePeer.name ?? activePeer.email}
-                avatarUrl={activePeer.avatarUrl}
-                size={40}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[16px] font-bold" style={{ color: "var(--text)" }}>
-                  {activePeer.name ?? "Хэрэглэгч"}
-                </p>
-                <p className="truncate text-[12px]" style={{ color: "var(--text-3)" }}>
-                  {activePeer.phone ?? activePeer.email}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => void startCall()}
-                aria-label="Дуудлага"
-                className="flex h-11 w-11 items-center justify-center rounded-full transition-transform active:scale-95"
-                style={{ background: "var(--olive)", color: "#0d1e35" }}
-              >
-                <PhoneIcon className="h-5 w-5" />
-              </button>
-            </header>
-
-            <div
-              ref={messagesScrollRef}
+            <ChatThreadHeader
+              activePeer={activePeer}
+              onClose={closeChat}
+              onCall={() => void startCall()}
+            />
+            <MessagesList
+              messages={messages}
+              callHiddenIds={callHiddenIds}
+              callLogMap={callLogMap}
+              activePeer={activePeer}
+              editingId={editingId}
+              loadingOlder={loadingOlder}
+              scrollRef={messagesScrollRef}
               onScroll={handleMessagesScroll}
               className={cn(
                 "flex min-h-0 flex-1 flex-col overflow-y-auto",
