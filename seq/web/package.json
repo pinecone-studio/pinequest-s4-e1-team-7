@@ -13,7 +13,7 @@
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
-"@heroicons/react": "^2.2.0",
+    "@heroicons/react": "^2.2.0",
     "@mediapipe/tasks-vision": "^0.10.18",
     "@next/bundle-analyzer": "^16.2.9",
     "@opennextjs/cloudflare": "^1.19.11",
