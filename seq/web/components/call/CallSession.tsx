@@ -239,32 +239,18 @@ export function CallSession({ roomId }: { roomId: string }) {
           ? "error"
           : "idle";
 
-  const previewFit = isDesktop ? "cover" : "contain";
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-black">
-      <CallWaiting status={status} message={message} />
+    <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden md:bg-black" style={{ background: "var(--bg)" }}>
 
-      <CallTopBar
-        statusLabel={hostNotice ?? STATUS_LABEL[status] ?? "…"}
-        statusDot={statusDot}
-        timer={connected ? fmtDur(elapsed) : undefined}
-        onBack={() => void leaveSession(true)}
-      />
-
-      {(modelError || modelLoading) && connected && (
-        <p className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+3.5rem)] z-30 text-center text-xs text-white/50">
-          {modelError ?? "Ачааллаж байна…"}
-        </p>
-      )}
-
-      <div className="relative z-0 aspect-[4/3] w-full max-h-[min(42dvh,72vw)] min-h-[200px] shrink-0 bg-black md:absolute md:inset-0 md:aspect-auto md:max-h-none">
+      {/* ── Camera ── fixed height on mobile, fullscreen on desktop ── */}
+      <div className="relative shrink-0 bg-black [height:48dvh] [min-height:260px] md:absolute md:inset-0 md:z-0 md:[height:unset] md:[min-height:unset]">
         <CameraView
           fullscreen
           showPreview
           mirrorPreview
           mirrorDetect
-          previewFit={previewFit}
+          previewFit={isDesktop ? "cover" : "contain"}
           onLandmarks={connected ? handleLandmarks : undefined}
           onStreamReady={onStreamReady}
           inferenceActive={connected && modelReady}
@@ -275,23 +261,22 @@ export function CallSession({ roomId }: { roomId: string }) {
           </div>
         )}
 
+        {/* Remote video PiP */}
         <div
-          className={`absolute left-3 top-3 z-20 overflow-hidden rounded-2xl border border-white/20 bg-black shadow-lg transition-opacity max-md:h-[140px] max-md:w-[105px] md:left-4 md:top-[calc(env(safe-area-inset-top)+3.5rem)] md:h-[240px] md:w-[180px] ${
+          className={`absolute left-3 top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 overflow-hidden rounded-2xl border border-white/20 bg-black shadow-lg transition-opacity h-[100px] w-[75px] md:h-[240px] md:w-[180px] md:left-4 ${
             connected && hasRemoteStream ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
         >
           <video ref={remoteVideoRef} playsInline className="h-full w-full object-cover" />
         </div>
 
+        {/* Mobile subtitles inside camera area */}
         <div className="md:hidden">
-          <CallSubtitles
-            layout="mobile"
-            speaker={active?.speaker ?? null}
-            text={active?.text ?? ""}
-          />
+          <CallSubtitles layout="mobile" speaker={active?.speaker ?? null} text={active?.text ?? ""} />
         </div>
       </div>
 
+      {/* ── Mobile: chat history ── */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:hidden">
         <CallCaptionHistory
           entries={history}
@@ -301,6 +286,23 @@ export function CallSession({ roomId }: { roomId: string }) {
         />
       </div>
 
+      {/* ── Shared overlays (work on both layouts) ── */}
+      <CallWaiting status={status} message={message} />
+
+      <CallTopBar
+        statusLabel={hostNotice ?? STATUS_LABEL[status] ?? "…"}
+        statusDot={statusDot}
+        timer={connected ? fmtDur(elapsed) : undefined}
+        onBack={() => void leaveSession(true)}
+      />
+
+      {(modelError || modelLoading) && connected && (
+        <p className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+3.5rem)] z-30 text-center text-xs" style={{ color: "var(--text-3)" }}>
+          {modelError ?? "Ачааллаж байна…"}
+        </p>
+      )}
+
+      {/* ── Desktop: caption sidebar + subtitles ── */}
       <CallCaptionHistory
         entries={history}
         variant="desktop"
@@ -314,7 +316,8 @@ export function CallSession({ roomId }: { roomId: string }) {
         chatOpen={chatOpen}
       />
 
-      <div className="z-40 shrink-0 px-3 pb-[max(env(safe-area-inset-bottom),12px)] pt-2 md:absolute md:inset-x-0 md:bottom-0 md:px-6 md:pt-4">
+      {/* ── Controls ── */}
+      <div className="shrink-0 z-40 px-3 pb-[max(env(safe-area-inset-bottom),16px)] pt-3 [background:var(--surface)] [border-top:1px_solid_var(--border-c)] md:absolute md:inset-x-0 md:bottom-0 md:px-6 md:pt-4 md:[background:transparent] md:[border-top:none]">
         <CallControls
           camMuted={camMuted}
           voiceListening={listening}

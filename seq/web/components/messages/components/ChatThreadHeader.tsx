@@ -14,16 +14,17 @@ type Props = {
 export function ChatThreadHeader({ activePeer, onClose, onCall }: Props) {
   return (
     <header
-      className="flex shrink-0 items-center gap-3 border-b px-3 py-3 md:pr-16"
-      style={{ borderColor: "var(--border-c)", background: "var(--surface)" }}
+      className="flex shrink-0 items-center gap-3 border-b px-4 py-3"
+      style={{ borderColor: "var(--border-c)" }}
     >
       <button
         type="button"
-        className="md:hidden"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-opacity active:opacity-70 md:hidden"
         onClick={onClose}
         aria-label="Буцах"
+        style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
       >
-        <ChevronLeftIcon className="h-6 w-6" style={{ color: "var(--text)" }} />
+        <ChevronLeftIcon className="h-5 w-5" style={{ color: "var(--text)" }} />
       </button>
       <UserAvatar
         name={activePeer.name ?? activePeer.email}

@@ -4,9 +4,8 @@ import {
   MagnifyingGlassIcon,
   UserPlusIcon,
   XMarkIcon,
-} from "@heroicons/react/24/solid";
+} from "@heroicons/react/24/outline";
 import { UserAvatar } from "@/components/dashboard/shared/UserAvatar";
-import { ProfileAvatarButton } from "@/components/dashboard/shared/ProfileAvatarButton";
 import { cn } from "@/lib/utils";
 import { formatTime } from "../utils/chatHelpers";
 import type { ChatPeer, ConversationSummary } from "@/lib/chat-api";
@@ -39,23 +38,17 @@ export function ConversationSidebar({
   return (
     <aside
       className={cn(
-        "flex min-h-0 w-full shrink-0 flex-col border-r md:w-[min(380px,38vw)]",
+        "flex min-h-0 w-full flex-1 flex-col",
         showMobileChat ? "hidden md:flex" : "flex",
       )}
-      style={{ borderColor: "var(--border-c)", background: "var(--surface)" }}
     >
-      <div className="px-4 pb-3 pt-5 md:pl-6 lg:pl-10 xl:pl-16">
-        <div className="mb-4 flex items-center justify-between">
-          <h1
-            className="text-[22px] font-extrabold tracking-tight"
-            style={{ color: "var(--text)" }}
-          >
-            Чат
-          </h1>
-          <div className="md:hidden">
-            <ProfileAvatarButton size={36} />
-          </div>
-        </div>
+      <div className="px-4 pb-3 pt-4 md:pt-5">
+        <h1
+          className="mb-4 text-[22px] font-extrabold tracking-tight hidden md:block"
+          style={{ color: "var(--text)" }}
+        >
+          Чат
+        </h1>
 
         <div
           className="flex items-center gap-2 rounded-2xl px-3 py-2.5"
@@ -92,7 +85,7 @@ export function ConversationSidebar({
 
       {search.trim().length >= 2 && (
         <div
-          className="border-b px-4 pb-2 md:pl-6 lg:pl-10 xl:pl-16"
+          className="border-b px-4 pb-2"
           style={{ borderColor: "var(--border-c)" }}
         >
           <p
@@ -144,7 +137,7 @@ export function ConversationSidebar({
         </div>
       )}
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-4 md:pl-4 lg:pl-8 xl:pl-14">
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
         {loadingList ? (
           <p
             className="p-4 text-center text-[13px]"
@@ -165,12 +158,12 @@ export function ConversationSidebar({
               key={conv.id}
               type="button"
               onClick={() => onSelectConversation(conv)}
-              className={cn(
-                "mb-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all",
+              className="mb-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all"
+              style={
                 activeId === conv.id
-                  ? "bg-[var(--surface-2)]"
-                  : "hover:bg-[var(--surface-2)]/70",
-              )}
+                  ? { background: "rgba(245,197,24,0.18)", border: "1px solid rgba(245,197,24,0.3)" }
+                  : { border: "1px solid transparent" }
+              }
             >
               <UserAvatar
                 name={conv.peer.name ?? conv.peer.email}

@@ -17,7 +17,7 @@ function formatTime(iso: string) {
   return d.toLocaleTimeString("mn-MN", { hour: "2-digit", minute: "2-digit" });
 }
 
-function statusLabel(entry: CallLogEntry, peerName: string) {
+function statusLabel(entry: CallLogEntry) {
   switch (entry.status) {
     case "completed":
       return formatCallDurationShort(entry.durationMs) ?? "0 сек";
@@ -50,7 +50,7 @@ export function CallLogCard({
 }) {
   const { joinCall } = useIncomingCall();
   const peerName = peer.name ?? peer.email ?? "Хэрэглэгч";
-  const subtitle = statusLabel(entry, peerName);
+  const subtitle = statusLabel(entry);
   const isBad = entry.status === "missed" || entry.status === "declined";
   const Icon = entry.outgoing ? PhoneArrowUpRightIcon : PhoneArrowDownLeftIcon;
 
@@ -76,7 +76,7 @@ export function CallLogCard({
         className="w-[min(100%,228px)] overflow-hidden rounded-xl"
         style={{
           background: "var(--surface-2)",
-          border: `1px solid ${isBad ? "rgba(229,53,53,0.35)" : "var(--border-c)"}`,
+          border: `1px solid ${isBad ? "hsl(var(--destructive)/0.25)" : "var(--border-c)"}`,
         }}
       >
         <div className="flex gap-2 px-2.5 py-2">
@@ -128,7 +128,7 @@ export function CallLogCard({
           <button
             type="button"
             onClick={handleJoin}
-            className="w-full border-t py-1.5 text-[12px] font-bold transition-colors hover:bg-[var(--surface)]"
+            className="w-full border-t py-1.5 text-[12px] font-bold transition-colors hover:bg-[var(--surface-2)]"
             style={{ borderColor: "var(--border-c)", color: "var(--olive)" }}
           >
             Нэгдэх
@@ -137,7 +137,7 @@ export function CallLogCard({
           <button
             type="button"
             onClick={onCallAgain}
-            className="w-full border-t py-1.5 text-[12px] font-semibold transition-colors hover:bg-[var(--surface)]"
+            className="w-full border-t py-1.5 text-[12px] font-semibold transition-colors hover:bg-[var(--surface-2)]"
             style={{ borderColor: "var(--border-c)", color: "var(--text)" }}
           >
             Дахин залгах

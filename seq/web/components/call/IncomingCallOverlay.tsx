@@ -61,7 +61,13 @@ export function IncomingCallOverlay({
             className="flex flex-col items-center gap-2"
             aria-label="Татгалзах"
           >
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition-transform active:scale-95">
+            <span
+              className="flex h-16 w-16 items-center justify-center rounded-full text-white transition-transform active:scale-95"
+              style={{
+                background: "hsl(var(--destructive))",
+                boxShadow: "0 4px 20px hsl(var(--destructive)/0.4)",
+              }}
+            >
               <PhoneXMarkIcon className="h-8 w-8" />
             </span>
             <span className="text-[13px] font-semibold text-white/70">Татгалзах</span>
