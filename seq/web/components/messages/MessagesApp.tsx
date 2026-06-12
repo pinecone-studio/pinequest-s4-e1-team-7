@@ -30,12 +30,19 @@ import {
 import { cn } from "@/lib/utils";
 import { useChatRealtime } from "@/context/ChatRealtimeContext";
 import { createAdaptivePoller, FALLBACK_POLL_MS } from "@/lib/poll-schedule";
-import { Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "@/context/AuthContext";
+import { fireChatNotification } from "@/lib/chat-notify";
+import { ChatBubbleLeftRightIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { ChatThreadHeader } from "./components/ChatThreadHeader";
 import { ConversationSidebar } from "./components/ConversationSidebar";
 import { MessagesList } from "./components/MessagesList";
 import { ChatInputFooter } from "./components/ChatInputFooter";
 import { PageHeader } from "@/components/ui/PageHeader";
+
+// Persists across remounts (e.g. navigating /call ↔ /call/[id]).
+// Maps convId → lastMessage.id the user has seen, so initial-load scan
+// doesn't re-mark already-read conversations as unread.
+const readUntilId = new Map<string, number>();
 
 function chatPath(conversationId: string) {
   return `/dashboard/call/${encodeURIComponent(conversationId)}`;
@@ -87,6 +94,7 @@ export function MessagesApp({
   const pathname = usePathname();
   const params = useParams();
   const routeConvId = params?.id ? decodeURIComponent(String(params.id)) : null;
+  const { user } = useAuth();
   const { markInCall, markAvailable } = useIncomingCall();
   const { connected: realtimeConnected, subscribe } = useChatRealtime();
   const hasServerConversations = initialConversations !== undefined;
@@ -128,12 +136,62 @@ export function MessagesApp({
       : 0,
   );
   const skippedInitialMsgLoadRef = useRef(hasServerMessages);
+  const [unreadIds, setUnreadIds] = useState<Set<string>>(new Set());
+  const prevConvsRef = useRef<ConversationSummary[]>([]);
 
   const { entries: callLogEntries, hiddenIds: callHiddenIds } = useMemo(
     () => buildCallLogs(messages),
     [messages],
   );
   const callLogMap = useMemo(() => callLogByAnchor(callLogEntries), [callLogEntries]);
+
+  // Detect new incoming messages and fire notifications + track unread.
+  // prevConvsRef must only advance after both user and conversations are ready —
+  // otherwise the initial-load unread scan never runs (user loads after conversations).
+  useEffect(() => {
+    if (!user?.id || !conversations.length) return;
+
+    const prev = prevConvsRef.current;
+    prevConvsRef.current = conversations;
+
+    if (!prev.length) {
+      // Initial load: mark conversations with unread messages, skipping already-seen ones
+      const ids = conversations
+        .filter((c) => {
+          if (!c.lastMessage || c.lastMessage.senderId === user.id) return false;
+          if (c.id === routeConvId) return false;
+          const seenId = readUntilId.get(c.id);
+          return seenId === undefined || seenId < c.lastMessage.id;
+        })
+        .map((c) => c.id);
+      if (ids.length) setUnreadIds(new Set(ids));
+      return;
+    }
+
+    // Subsequent polls: detect newly arrived messages and fire toast/bell
+    const newUnread: string[] = [];
+    for (const conv of conversations) {
+      const last = conv.lastMessage;
+      if (!last || last.senderId === user.id) continue;
+      const prevConv = prev.find((c) => c.id === conv.id);
+      if (prevConv?.lastMessage?.id === last.id) continue;
+      if (conv.id === routeConvId) continue;
+      const seenId = readUntilId.get(conv.id);
+      if (seenId !== undefined && seenId >= last.id) continue;
+      newUnread.push(conv.id);
+      fireChatNotification(last.id, conv.id, last.kind, pathname, (href) => router.push(href));
+    }
+    if (newUnread.length) setUnreadIds((s) => new Set([...s, ...newUnread]));
+  }, [conversations, user?.id, routeConvId, pathname, router]);
+
+  // Mark conversation as read when user navigates into it
+  useEffect(() => {
+    if (!routeConvId) return;
+    setUnreadIds((s) => { const n = new Set(s); n.delete(routeConvId); return n; });
+    // Record last-seen messageId so remounts don't re-mark this conv as unread
+    const conv = conversations.find((c) => c.id === routeConvId);
+    if (conv?.lastMessage) readUntilId.set(routeConvId, conv.lastMessage.id);
+  }, [routeConvId, conversations]);
 
   const openChat = useCallback((convId: string, peer: ChatPeer) => {
     persistChatPeer(convId, peer);
@@ -599,6 +657,7 @@ export function MessagesApp({
           searching={searching}
           loadingList={loadingList}
           showMobileChat={showMobileChat}
+          unreadIds={unreadIds}
           onSearch={setSearch}
           onSelectConversation={selectConversation}
           onStartWithPeer={startWithPeer}
@@ -618,10 +677,10 @@ export function MessagesApp({
         {!activeId || !activePeer ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
             <div
-              className="flex h-20 w-20 items-center justify-center rounded-full text-3xl"
+              className="flex h-20 w-20 items-center justify-center rounded-full"
               style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
             >
-              💬
+              <ChatBubbleLeftRightIcon className="h-9 w-9" style={{ color: "var(--text-3)" }} />
             </div>
             <p className="text-[17px] font-bold" style={{ color: "var(--text)" }}>
               Sign Bridge Чат

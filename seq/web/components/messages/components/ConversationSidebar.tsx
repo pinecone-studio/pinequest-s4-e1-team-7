@@ -18,6 +18,7 @@ type Props = {
   searching: boolean;
   loadingList: boolean;
   showMobileChat: boolean;
+  unreadIds: Set<string>;
   onSearch: (value: string) => void;
   onSelectConversation: (conv: ConversationSummary) => void;
   onStartWithPeer: (peer: ChatPeer) => Promise<void>;
@@ -31,6 +32,7 @@ export function ConversationSidebar({
   searching,
   loadingList,
   showMobileChat,
+  unreadIds,
   onSearch,
   onSelectConversation,
   onStartWithPeer,
@@ -42,7 +44,7 @@ export function ConversationSidebar({
         showMobileChat ? "hidden md:flex" : "flex",
       )}
     >
-      <div className="px-4 pb-3 pt-4 md:pt-5">
+      <div className="px-2 pb-3 pt-4 md:pt-5">
         <h1
           className="mb-4 text-[22px] font-extrabold tracking-tight hidden md:block"
           style={{ color: "var(--text)" }}
@@ -153,49 +155,61 @@ export function ConversationSidebar({
             Хайлтаар найз олоод чат эхлүүлнэ үү
           </p>
         ) : (
-          conversations.map((conv) => (
-            <button
-              key={conv.id}
-              type="button"
-              onClick={() => onSelectConversation(conv)}
-              className="mb-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all"
-              style={
-                activeId === conv.id
-                  ? { background: "rgba(245,197,24,0.18)", border: "1px solid rgba(245,197,24,0.3)" }
-                  : { border: "1px solid transparent" }
-              }
-            >
-              <UserAvatar
-                name={conv.peer.name ?? conv.peer.email}
-                avatarUrl={conv.peer.avatarUrl}
-                size={44}
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-2">
-                  <p
-                    className="truncate text-[15px] font-semibold"
-                    style={{ color: "var(--text)" }}
-                  >
-                    {conv.peer.name ?? conv.peer.email}
-                  </p>
-                  {conv.lastAt && (
-                    <span
-                      className="shrink-0 text-[11px]"
-                      style={{ color: "var(--text-3)" }}
+          conversations.map((conv) => {
+            const isUnread = unreadIds.has(conv.id);
+            const isActive = activeId === conv.id;
+            return (
+              <button
+                key={conv.id}
+                type="button"
+                onClick={() => onSelectConversation(conv)}
+                className="mb-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3.5 text-left transition-all"
+                style={
+                  isUnread
+                    ? { background: "rgba(245,197,24,0.13)", border: "1px solid rgba(245,197,24,0.3)" }
+                    : { background: "var(--surface-2)", border: "1px solid var(--border-c)" }
+                }
+              >
+                <UserAvatar
+                  name={conv.peer.name ?? conv.peer.email}
+                  avatarUrl={conv.peer.avatarUrl}
+                  size={44}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p
+                      className={cn("truncate text-[15px]", isUnread ? "font-bold" : "font-semibold")}
+                      style={{ color: "var(--text)" }}
                     >
-                      {formatTime(conv.lastAt)}
-                    </span>
-                  )}
+                      {conv.peer.name ?? conv.peer.email}
+                    </p>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      {conv.lastAt && (
+                        <span
+                          className="text-[11px]"
+                          style={{ color: isUnread ? "var(--olive)" : "var(--text-3)" }}
+                        >
+                          {formatTime(conv.lastAt)}
+                        </span>
+                      )}
+                      {isUnread && (
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{ background: "var(--olive)" }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <p
+                    className={cn("truncate text-[13px]", isUnread ? "font-semibold" : "")}
+                    style={{ color: isUnread ? "var(--text)" : "var(--text-3)" }}
+                  >
+                    {conv.lastPreview ?? "—"}
+                  </p>
                 </div>
-                <p
-                  className="truncate text-[13px]"
-                  style={{ color: "var(--text-3)" }}
-                >
-                  {conv.lastPreview ?? "—"}
-                </p>
-              </div>
-            </button>
-          ))
+              </button>
+            );
+          })
         )}
       </div>
     </aside>

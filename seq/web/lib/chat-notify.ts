@@ -61,5 +61,10 @@ export const fireChatNotification = (
     duration: 5000,
   });
 
+  // Broadcast to the notification bell
+  window.dispatchEvent(
+    new CustomEvent("sb-chat-notif", { detail: { messageId, peerName, body, href } }),
+  );
+
   void sendBrowserNotif(peerName, body, conversationId);
 };

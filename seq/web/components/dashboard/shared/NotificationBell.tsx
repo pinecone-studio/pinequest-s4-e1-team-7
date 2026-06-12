@@ -1,16 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BellIcon } from "@heroicons/react/24/outline";
-import { NotifPanel, NOTIF_COUNT } from "./NotifPanel";
+import { NotifPanel, type ChatNotif } from "./NotifPanel";
 
-export function NotificationBell() {
+export const NotificationBell = () => {
   const [open, setOpen] = useState(false);
-  const [seen, setSeen] = useState(false);
+  const [chatNotifs, setChatNotifs] = useState<ChatNotif[]>([]);
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    const onNotif = (e: Event) => {
+      const detail = (e as CustomEvent<ChatNotif>).detail;
+      setChatNotifs((prev) => [detail, ...prev].slice(0, 20));
+      setUnread((n) => n + 1);
+    };
+    window.addEventListener("sb-chat-notif", onNotif);
+    return () => window.removeEventListener("sb-chat-notif", onNotif);
+  }, []);
 
   const handleOpen = () => {
     setOpen(true);
-    setSeen(true);
+    setUnread(0);
   };
 
   return (
@@ -23,14 +34,17 @@ export function NotificationBell() {
         style={{ border: "1px solid var(--border-c)", background: "var(--surface)", color: "var(--text)" }}
       >
         <BellIcon className="h-[18px] w-[18px]" />
-        {!seen && NOTIF_COUNT > 0 && (
+        {unread > 0 && (
           <span
-            className="absolute right-1.5 top-1.5 flex h-[8px] w-[8px] items-center justify-center rounded-full"
-            style={{ background: "var(--olive)" }}
-          />
+            className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold"
+            style={{ background: "var(--olive)", color: "#0d1e35" }}
+          >
+            {unread > 9 ? "9+" : unread}
+          </span>
         )}
       </button>
-      {open && <NotifPanel onClose={() => setOpen(false)} />}
+      {open && <NotifPanel chatNotifs={chatNotifs} onClose={() => setOpen(false)} />}
+
     </div>
   );
-}
+};

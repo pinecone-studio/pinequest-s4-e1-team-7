@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { UserAvatar } from "../shared/UserAvatar";
 import { updateProfile, uploadAvatar } from "@/lib/auth-api";
 import { CameraIcon, MoonIcon, SunIcon, SpeakerWaveIcon, ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/outline";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const SPEEDS = [{ label: "Удаан", value: 0.7 }, { label: "Хэвийн", value: 1.0 }, { label: "Хурдан", value: 1.5 }] as const;
 const GENDERS = [{ label: "Эмэгтэй", value: "female" }, { label: "Эрэгтэй", value: "male" }] as const;
@@ -84,8 +85,9 @@ export function Settings() {
   const card = { background: "var(--surface)", border: "1px solid var(--border-c)" };
 
   return (
-    <div className="h-full overflow-y-auto" style={{ background: "var(--bg)" }}>
-    <div className="mx-auto max-w-lg px-4 md:px-6 pb-[max(calc(env(safe-area-inset-bottom)+1rem),1.5rem)] pt-5 lg:max-w-2xl lg:px-10 xl:px-16">
+    <div className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ background: "var(--bg)" }}>
+    <div className="mx-auto max-w-lg px-4 md:px-6 pb-[max(calc(env(safe-area-inset-bottom)+1rem),1.5rem)] lg:max-w-2xl lg:px-10 xl:px-16">
+      <PageHeader title="Тохиргоо" />
 
       <div className="mb-4 rounded-[22px] p-5" style={card}>
         <p className="mb-4 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
