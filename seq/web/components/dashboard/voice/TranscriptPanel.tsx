@@ -107,14 +107,14 @@ export function TranscriptPanel({
               className="flex items-center gap-2 rounded-full px-3 py-2"
               style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
             >
-              <ExclamationTriangleIcon className="h-4 w-4 shrink-0" style={{ color: "#e53535" }} />
+              <ExclamationTriangleIcon className="h-4 w-4 shrink-0" style={{ color: "hsl(var(--destructive))" }} />
               <span className="text-[12px] font-semibold" style={{ color: "var(--text-2)" }}>
                 Устгах уу?
               </span>
               <button
                 onClick={handleClear}
                 className="rounded-full px-3 py-1 text-[12px] font-bold transition-opacity active:opacity-70"
-                style={{ background: "#e53535", color: "#fff" }}
+                style={{ background: "hsl(var(--destructive))", color: "#fff" }}
               >
                 Тийм
               </button>

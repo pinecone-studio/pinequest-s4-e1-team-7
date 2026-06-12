@@ -83,8 +83,8 @@ export function CallLogCard({
           <div
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
             style={{
-              background: isBad ? "rgba(229,53,53,0.12)" : "rgba(245,197,24,0.15)",
-              color: isBad ? "#e53535" : "var(--olive)",
+              background: isBad ? "hsl(var(--destructive)/0.12)" : "rgba(245,197,24,0.15)",
+              color: isBad ? "hsl(var(--destructive))" : "var(--olive)",
             }}
           >
             <Icon className="h-4 w-4" />
@@ -116,7 +116,7 @@ export function CallLogCard({
               {callerLine(entry, peerName)}
             </p>
             <p
-              className={cn("text-[12px] font-medium leading-tight", isBad && "text-[#e53535]")}
+              className={cn("text-[12px] font-medium leading-tight", isBad && "text-[hsl(var(--destructive))]")}
               style={!isBad ? { color: "var(--text-3)" } : undefined}
             >
               {subtitle}

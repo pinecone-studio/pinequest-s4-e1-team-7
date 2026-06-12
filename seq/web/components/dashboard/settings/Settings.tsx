@@ -163,10 +163,10 @@ export function Settings() {
               {savingProfile ? "Хадгалж байна…" : "Хадгалах"}
             </button>
             {uploadError && (
-              <p className="text-[12px] font-medium text-[#e53535]">{uploadError}</p>
+              <p className="text-[12px] font-medium text-[hsl(var(--destructive))]">{uploadError}</p>
             )}
             {profileError && (
-              <p className="text-[12px] font-medium text-[#e53535]">{profileError}</p>
+              <p className="text-[12px] font-medium text-[hsl(var(--destructive))]">{profileError}</p>
             )}
           </div>
         </div>
@@ -214,8 +214,8 @@ export function Settings() {
       </div>
 
       <button onClick={() => { logout(); router.push("/"); }}
-        className="flex w-full items-center justify-center gap-2 rounded-[22px] px-5 py-4 text-[15px] font-semibold transition-all duration-150 hover:bg-[rgba(229,53,53,0.06)] active:scale-[0.98] active:opacity-80"
-        style={{ ...card, color: "#e53535" }}>
+        className="flex w-full items-center justify-center gap-2 rounded-[22px] px-5 py-4 text-[15px] font-semibold transition-all duration-150 hover:bg-[hsl(var(--destructive)/0.06)] active:scale-[0.98] active:opacity-80"
+        style={{ ...card, color: "hsl(var(--destructive))" }}>
         <ArrowRightEndOnRectangleIcon className="h-5 w-5" />
         Гарах
       </button>
