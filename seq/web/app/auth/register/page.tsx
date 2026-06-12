@@ -4,13 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Eye, EyeClosed, X } from "lucide-react";
+import { Eye, EyeClosed, X, ArrowRight, User, Mail, Phone, Lock } from "lucide-react";
 
 export default function RegisterPage() {
   const { register } = useAuth();
   const router = useRouter();
-  
-  // Бүх State-үүдийг дээр цуглуулж байршуулав
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -21,12 +20,10 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Нэгтгэсэн ганц submit функц
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Нууц үг хоорондоо таарч байгааг шалгах
     if (password !== confirmPassword) {
       setError("Нууц үг таарахгүй байна");
       return;
@@ -44,325 +41,283 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-dvh flex justify-around">
-      {/* LEFT SIDE - Product Showcase */}
-      <div 
-  className="hidden lg:flex lg:w-1/2 relative overflow-hidden p-12 flex-col justify-between h-screen"
-  style={{
-    background: "linear-gradient(135deg, var(--teal) 0%, var(--bg-2) 100%)"
-  }}
->
-  {/* Decorative elements remain the same */}
-  <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20 -translate-y-1/2 -translate-x-1/4" style={{ background: "var(--teal-2)" }} />
-  <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full blur-3xl opacity-10 translate-y-1/2 -translate-x-1/2" style={{ background: "var(--olive)" }} />
+    <div className="min-h-screen w-full flex bg-[var(--bg)] selection:bg-[var(--olive)] selection:text-slate-900">
+      
+      {/* ─── LEFT SIDE (BRAND PANEL) ────────────────────────────────────────── */}
+<div className="hidden lg:flex lg:w-5/12 xl:w-1/2 relative overflow-hidden p-16 flex-col justify-between bg-gradient-to-br from-[var(--teal)] via-[var(--teal-2)] to-[var(--bg)]">
+  {/* Dynamic Glow Meshes */}
+  <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full blur-[120px] opacity-30 bg-[var(--olive)] animate-pulse" />
+  <div className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full blur-[120px] opacity-20 bg-[var(--teal)]" />
 
-  {/* Header (Logo) */}
+  {/* Brand Header - Kept Left-Aligned */}
   <div className="relative z-10">
-    <Link href="/" className="lnav-logo flex items-center gap-2">
-      <img src="/images/logoShar.png" alt="Sign Bridge" className="h-13 w-13 object-contain" />
-      <div className="flex items-baseline gap-1">
-        <span style={{ color: "var(--olive)", fontWeight: 900, fontSize: "20px" }}>Sign</span>
-        <span style={{ color: "var(--text)", fontWeight: 900, fontSize: "20px" }}>Bridge</span>
+    <Link href="/" className="inline-flex items-center gap-3 group">
+      <img
+        src="/images/logoShar.png"
+        alt="Sign Bridge"
+        className="h-13 w-13 object-contain"
+      />
+      <div className="flex flex-col">
+        <div className="flex items-baseline gap-0.5">
+          <span className="text-[var(--olive)] font-black text-xl tracking-tight">Sign</span>
+          <span className="text-white font-black text-xl tracking-tight">Bridge</span>
+        </div>
+        <span className="text-white/50 text-[10px] tracking-widest uppercase font-semibold">Interpreter System</span>
       </div>
     </Link>
   </div>
 
-  {/* Centered Content Container */}
-  <div className="relative z-10 flex flex-col justify-center flex-grow py-12">
-    <h1 className="text-white text-5xl font-bold leading-tight tracking-tight mb-6 font-display">
-      Дохионы хэлмэрч таны халаасанд
+  {/* Value Prop Content - Horizontally and Vertically Centered */}
+  <div className="relative z-10 max-w-lg w-full mx-auto my-auto py-12">
+    <h1 className="text-white text-4xl xl:text-5xl font-black leading-[1.15] tracking-tight mb-6 font-display drop-shadow-sm">
+      Дохионы хэлмэрч <br />
+      <span className="text-[var(--olive)]">таны халаасанд</span>
     </h1>
-    <p className="text-white/80 text-lg leading-relaxed mb-8">
-      Бүртгүүлэхэд дохио, дуу хоолой, видео дуудлагын бүх хэрэгслийг нэг дороос ашигла.
+    <p className="text-white/75 text-base xl:text-lg leading-relaxed mb-10 font-medium">
+      Бүртгүүлээд дохионы хэлний шууд хөрвүүлэгч, видео дуудлага болон ухаалаг чатын цогц шийдлийг ашиглаж эхэлнэ үү.
     </p>
 
-    <div className="space-y-4 flex flex-col gap-3">
-      <Feature title="Монгол дохионы хэлийг хөрвүүлж яриа болгоно." description="Дохио хэл - Яриа" index={1} />
-      <Feature title="Яриаг бичвэр болгож, дохионы хэлтэн уншина." description="Яриа - Бичвэр" index={2} />
-      <Feature title="Видео дуудлага дээр дохионы хэлийг шууд хөрвүүлэн уншина." description="Видео дуудлага" index={3} />
+    {/* Feature Bento Stack */}
+    <div className="space-y-3.5">
+      <Feature
+        title="Дохио - Яриа"
+        description="Монгол дохионы хэлийг хөрвүүлж яриа болгоно."
+        index={1}
+      />
+      <Feature
+        title="Яриа - Бичвэр"
+        description="Яриаг бичвэр болгож, дохионы хэлтэн уншина."
+        index={2}
+      />
+      <Feature
+        title="Видео дуудлага"
+        description="Видео дуудлага дээр дохионы хэлийг шууд хөрвүүлэн уншина."
+        index={3}
+      />
     </div>
   </div>
 
-  {/* Footer */}
-  <div className="relative z-10 text-white/60 text-sm">
-    <p>Технологи, Шийдэл, Харилцаа</p>
+  {/* Brand Footer - Kept Left-Aligned */}
+  <div className="relative z-10 flex items-center gap-6 text-white/40 text-xs font-semibold tracking-wider uppercase">
+    <span>Технологи</span>
+    <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+    <span>Шийдэл</span>
+    <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+    <span>Харилцаа</span>
   </div>
 </div>
 
-      {/* RIGHT SIDE - Registration Form */}
-      <div 
-        className="w-full lg:w-1/2 flex flex-col relative"
-        style={{ background: "var(--bg)" }}
-      >
-        {/* Top bar with tabs */}
-        <div 
-          className="flex items-center justify-between px-8 pt-6  border-b"
-          style={{ borderColor: "var(--border-c)" }}
+      {/* ─── RIGHT SIDE (FORM PANEL) ───────────────────────────────────────── */}
+      <div className="w-full lg:w-7/12 xl:w-1/2 flex flex-col bg-[var(--surface)] border-l border-[var(--border-c)]/30 shadow-2xl relative z-10">
+        
+        {/* Navigation Header */}
+         <div
+
+          className="flex items-center justify-between px-8 pt-12 border-b pb-4"
+
+          style={{ borderColor: "rgba(255,255,255,0.08)" }}
+
         >
+
           <div className="flex gap-2">
-            <button 
+
+            <button
               className="px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90"
-              style={{ 
+              style={{
                 background: "var(--olive)",
-                color: "var(--text)"
+                color: "var(--text)",
               }}
             >
-              Бүртгүүлэх
+             Бүртгүүлэх
             </button>
-            <Link 
+            <Link
               href="/auth/login"
               className="px-6 py-2 font-medium text-sm transition-colors duration-300"
-              style={{ color: "var(--text-2)" }}
+              style={{ color: "var(--text)" }}
             >
               Нэвтрэх
             </Link>
           </div>
-          <button 
-            className="p-2 rounded-full transition-colors duration-300"
-            style={{ color: "var(--text-3)" }}
+          <Link
+            className="p-2 rounded-full transition-colors duration-300 hover:bg-white/10"
+            style={{ color: "rgba(255,255,255,0.4)" }}
+            href="/"
           >
-            <Link 
-            className="p-2 rounded-full transition-colors duration-300"
-            style={{ color: "var(--text-3)" }} href={"/"}          >
-            <X/>
+            <X />
           </Link>
-          </button>
         </div>
 
-        {/* Form container */}
-        <div className="flex-1 flex items-center justify-center px-8 py-12">
-          <div className="w-full max-w-md">
-            {/* Heading */}
-            <div className="mb-4">
-              <h2 
-                className="text-3xl font-bold mb-2 tracking-tight font-display"
-                style={{ color: "var(--text)" }}
-              >
+        {/* Content Body Layout */}
+        <div className="flex-1 flex items-center justify-center px-6 sm:px-12 py-8 overflow-y-auto">
+          <div className="w-full max-w-md space-y-8">
+            
+            {/* Title Block */}
+            <div>
+              <h2 className="text-3xl font-black tracking-tight text-[var(--text)] font-display">
                 Бүртгэл үүсгэх
               </h2>
-              <p 
-                className="text-sm leading-relaxed"
-                style={{ color: "var(--text-3)" }}
-              >
-                Нэр, email, утас - чат болон дуудлагад ашиглагдана
+              <p className="text-sm text-[var(--text-3)] mt-2 font-medium">
+                Чат болон дуудлагад ашиглагдах мэдээллээ оруулна уу.
               </p>
             </div>
 
-            {/* Form */}
-            <form onSubmit={submit} className="space-y-5">
-              {/* Name Field */}
-              <div className="group">
-                <label 
-                  htmlFor="name" 
-                  className="block font-semibold text-sm mb-2.5"
-                  style={{ color: "var(--text)" }}
-                >
+            {/* Registration Form */}
+            <form onSubmit={submit} className="space-y-4">
+              
+              {/* Name Input */}
+              <div className="">
+                <label htmlFor="name" className="block text-xs font-bold uppercase tracking-wider text-[var(--text-2)]">
                   Нэр
                 </label>
-                <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Таны нэр"
-                  className="w-full px-4 py-3.5 rounded-2xl text-sm font-medium outline-none transition-all duration-300"
-                  style={{
-                    background: "var(--surface-2)",
-                    border: "1px solid var(--border-c)",
-                    color: "var(--text)"
-                  }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = "var(--olive)"}
-                  onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-c)"}
-                  required
-                />
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-[var(--text-3)] group-focus-within:text-[var(--olive)] transition-colors" />
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Бат-Эрдэнэ"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium bg-[var(--surface-2)] border border-[var(--border-c)] text-[var(--text)] placeholder:text-[var(--text-3)]/60 focus:border-[var(--olive)] focus:ring-2 focus:ring-[var(--olive)]/10 outline-none transition-all"
+                    required
+                  />
+                </div>
               </div>
 
-              {/* Email Field */}
-              <div className="group">
-                <label 
-                  htmlFor="email" 
-                  className="block font-semibold text-sm mb-2.5"
-                  style={{ color: "var(--text)" }}
-                >
-                  И-мэйл
+              {/* Email Input */}
+              <div className="space-y-2">
+                <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-[var(--text-2)]">
+                  И-мэйл хаяг
                 </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@email.com"
-                  className="w-full px-4 py-3.5 rounded-2xl text-sm font-medium outline-none transition-all duration-300"
-                  style={{
-                    background: "var(--surface-2)",
-                    border: "1px solid var(--border-c)",
-                    color: "var(--text)"
-                  }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = "var(--olive)"}
-                  onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-c)"}
-                  required
-                />
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-[var(--text-3)] group-focus-within:text-[var(--olive)] transition-colors" />
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="example@domain.com"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium bg-[var(--surface-2)] border border-[var(--border-c)] text-[var(--text)] placeholder:text-[var(--text-3)]/60 focus:border-[var(--olive)] focus:ring-2 focus:ring-[var(--olive)]/10 outline-none transition-all"
+                    required
+                  />
+                </div>
               </div>
 
-              {/* Phone Field */}
-              <div className="group">
-                <label 
-                  htmlFor="phone" 
-                  className="block font-semibold text-sm mb-2.5"
-                  style={{ color: "var(--text)" }}
-                >
+              {/* Phone Input */}
+              <div className="space-y-2">
+                <label htmlFor="phone" className="block text-xs font-bold uppercase tracking-wider text-[var(--text-2)]">
                   Утасны дугаар
                 </label>
-                <input
-                  id="phone"
-                  inputMode="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="99112233"
-                  className="w-full px-4 py-3.5 rounded-2xl text-sm font-medium outline-none transition-all duration-300"
-                  style={{
-                    background: "var(--surface-2)",
-                    border: "1px solid var(--border-c)",
-                    color: "var(--text)"
-                  }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = "var(--olive)"}
-                  onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-c)"}
-                  required
-                />
+                <div className="relative group">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-[var(--text-3)] group-focus-within:text-[var(--olive)] transition-colors" />
+                  <input
+                    id="phone"
+                    type="text"
+                    inputMode="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="99112233"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium bg-[var(--surface-2)] border border-[var(--border-c)] text-[var(--text)] placeholder:text-[var(--text-3)]/60 focus:border-[var(--olive)] focus:ring-2 focus:ring-[var(--olive)]/10 outline-none transition-all"
+                    required
+                  />
+                </div>
               </div>
 
-              {/* Password Field */}
-              <div className="group">
-                <label 
-                  htmlFor="password" 
-                  className="block font-semibold text-sm mb-2.5"
-                  style={{ color: "var(--text)" }}
-                >
+              {/* Password Input */}
+              <div className="space-y-2">
+                <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-[var(--text-2)]">
                   Нууц үг
                 </label>
-                <div className="relative">
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-[var(--text-3)] group-focus-within:text-[var(--olive)] transition-colors" />
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full px-4 py-3.5 rounded-2xl text-sm font-medium outline-none transition-all duration-300 pr-12"
-                    style={{
-                      background: "var(--surface-2)",
-                      border: "1px solid var(--border-c)",
-                      color: "var(--text)"
-                    }}
-                    onFocus={(e) => e.currentTarget.style.borderColor = "var(--olive)"}
-                    onBlur={(e) => e.currentTarget.style.borderColor = "var(--border-c)"}
+                    className="w-full pl-11 pr-12 py-3.5 rounded-xl text-sm font-medium bg-[var(--surface-2)] border border-[var(--border-c)] text-[var(--text)] placeholder:text-[var(--text-3)]/60 focus:border-[var(--olive)] focus:ring-2 focus:ring-[var(--olive)]/10 outline-none transition-all"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all duration-300 hover:bg-white/10"
-                    style={{ color: "var(--text-2)" }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--surface)] transition-all"
                   >
-                    {showPassword ? <Eye className="size-5"/> : <EyeClosed className="size-5"/>}
+                    {showPassword ? <Eye className="size-4" /> : <EyeClosed className="size-4" />}
                   </button>
                 </div>
               </div>
 
-              {/* Confirm Password Field */}
-              <div className="group">
-                <label 
-                  htmlFor="confirmPassword" 
-                  className="block font-semibold text-sm mb-2.5"
-                  style={{ color: "var(--text)" }}
-                >
+              {/* Confirm Password Input */}
+              <div className="space-y-2">
+                <label htmlFor="confirmPassword" className="block text-xs font-bold uppercase tracking-wider text-[var(--text-2)]">
                   Нууц үг баталгаажуулах
                 </label>
-                <div className="relative">
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-[var(--text-3)] group-focus-within:text-[var(--olive)] transition-colors" />
                   <input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full px-4 py-3.5 rounded-2xl text-sm font-medium outline-none transition-all duration-300 pr-12"
-                    style={{
-                      background: "var(--surface-2)",
-                      border: password !== confirmPassword && confirmPassword ? "1px solid #c0654a" : "1px solid var(--border-c)",
-                      color: "var(--text)"
-                    }}
-                    onFocus={(e) => e.currentTarget.style.borderColor = "var(--olive)"}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = password !== confirmPassword && confirmPassword ? "#c0654a" : "var(--border-c)";
-                    }}
+                    className={`w-full pl-11 pr-12 py-3.5 rounded-xl text-sm font-medium bg-[var(--surface-2)] border text-[var(--text)] placeholder:text-[var(--text-3)]/60 focus:ring-2 outline-none transition-all ${
+                      password !== confirmPassword && confirmPassword
+                        ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/10"
+                        : "border-[var(--border-c)] focus:border-[var(--olive)] focus:ring-[var(--olive)]/10"
+                    }`}
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all duration-300 hover:bg-white/10"
-                    style={{ color: "var(--text-2)" }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--surface)] transition-all"
                   >
-                    {showConfirmPassword ? <Eye className="size-5"/> : <EyeClosed className="size-5"/>}
+                    {showConfirmPassword ? <Eye className="size-4" /> : <EyeClosed className="size-4" />}
                   </button>
                 </div>
                 {password !== confirmPassword && confirmPassword && (
-                  <p className="text-red-500 text-xs mt-1.5 font-medium">Нууц үг таарахгүй байна</p>
+                  <p className="text-red-500 text-xs font-medium pl-1">
+                    Нууц үгүүд хоорондоо таарахгүй байна.
+                  </p>
                 )}
               </div>
 
-              {/* Error Message */}
+              {/* Error Alert Display */}
               {error && (
-                <div 
-                  className="flex items-center gap-3 p-4 rounded-xl border"
-                  style={{
-                    background: "rgba(220, 53, 69, 0.1)",
-                    borderColor: "rgba(220, 53, 69, 0.3)",
-                    color: "#c0654a"
-                  }}
-                >
-                  <p className="text-sm font-medium">{error}</p>
+                <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 text-sm font-medium animate-shake">
+                  {error}
                 </div>
               )}
 
-              {/* Submit Button */}
+              {/* Submit CTA Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 mt-8 font-bold text-base rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 group"
-                style={{
-                  background: loading ? "var(--olive)" : `linear-gradient(135deg, var(--olive), var(--olive-2))`,
-                  color: "var(--text)",
-                  opacity: loading ? 0.7 : 1,
-                  cursor: loading ? "not-allowed" : "pointer"
-                }}
-                onMouseEnter={(e) => !loading && (e.currentTarget.style.boxShadow = "0 8px 24px rgba(245, 197, 24, 0.2)")}
-                onMouseLeave={(e) => e.currentTarget.style.boxShadow = "none"}
+                className="w-full h-12 mt-4 font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2 group shadow-lg bg-gradient-to-r from-[var(--olive)] to-[var(--olive-2)] text-slate-950 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-[var(--olive)]/10 hover:shadow-xl hover:brightness-105 active:scale-[0.99]"
               >
                 {loading ? (
                   <>
-                    <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    Бүртгэж байна...
+                    <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                    Түр хүлээнэ үү...
                   </>
                 ) : (
                   <>
-                    Бүртгүүлэх
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
+                    Бүртгэл үүсгэх
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
               </button>
             </form>
 
-            {/* Login Link */}
-            <p className="text-center mt-8 text-sm" style={{ color: "var(--text-3)" }}>
+            {/* Secondary Option Link */}
+            <p className="text-center text-sm text-[var(--text-3)] font-medium">
               Бүртгэлтэй юу?{" "}
-              <Link 
-                href="/auth/login" 
-                className="font-bold transition-colors duration-300"
-                style={{ color: "var(--olive)" }}
+              <Link
+                href="/auth/login"
+                className="font-bold text-[var(--olive)] hover:underline underline-offset-4 transition-all"
               >
-                Нэвтрэх
+                Нэвтрэх хэсэг рүү очих
               </Link>
             </p>
           </div>
@@ -372,33 +327,26 @@ export default function RegisterPage() {
   );
 }
 
-function Feature({ 
-  index, 
-  title, 
-  description 
-}: { 
-  index: number; 
-  title: string; 
-  description: string 
+function Feature({
+  index,
+  title,
+  description,
+}: {
+  index: number;
+  title: string;
+  description: string;
 }) {
   return (
-    <div 
-      className="flex gap-4 p-4 rounded-xl transition-all duration-300 cursor-pointer group transform hover:scale-102 hover:bg-white/10" 
-      style={{ background: "rgba(255,255,255, 0.05)" }}
-    >
-      {/* Number Display */}
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm transition-colors duration-300 group-hover:bg-white/20">
-        {index.toString().padStart(2, '0')}
+    <div className="flex gap-4 p-4 rounded-xl transition-all duration-300 bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.02] hover:border-white/[0.08] backdrop-blur-sm group">
+      <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[var(--olive)] font-black text-sm transition-colors duration-300 group-hover:bg-white/10 group-hover:border-white/20">
+        {index.toString().padStart(2, "0")}
       </div>
-      
-      <div>
-        <h3 className="text-white font-bold text-sm mb-1 group-hover:translate-x-1 transition-transform duration-300">
+      <div className="space-y-0.5">
+        <h3 className="text-white font-bold text-sm tracking-wide">
           {title}
         </h3>
-        <p className="text-white/70 text-xs">
-          {description}
-        </p>
-      </div>  
+        <p className="text-white/60 text-xs leading-relaxed">{description}</p>
+      </div>
     </div>
   );
 }
