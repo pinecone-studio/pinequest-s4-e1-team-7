@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ProfileAvatarButton } from "../shared/ProfileAvatarButton";
+import { NotificationBell } from "../shared/NotificationBell";
 import { FeatureCarousel } from "./FeatureCarousel";
 import { useState, useEffect } from "react";
 import type { CarouselFeature } from "./FeatureCarousel";
@@ -107,6 +108,7 @@ export function Overview() {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          <NotificationBell />
           <ProfileAvatarButton size={40} />
         </div>
       </div>
