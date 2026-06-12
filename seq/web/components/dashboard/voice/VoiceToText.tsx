@@ -2,15 +2,18 @@
 import { useCallback, useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useSignMap } from "@/hooks/useSignMap";
 import { MicrophoneIcon } from "@heroicons/react/24/solid";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { TranscriptPanel } from "./TranscriptPanel";
+import { TextToSignPanel } from "./TextToSignPanel";
 
 export function VoiceToText() {
   const { pushHistory, toast } = useApp();
   const [sentences, setSentences] = useState<string[]>([]);
   const [interim, setInterim] = useState("");
   const [fontSize, setFontSize] = useState(22);
+  const signMap = useSignMap();
 
   const handle = useCallback(
     (t: string, final: boolean) => {
@@ -46,9 +49,11 @@ export function VoiceToText() {
     setInterim("");
   };
 
+  const signText = interim || sentences[sentences.length - 1] || "";
+
   return (
     <div className="flex h-full flex-col" style={{ background: "var(--bg)" }}>
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 md:px-6 pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 lg:max-w-none lg:px-10 xl:px-16">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-y-auto px-4 md:px-6 pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 lg:max-w-none lg:px-10 xl:px-16">
         <PageHeader title="Ярианаас бичвэр" />
 
         <div className="flex items-end justify-center gap-5 py-4">
@@ -85,6 +90,8 @@ export function VoiceToText() {
           onCopy={copyAll}
           onClear={clear}
         />
+
+        <TextToSignPanel text={signText} signMap={signMap} />
       </div>
     </div>
   );
