@@ -39,12 +39,19 @@ export function MobileNav() {
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-around px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-1">
         {tabs.map(({ href, O, S, label }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
+          const resolvedHref =
+            href === "/dashboard/call" && pathname.startsWith("/accessible")
+              ? "/accessible/chat"
+              : href;
+          const active =
+            pathname === resolvedHref ||
+            pathname.startsWith(`${resolvedHref}/`) ||
+            (href === "/dashboard/call" && pathname.startsWith("/accessible/chat"));
           const Icon = active ? S : O;
           return (
             <li key={href} className="flex-1">
               <Link
-                href={href}
+                href={resolvedHref}
                 aria-current={active ? "page" : undefined}
                 aria-label={label}
                 className="flex flex-col items-center gap-1 py-1"

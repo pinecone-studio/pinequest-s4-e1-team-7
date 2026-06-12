@@ -2,11 +2,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useAppMode } from "@/context/AppModeContext";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/hooks/useTheme";
 import { UserAvatar } from "../shared/UserAvatar";
 import { updateProfile, uploadAvatar } from "@/lib/auth-api";
-import { CameraIcon, MoonIcon, SunIcon, SpeakerWaveIcon, ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/outline";
+import { CameraIcon, MoonIcon, SunIcon, SpeakerWaveIcon, ArrowRightEndOnRectangleIcon, EyeIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { PageHeader } from "@/components/ui/PageHeader";
 
 const SPEEDS = [{ label: "Удаан", value: 0.7 }, { label: "Хэвийн", value: 1.0 }, { label: "Хурдан", value: 1.5 }] as const;
@@ -31,6 +32,7 @@ export function Settings() {
   const { settings, updateSettings } = useApp();
   const { theme, toggle } = useTheme();
   const { user, logout, refresh } = useAuth();
+  const { setMode } = useAppMode();
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -188,6 +190,41 @@ export function Settings() {
           </div>
           <Toggle on={theme === "dark"} onChange={toggle} />
         </div>
+      </div>
+
+      <div className="mb-4 rounded-[22px] p-5" style={card}>
+        <p className="mb-4 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
+          Хүртээмж
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setMode("accessible");
+            router.push("/accessible/chat");
+          }}
+          className="flex w-full items-center justify-between gap-3 rounded-2xl px-1 py-2 text-left transition-all active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-3">
+            <EyeIcon className="h-5 w-5 shrink-0" style={{ color: "#ffbf00" }} />
+            <div>
+              <p className="text-[15px] font-semibold" style={{ color: "var(--text)" }}>
+                Харааны бэрхшээлтэй горим
+              </p>
+              <p className="text-[12px]" style={{ color: "var(--text-3)" }}>
+                Брайль бичих, дуу уншуулах, зөвхөн чат
+              </p>
+            </div>
+          </div>
+          <ChevronRightIcon className="h-5 w-5 shrink-0" style={{ color: "var(--text-3)" }} />
+        </button>
+        <button
+          type="button"
+          onClick={() => router.push("/mode")}
+          className="mt-2 w-full rounded-xl py-2.5 text-[13px] font-semibold"
+          style={inactiveBtn}
+        >
+          Горим дахин сонгох
+        </button>
       </div>
 
       <div className="mb-4 rounded-[22px] p-5" style={card}>

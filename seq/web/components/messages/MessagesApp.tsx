@@ -38,14 +38,21 @@ import { ConversationSidebar } from "./components/ConversationSidebar";
 import { MessagesList } from "./components/MessagesList";
 import { ChatInputFooter } from "./components/ChatInputFooter";
 import { PageHeader } from "@/components/ui/PageHeader";
+import {
+  A11yChatBridgeContext,
+  type A11yChatBridge,
+} from "@/lib/a11y-chat-bridge";
+import { a11ySpeak } from "@/lib/a11y-speak";
+import { A11yNavProvider } from "@/components/accessible/A11yNavProvider";
+import { A11yThreadToolbar } from "@/components/accessible/A11yThreadToolbar";
 
 // Persists across remounts (e.g. navigating /call ↔ /call/[id]).
 // Maps convId → lastMessage.id the user has seen, so initial-load scan
 // doesn't re-mark already-read conversations as unread.
 const readUntilId = new Map<string, number>();
 
-function chatPath(conversationId: string) {
-  return `/dashboard/call/${encodeURIComponent(conversationId)}`;
+function buildChatPath(base: string, conversationId: string) {
+  return `${base}/${encodeURIComponent(conversationId)}`;
 }
 
 function persistChatPeer(conversationId: string, peer: ChatPeer) {
@@ -83,12 +90,20 @@ type MessagesAppProps = {
   initialConversations?: ConversationSummary[];
   initialMessages?: ChatMessage[];
   initialConvId?: string;
+  chatBasePath?: string;
+  settingsPath?: string;
+  a11yMode?: boolean;
+  hideInputFooter?: boolean;
 };
 
 export function MessagesApp({
   initialConversations,
   initialMessages,
   initialConvId,
+  chatBasePath = "/dashboard/call",
+  settingsPath = "/dashboard/settings",
+  a11yMode = false,
+  hideInputFooter = false,
 }: MessagesAppProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
@@ -193,14 +208,17 @@ export function MessagesApp({
     if (conv?.lastMessage) readUntilId.set(routeConvId, conv.lastMessage.id);
   }, [routeConvId, conversations]);
 
-  const openChat = useCallback((convId: string, peer: ChatPeer) => {
-    persistChatPeer(convId, peer);
-    router.push(chatPath(convId));
-  }, [router]);
+  const openChat = useCallback(
+    (convId: string, peer: ChatPeer) => {
+      persistChatPeer(convId, peer);
+      router.push(buildChatPath(chatBasePath, convId));
+    },
+    [router, chatBasePath],
+  );
 
   const closeChat = useCallback(() => {
-    router.push("/dashboard/call");
-  }, [router]);
+    router.push(chatBasePath);
+  }, [router, chatBasePath]);
 
   const refreshConversations = useCallback(async (silent = true) => {
     if (!silent) setLoadingList(true);
@@ -305,9 +323,9 @@ export function MessagesApp({
   }, [refreshConversations, hasServerConversations, realtimeConnected, subscribe]);
 
   useEffect(() => {
-    if (!pathname.startsWith("/dashboard/call")) return;
+    if (!pathname.startsWith(chatBasePath)) return;
     markAvailable();
-  }, [pathname, markAvailable]);
+  }, [pathname, markAvailable, chatBasePath]);
 
   useEffect(() => {
     if (!routeConvId) {
@@ -486,14 +504,14 @@ export function MessagesApp({
     openChat(conv.id, conv.peer);
   };
 
-  const startWithPeer = async (peer: ChatPeer) => {
+  const startWithPeer = useCallback(async (peer: ChatPeer) => {
     const conv = await openConversation(peer.id);
     setSearch("");
     setSearchResults([]);
     openChat(conv.id, conv.peer);
-  };
+  }, [openChat]);
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (!activeId || !text.trim() || sending) return;
     setSending(true);
     try {
@@ -505,11 +523,12 @@ export function MessagesApp({
         return merged;
       });
       setText("");
+      if (a11yMode) a11ySpeak("Илгээгдлээ");
       void refreshConversations(true);
     } finally {
       setSending(false);
     }
-  };
+  }, [activeId, activePeer?.id, a11yMode, refreshConversations, sending, text]);
 
   const handleDeleteMessage = async (msg: ChatMessage) => {
     if (!activeId) return;
@@ -554,7 +573,7 @@ export function MessagesApp({
     }
   };
 
-  const startCall = async () => {
+  const startCall = useCallback(async () => {
     if (!activeId || !activePeer) return;
     markInCall();
     try {
@@ -570,9 +589,9 @@ export function MessagesApp({
       /* still open call screen */
     }
     router.push(
-      `/call/${encodeURIComponent(activeId)}?as=host&returnTo=${encodeURIComponent(chatPath(activeId))}`,
+      `/call/${encodeURIComponent(activeId)}?as=host&returnTo=${encodeURIComponent(buildChatPath(chatBasePath, activeId))}`,
     );
-  };
+  }, [activeId, activePeer, chatBasePath, markInCall, refreshConversations, router]);
 
   const startRecording = async () => {
     if (!activeId || recording) return;
@@ -615,7 +634,45 @@ export function MessagesApp({
 
   const showMobileChat = !!routeConvId;
 
-  return (
+  const a11yBridge = useMemo<A11yChatBridge | null>(() => {
+    if (!a11yMode) return null;
+    return {
+      conversations,
+      messages,
+      activePeer,
+      routeConvId,
+      search,
+      searchResults,
+      text,
+      setText,
+      setSearch,
+      openChat,
+      closeChat,
+      startWithPeer,
+      sendText: handleSend,
+      startCall,
+      startRecording: () => startRecording(),
+      stopRecording,
+      recording,
+    };
+  }, [
+    a11yMode,
+    conversations,
+    messages,
+    activePeer,
+    routeConvId,
+    search,
+    searchResults,
+    text,
+    openChat,
+    closeChat,
+    startWithPeer,
+    handleSend,
+    startCall,
+    recording,
+  ]);
+
+  const content = (
     <div className="flex h-full min-h-0 flex-col" style={{ background: "var(--bg)" }}>
 
       {/* Mobile page header — outside all cards, identical pattern to Translator */}
@@ -626,7 +683,7 @@ export function MessagesApp({
             right={
               <button
                 type="button"
-                onClick={() => router.push("/dashboard/settings")}
+                onClick={() => router.push(settingsPath)}
                 aria-label="Тохиргоо"
                 className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70"
                 style={{ background: "var(--surface)", border: "1px solid var(--border-c)" }}
@@ -696,6 +753,7 @@ export function MessagesApp({
               onClose={closeChat}
               onCall={() => void startCall()}
             />
+            {a11yMode && <A11yThreadToolbar />}
             <MessagesList
               messages={messages}
               callHiddenIds={callHiddenIds}
@@ -714,27 +772,39 @@ export function MessagesApp({
               onDeleteCallLog={(entry) => void handleDeleteCallLog(entry)}
               onCallAgain={() => void startCall()}
             />
-            <ChatInputFooter
-              text={text}
-              sending={sending}
-              recording={recording}
-              editingId={editingId}
-              editText={editText}
-              savingEdit={savingEdit}
-              editError={editError}
-              editInputRef={editInputRef}
-              onTextChange={setText}
-              onSend={() => void handleSend()}
-              onStartRecording={() => void startRecording()}
-              onStopRecording={stopRecording}
-              onCancelEdit={cancelEdit}
-              onEditTextChange={setEditText}
-              onSaveEdit={() => void handleSaveEdit()}
-            />
+            {!hideInputFooter && (
+              <ChatInputFooter
+                text={text}
+                sending={sending}
+                recording={recording}
+                editingId={editingId}
+                editText={editText}
+                savingEdit={savingEdit}
+                editError={editError}
+                editInputRef={editInputRef}
+                onTextChange={setText}
+                onSend={() => void handleSend()}
+                onStartRecording={() => void startRecording()}
+                onStopRecording={stopRecording}
+                onCancelEdit={cancelEdit}
+                onEditTextChange={setEditText}
+                onSaveEdit={() => void handleSaveEdit()}
+              />
+            )}
           </>
         )}
       </section>
       </div>
     </div>
   );
+
+  if (a11yBridge) {
+    return (
+      <A11yChatBridgeContext.Provider value={a11yBridge}>
+        <A11yNavProvider>{content}</A11yNavProvider>
+      </A11yChatBridgeContext.Provider>
+    );
+  }
+
+  return content;
 }

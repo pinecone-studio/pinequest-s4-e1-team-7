@@ -32,7 +32,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register({ name, email, phone, password });
-      router.replace("/dashboard");
+      router.replace("/mode");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Алдаа үүслээ");
     } finally {

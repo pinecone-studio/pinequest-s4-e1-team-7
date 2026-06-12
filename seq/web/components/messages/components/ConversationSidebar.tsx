@@ -9,6 +9,8 @@ import { UserAvatar } from "@/components/dashboard/shared/UserAvatar";
 import { cn } from "@/lib/utils";
 import { formatTime } from "../utils/chatHelpers";
 import type { ChatPeer, ConversationSummary } from "@/lib/chat-api";
+import { useA11yNav } from "@/lib/a11y-nav-context";
+import { useEffect, useRef } from "react";
 
 type Props = {
   conversations: ConversationSummary[];
@@ -37,6 +39,15 @@ export function ConversationSidebar({
   onSelectConversation,
   onStartWithPeer,
 }: Props) {
+  const a11yNav = useA11yNav();
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!a11yNav || a11yNav.preChatIndex < 1) return;
+    const el = listRef.current?.children[a11yNav.preChatIndex - 1] as HTMLElement | undefined;
+    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [a11yNav?.preChatIndex]);
+
   return (
     <aside
       className={cn(
@@ -96,12 +107,22 @@ export function ConversationSidebar({
           >
             {searching ? "Хайж байна..." : "Хэрэглэгч"}
           </p>
-          {searchResults.map((peer) => (
+          {searchResults.map((peer, idx) => {
+            const a11yFocused = a11yNav?.preChatIndex === idx + 1;
+            return (
             <button
               key={peer.id}
               type="button"
               onClick={() => void onStartWithPeer(peer)}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[var(--surface-2)]"
+              className={cn(
+                "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[var(--surface-2)]",
+                a11yFocused && "ring-2 ring-[var(--olive)]",
+              )}
+              style={
+                a11yFocused
+                  ? { background: "color-mix(in srgb, var(--olive) 15%, var(--surface-2))" }
+                  : undefined
+              }
             >
               <UserAvatar
                 name={peer.name ?? peer.email}
@@ -127,7 +148,8 @@ export function ConversationSidebar({
                 style={{ color: "var(--olive)" }}
               />
             </button>
-          ))}
+          );
+          })}
           {!searching && searchResults.length === 0 && (
             <p
               className="px-3 py-2 text-[13px]"
@@ -139,7 +161,7 @@ export function ConversationSidebar({
         </div>
       )}
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
+      <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
         {loadingList ? (
           <p
             className="p-4 text-center text-[13px]"
@@ -155,17 +177,23 @@ export function ConversationSidebar({
             Хайлтаар найз олоод чат эхлүүлнэ үү
           </p>
         ) : (
-          conversations.map((conv) => {
+          conversations.map((conv, idx) => {
             const isUnread = unreadIds.has(conv.id);
             const isActive = activeId === conv.id;
+            const a11yFocused = a11yNav?.preChatIndex === idx + 1;
             return (
               <button
                 key={conv.id}
                 type="button"
                 onClick={() => onSelectConversation(conv)}
-                className="mb-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3.5 text-left transition-all"
+                className={cn(
+                  "mb-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3.5 text-left transition-all",
+                  a11yFocused && "ring-2 ring-[var(--olive)]",
+                )}
                 style={
-                  isUnread
+                  a11yFocused
+                    ? { background: "color-mix(in srgb, var(--olive) 18%, var(--surface-2))", border: "2px solid var(--olive)" }
+                    : isUnread
                     ? { background: "rgba(245,197,24,0.13)", border: "1px solid rgba(245,197,24,0.3)" }
                     : { background: "var(--surface-2)", border: "1px solid var(--border-c)" }
                 }
