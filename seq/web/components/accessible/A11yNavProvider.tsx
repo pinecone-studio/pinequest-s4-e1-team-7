@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useA11yChatBridge } from "@/lib/a11y-chat-bridge";
 import { A11yNavContext, type ThreadAction } from "@/lib/a11y-nav-context";
 import { a11ySpeak, a11yStopSpeak } from "@/lib/a11y-speak";
+import { playVoice } from "@/lib/play-voice";
 import { useA11yGestures } from "@/lib/use-a11y-gestures";
 import { A11yFocusBar } from "./A11yFocusBar";
 import { BrailleInput } from "./BrailleInput";
@@ -93,34 +94,40 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
   // ── Activate ──────────────────────────────────────────────────────────────
   const activateThread = useCallback(async () => {
     if (threadAction === "call") {
-      a11ySpeak("Залгаж байна");
+      playVoice("Дуудлага");
       await bridge.startCall();
     } else if (threadAction === "voice") {
       if (bridge.recording) {
         bridge.stopRecording();
-        a11ySpeak("Дуут зурвасыг илгээлээ");
+        playVoice("Дуу");
       } else {
         await bridge.startRecording();
-        a11ySpeak("Дуу бичиж байна. Дахин хоёр дарж илгээнэ.");
+        playVoice("Дуу");
       }
     } else {
       setBrailleOpen(true);
-      a11ySpeak("Брайль гар идэвхжлээ.");
+      playVoice("Бичих");
     }
   }, [bridge, threadAction]);
 
   const activatePreChat = useCallback(() => {
     if (preChatIndex === 0) {
       setBrailleOpen(true);
-      a11ySpeak("Хайлтын брайль гар идэвхжлээ.");
+      playVoice("Бичих");
       return;
     }
     if (hasSearch) {
       const peer = bridge.searchResults[preChatIndex - 1];
-      if (peer) void bridge.startWithPeer(peer);
+      if (peer) {
+        playVoice("Чаат руу орлоо");
+        void bridge.startWithPeer(peer);
+      }
     } else {
       const conv = bridge.conversations[preChatIndex - 1];
-      if (conv) bridge.openChat(conv.id, conv.peer);
+      if (conv) {
+        playVoice("Чаат руу орлоо");
+        bridge.openChat(conv.id, conv.peer);
+      }
     }
   }, [bridge, hasSearch, preChatIndex]);
 
@@ -160,7 +167,7 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
         // 2-хуруу баруун = буцах
         if (inThread) {
           bridge.closeChat();
-          a11ySpeak("Буцлаа");
+          playVoice("Буцлаа");
         } else {
           a11yStopSpeak();
           a11ySpeak("Нүүр хуудас");

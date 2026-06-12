@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { charFromMask, maskFromSet, type BrailleDots } from "@/lib/braille-mn";
 import { a11ySpeak } from "@/lib/a11y-speak";
+import { playVoice, stopVoice } from "@/lib/play-voice";
 
 type Props = {
   value: string;
@@ -66,6 +67,7 @@ export function BrailleInput({
       window.removeEventListener("resize", check);
       window.removeEventListener("orientationchange", check);
       (screen.orientation as { unlock?: () => void }).unlock?.();
+      stopVoice();
     };
   }, []);
 
@@ -122,10 +124,15 @@ export function BrailleInput({
       if (dots.size === 0) return;
       const ch = charFromMask(maskFromSet(dots));
       if (ch === null) {
-        a11ySpeak("Танигдаагүй", { dedup: false });
+        playVoice("Танигдаагүй", true);
       } else {
         onChange(value + ch);
-        a11ySpeak(ch === " " ? "Зай" : ch, { dedup: false });
+        // Зай тэмдэгт TTS, үсэг бол audio файл
+        if (ch === " ") {
+          a11ySpeak("Зай", { dedup: false });
+        } else {
+          playVoice(ch);
+        }
       }
     },
     [onChange, value],
@@ -202,9 +209,7 @@ export function BrailleInput({
           }
         } else if (fingerCount === 2 && effAH > effAV && effH < 0) {
           onBack();
-          a11ySpeak("Буцлаа");
-        } else if (fingerCount === 1 && adx > ady && !isLandscape) {
-          // fallback: vertical swipe not caught above
+          playVoice("Буцлаа");
         }
         return;
       }
