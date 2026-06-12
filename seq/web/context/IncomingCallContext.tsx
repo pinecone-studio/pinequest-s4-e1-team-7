@@ -25,6 +25,7 @@ import {
   registerCallServiceWorker,
   syncIncomingCallToStorage,
 } from "@/lib/incoming-call-notify";
+import { fireChatNotification } from "@/lib/chat-notify";
 import { createIncomingCallRing } from "@/lib/incoming-call-ring";
 import { useChatRealtime } from "@/context/ChatRealtimeContext";
 import {
@@ -268,7 +269,11 @@ export function IncomingCallProvider({ children }: { children: ReactNode }) {
     window.addEventListener("focus", poller.poke);
 
     const unsubPush = subscribe((event) => {
-      if (event.kind === "call_invite") void poll();
+      if (event.kind === "call_invite") {
+        void poll();
+      } else {
+        fireChatNotification(event.messageId, event.conversationId, event.kind, pathnameRef.current, (href) => router.push(href));
+      }
     });
 
     return () => {

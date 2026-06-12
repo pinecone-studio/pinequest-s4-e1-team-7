@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useTheme } from "@/hooks/useTheme";
 import { ProfileAvatarButton } from "../shared/ProfileAvatarButton";
+import { NotificationBell } from "../shared/NotificationBell";
 import {
   HomeIcon as HomeO, HandRaisedIcon as HandO, MicrophoneIcon as MicO,
   ChatBubbleLeftRightIcon as ChatO, BookOpenIcon as BookO,
@@ -77,9 +78,10 @@ export const TopNav = () => {
         </nav>
       </div>
 
-      {/* Right: theme toggle + avatar */}
+      {/* Right: theme toggle + notification bell + avatar */}
       <div className="flex shrink-0 items-center gap-2">
         <ThemeToggle />
+        <NotificationBell />
         <ProfileAvatarButton size={40} />
       </div>
     </header>
