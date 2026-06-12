@@ -45,7 +45,7 @@ export function ChatInputFooter({
 }: Props) {
   return (
     <footer
-      className="relative z-20 shrink-0 border-t px-3 py-3 pb-[max(env(safe-area-inset-bottom),12px)] md:pr-16"
+      className="relative z-20 shrink-0 border-t px-3 py-3 md:px-5"
       style={{ borderColor: "var(--border-c)", background: "var(--surface)" }}
     >
       {editingId ? (
@@ -99,7 +99,7 @@ export function ChatInputFooter({
             </button>
           </div>
           {editError && (
-            <p className="mt-2 text-center text-[12px] font-medium text-[#e53535]">
+            <p className="mt-2 text-center text-[12px] font-medium text-[hsl(var(--destructive))]">
               {editError}
             </p>
           )}
@@ -117,7 +117,7 @@ export function ChatInputFooter({
               recording && "scale-110 ring-4 ring-red-400/40",
             )}
             style={{
-              background: recording ? "#e53535" : "var(--surface-2)",
+              background: recording ? "hsl(var(--destructive))" : "var(--surface-2)",
               color: recording ? "#fff" : "var(--text)",
             }}
           >
