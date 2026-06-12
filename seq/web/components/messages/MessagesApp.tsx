@@ -30,6 +30,25 @@ import {
 import { cn } from "@/lib/utils";
 import { useChatRealtime } from "@/context/ChatRealtimeContext";
 import { createAdaptivePoller, FALLBACK_POLL_MS } from "@/lib/poll-schedule";
+import {
+  EllipsisVerticalIcon,
+  PencilIcon,
+  TrashIcon,
+  MicrophoneIcon,
+  PaperAirplaneIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
+import { Cog6ToothIcon } from "@heroicons/react/24/outline";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChatThreadHeader } from "./components/ChatThreadHeader";
+import { ConversationSidebar } from "./components/ConversationSidebar";
+import { CallLogCard } from "./CallLogCard";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 function chatPath(conversationId: string) {
   return `/dashboard/call/${encodeURIComponent(conversationId)}`;
@@ -680,26 +699,62 @@ export function MessagesApp({
   const showMobileChat = !!routeConvId;
 
   return (
-    <div className="flex h-full min-h-0" style={{ background: "var(--bg)" }}>
-      <ConversationSidebar
-        conversations={conversations}
-        activeId={activeId}
-        search={search}
-        searchResults={searchResults}
-        searching={searching}
-        loadingList={loadingList}
-        showMobileChat={showMobileChat}
-        onSearch={setSearch}
-        onSelectConversation={selectConversation}
-        onStartWithPeer={startWithPeer}
-      />
+    <div className="flex h-full min-h-0 flex-col" style={{ background: "var(--bg)" }}>
+
+      {/* Mobile page header — outside all cards, identical pattern to Translator */}
+      {!showMobileChat && (
+        <div className="shrink-0 px-4 md:hidden">
+          <PageHeader
+            title="Чат"
+            right={
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard/settings")}
+                aria-label="Тохиргоо"
+                className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70"
+                style={{ background: "var(--surface)", border: "1px solid var(--border-c)" }}
+              >
+                <Cog6ToothIcon className="h-5 w-5" style={{ color: "var(--text)" }} />
+              </button>
+            }
+          />
+        </div>
+      )}
+
+      <div className={cn("flex min-h-0 flex-1 gap-4 px-4 pb-3 md:gap-3 md:p-4 lg:px-10 lg:pb-4 xl:px-16", showMobileChat ? "pt-3" : "pt-0")}>
+      <div
+        className={cn(
+          "min-h-0 shrink-0 overflow-hidden rounded-[18px] w-full md:w-[min(340px,36vw)]",
+          showMobileChat ? "hidden md:flex md:flex-col" : "flex flex-col",
+        )}
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border-c)",
+        }}
+      >
+        <ConversationSidebar
+          conversations={conversations}
+          activeId={activeId}
+          search={search}
+          searchResults={searchResults}
+          searching={searching}
+          loadingList={loadingList}
+          showMobileChat={showMobileChat}
+          onSearch={setSearch}
+          onSelectConversation={selectConversation}
+          onStartWithPeer={startWithPeer}
+        />
+      </div>
 
       <section
         className={cn(
-          "flex min-h-0 min-w-0 flex-1 flex-col",
+          "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[18px]",
           !showMobileChat ? "hidden md:flex" : "flex",
         )}
-        style={{ background: "var(--bg)" }}
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border-c)",
+        }}
       >
         {!activeId || !activePeer ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
@@ -723,17 +778,11 @@ export function MessagesApp({
               onClose={closeChat}
               onCall={() => void startCall()}
             />
-            <MessagesList
-              messages={messages}
-              callHiddenIds={callHiddenIds}
-              callLogMap={callLogMap}
-              activePeer={activePeer}
-              editingId={editingId}
-              loadingOlder={loadingOlder}
-              scrollRef={messagesScrollRef}
+            <div
+              ref={messagesScrollRef}
               onScroll={handleMessagesScroll}
               className={cn(
-                "flex min-h-0 flex-1 flex-col overflow-y-auto",
+                "flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
                 editingId && "pb-28",
               )}
             >
@@ -782,7 +831,7 @@ export function MessagesApp({
             </div>
 
             <footer
-              className="relative z-20 shrink-0 border-t px-3 py-3 pb-[max(env(safe-area-inset-bottom),12px)] md:px-5"
+              className="relative z-20 shrink-0 border-t px-3 py-3 md:px-5"
               style={{ borderColor: "var(--border-c)", background: "var(--surface)" }}
             >
               {editingId ? (
@@ -888,6 +937,7 @@ export function MessagesApp({
           </>
         )}
       </section>
+      </div>
     </div>
   );
 }

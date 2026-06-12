@@ -41,7 +41,7 @@ export function MessageBubble({ msg, editing, onStartEdit, onDelete }: Props) {
             <button
               type="button"
               aria-label="Үйлдэл"
-              className="mb-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full opacity-60 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100"
+              className="mb-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-60 data-[state=open]:opacity-100"
               style={{ color: "var(--text-3)" }}
             >
               <EllipsisVerticalIcon className="h-4 w-4" />

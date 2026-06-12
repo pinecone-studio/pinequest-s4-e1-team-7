@@ -51,7 +51,7 @@ export function Translator() {
               boxShadow: "var(--shadow-sm)",
             }}
           >
-            <div className="relative h-[220px] w-full bg-black sm:h-[260px] lg:h-auto lg:min-h-0 lg:flex-1">
+            <div className="relative h-[320px] w-full bg-black sm:h-[400px] lg:h-auto lg:min-h-0 lg:flex-1">
               <CameraView
                 width={640} height={480} fullscreen mirrorPreview mirrorDetect
                 manualStart active={t.running}

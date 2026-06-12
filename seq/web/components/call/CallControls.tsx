@@ -24,52 +24,62 @@ export function CallControls({
   onVoiceToggle,
   onEnd,
 }: Props) {
-  const btn =
-    "flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-md transition active:scale-95";
-
   return (
-    <div className="mx-auto w-full max-w-sm">
-      <div className="flex items-center justify-center gap-5">
+    <div className="mx-auto w-full max-w-xs">
+      <div className="flex items-end justify-center gap-8">
+
+        {/* Camera */}
         <button
           type="button"
           onClick={onCamToggle}
           aria-label={camMuted ? "Камер асаах" : "Камер унтраах"}
-          className={`${btn} ${camMuted ? "opacity-50" : ""}`}
+          className="flex h-14 w-14 items-center justify-center rounded-full transition-all duration-150 active:scale-95"
+          style={{
+            background: camMuted ? "rgba(245,197,24,0.35)" : "var(--olive)",
+            border: "1.5px solid var(--olive)",
+            opacity: camMuted ? 0.7 : 1,
+          }}
         >
           {camMuted ? (
-            <VideoCameraSlashIcon className="h-5 w-5" />
+            <VideoCameraSlashIcon className="h-6 w-6" style={{ color: "#0d1e35" }} />
           ) : (
-            <VideoCameraIcon className="h-5 w-5" />
+            <VideoCameraIcon className="h-6 w-6" style={{ color: "#0d1e35" }} />
           )}
         </button>
 
+        {/* End call — red, larger */}
         <button
           type="button"
           onClick={onEnd}
           aria-label="Дуудлага таслах"
-          className={btn}
+          className="flex h-16 w-16 items-center justify-center rounded-full transition-all duration-150 active:scale-95"
+          style={{
+            background: "hsl(var(--destructive))",
+            border: "1.5px solid hsl(var(--destructive)/0.7)",
+            boxShadow: "0 4px 24px hsl(var(--destructive)/0.45)",
+          }}
         >
-          <PhoneXMarkIcon className="h-5 w-5" />
+          <PhoneXMarkIcon className="h-7 w-7 text-white" />
         </button>
 
+        {/* Microphone */}
         <button
           type="button"
           onClick={onVoiceToggle}
           disabled={!voiceSupported}
           aria-label={voiceListening ? "Яриа зогсоох" : "Яриа эхлүүлэх"}
-          className={`${btn} disabled:opacity-40 ${
-            voiceListening ? "bg-[#FFE566]/90" : ""
-          }`}
-          style={
-            voiceListening
-              ? { boxShadow: "0 0 0 8px rgba(255,229,102,0.25), 0 0 0 16px rgba(255,229,102,0.1)" }
-              : undefined
-          }
+          className="flex h-14 w-14 items-center justify-center rounded-full transition-all duration-150 active:scale-95 disabled:pointer-events-none disabled:opacity-40"
+          style={{
+            background: "var(--olive)",
+            border: "1.5px solid var(--olive)",
+            boxShadow: voiceListening
+              ? "0 0 0 6px var(--glow), 0 0 0 14px rgba(245,197,24,0.06)"
+              : undefined,
+          }}
         >
-          <MicrophoneIcon
-            className={`h-5 w-5 ${voiceListening ? "text-black" : "text-[#FFE566]"}`}
-          />
+          <MicrophoneIcon className="h-6 w-6" style={{ color: "#0d1e35" }} />
         </button>
+
       </div>
     </div>
   );

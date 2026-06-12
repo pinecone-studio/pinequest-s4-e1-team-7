@@ -42,7 +42,6 @@ export function TranslatorCard({
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border-c)",
-        boxShadow: "var(--shadow-sm)",
       }}
     >
       <div className="mb-3 flex items-center gap-2">
