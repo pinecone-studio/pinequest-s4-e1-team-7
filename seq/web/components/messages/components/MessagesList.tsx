@@ -42,14 +42,14 @@ export function MessagesList({
       ref={scrollRef}
       onScroll={onScroll}
       className={cn(
-        "flex min-h-0 flex-1 flex-col overflow-y-auto",
+        "flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         editingId && "pb-28",
       )}
     >
       {messages.length === 0 ? (
         <ChatEmptyState />
       ) : (
-        <div className="space-y-3 px-3 py-4 md:pr-16">
+        <div className="space-y-3 px-3 py-4 md:px-6">
           {loadingOlder && (
             <p
               className="py-2 text-center text-[12px]"
