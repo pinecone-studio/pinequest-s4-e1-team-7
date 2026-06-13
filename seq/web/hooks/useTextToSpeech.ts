@@ -31,13 +31,11 @@ export const useTextToSpeech = () => {
       });
 
       if (!response.ok) {
-        console.error("[TTS] API error:", response.status, await response.text().catch(() => ""));
         return false;
       }
 
       const blob = await response.blob();
       if (blob.size < 100) {
-        console.error("[TTS] Empty audio response from Chimege");
         return false;
       }
 
@@ -53,7 +51,7 @@ export const useTextToSpeech = () => {
         setSpeaking(false);
       };
       audio.onerror = (e) => {
-        console.error("[TTS] Audio playback error:", e);
+        void e;
         URL.revokeObjectURL(url);
         audioRef.current = null;
         setSpeaking(false);
@@ -61,8 +59,7 @@ export const useTextToSpeech = () => {
 
       await audio.play();
       return true;
-    } catch (err) {
-      console.error("[TTS] speak() error:", err);
+    } catch {
       setSpeaking(false);
       return false;
     }

@@ -152,6 +152,7 @@ export function MessagesApp({
   const [editText, setEditText] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [showBraille, setShowBraille] = useState(false);
   const messagesScrollRef = useRef<HTMLDivElement>(null);
   const pendingEnterScrollRef = useRef(false);
   const loadingOlderRef = useRef(false);

@@ -55,7 +55,7 @@ export function MessagesList({
               className="py-2 text-center text-[12px]"
               style={{ color: "var(--text-3)" }}
             >
-              Хуучин мессеж уншиж байна…
+              Өмнөх мессежүүдийг уншиж байна…
             </p>
           )}
           {messages.map((m) => {
