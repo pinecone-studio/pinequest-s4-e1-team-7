@@ -16,7 +16,8 @@ export async function POST(req: NextRequest) {
     .replace(/[^Ѐ-ӿ\s?!.\-'":,]+/g, " ")
     .replace(/\s{2,}/g, " ")
     .trim();
-  if (!sanitized) return NextResponse.json({ error: "Текст кирилл үсэг агуулаагүй байна" }, { status: 400 });
+  const hasCyrillic = /[Ѐ-ӿ]/.test(sanitized);
+  if (!sanitized || !hasCyrillic) return NextResponse.json({ error: "Текст кирилл үсэг агуулаагүй байна" }, { status: 400 });
 
   const headers: Record<string, string> = {
     "Content-Type": "text/plain",
@@ -31,8 +32,6 @@ export async function POST(req: NextRequest) {
   });
 
   if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    console.error("[TTS route] Chimege error:", res.status, body);
     return NextResponse.json({ error: "Chimege TTS алдаа", status: res.status }, { status: 502 });
   }
 

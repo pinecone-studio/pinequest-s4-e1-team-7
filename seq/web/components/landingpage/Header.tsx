@@ -39,26 +39,46 @@ export const Header = ({ landing }: { landing?: boolean } = {}) => {
       />
 
       <Link href="/" className="lnav-logo overflow-visible">
-        <img src={logoSrc} alt="Sign Bridge" className="h-13 w-13 object-contain" />
-        <m.div style={{ opacity: wmarkOp }} className="flex items-baseline gap-1">
-          <span style={{ color: "var(--olive)", fontWeight: 900, fontSize: "20px" }}>Sign</span>
-          <span style={{ color: "var(--text)", fontWeight: 900, fontSize: "20px" }}>Bridge</span>
+        <img
+          src={logoSrc}
+          alt="Sign Bridge"
+          className="h-13 w-13 object-contain"
+        />
+        <m.div
+          style={{ opacity: wmarkOp }}
+          className="flex items-baseline gap-1"
+        >
+          <span
+            style={{ color: "var(--olive)", fontWeight: 900, fontSize: "20px" }}
+          >
+            Sign
+          </span>
+          <span
+            style={{ color: "var(--text)", fontWeight: 900, fontSize: "20px" }}
+          >
+            Bridge
+          </span>
         </m.div>
       </Link>
-
-  
 
       <div className="lnav-right">
         {!landing && <ThemeToggle />}
         {!user ? (
           <>
-            <Link href="/auth/login" className="db-pillbtn hidden sm:inline-flex">Нэвтрэх</Link>
+            <Link
+              href="/auth/login"
+              className="db-pillbtn hidden sm:inline-flex"
+            >
+              Нэвтрэх
+            </Link>
             <Link href="/auth/register" className="db-pillbtn green">
               <UserPlusIcon className="h-4 w-4" /> Бүртгүүлэх
             </Link>
           </>
         ) : (
-          <Link href="/dashboard/translator" className="db-pillbtn green">Эхлэх</Link>
+          <Link href="/mode" className="db-pillbtn green">
+            Эхлэх
+          </Link>
         )}
       </div>
     </nav>

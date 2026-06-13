@@ -108,7 +108,7 @@ export function ChatInputFooter({
         <div className="flex items-end gap-2">
           <button
             type="button"
-            aria-label={recording ? "Зогсоох" : "Дуу бичих"}
+            aria-label={recording ? "Зогсоох" : "Яриа бичих"}
             onPointerDown={onStartRecording}
             onPointerUp={onStopRecording}
             onPointerLeave={onStopRecording}
