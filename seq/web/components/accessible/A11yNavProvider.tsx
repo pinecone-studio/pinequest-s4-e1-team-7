@@ -203,7 +203,7 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
     [brailleOpen, brailleVisible, preChatIndex, threadAction],
   );
 
-  const gestureBottom = "calc(4.25rem + env(safe-area-inset-bottom) + 5rem)";
+  const gestureBottom = "calc(4.25rem + env(safe-area-inset-bottom))";
 
   return (
     <A11yNavContext.Provider value={navValue}>

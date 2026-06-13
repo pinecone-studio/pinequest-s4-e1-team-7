@@ -9,9 +9,10 @@ type Props = {
   activePeer: ChatPeer;
   onClose: () => void;
   onCall: () => void;
+  hideCall?: boolean;
 };
 
-export function ChatThreadHeader({ activePeer, onClose, onCall }: Props) {
+export function ChatThreadHeader({ activePeer, onClose, onCall, hideCall }: Props) {
   return (
     <header
       className="flex shrink-0 items-center gap-3 border-b px-4 py-3"
@@ -42,6 +43,7 @@ export function ChatThreadHeader({ activePeer, onClose, onCall }: Props) {
           {activePeer.phone ?? activePeer.email}
         </p>
       </div>
+      {!hideCall && (
       <button
         type="button"
         onClick={onCall}
@@ -51,6 +53,7 @@ export function ChatThreadHeader({ activePeer, onClose, onCall }: Props) {
       >
         <VideoCameraIcon className="h-5 w-5" />
       </button>
+      )}
     </header>
   );
 }

@@ -239,9 +239,9 @@ export function MessagesApp({
   const openChat = useCallback(
     (convId: string, peer: ChatPeer) => {
       persistChatPeer(convId, peer);
-      router.push(chatPath(convId));
+      router.push(buildChatPath(chatBasePath, convId));
     },
-    [router],
+    [router, chatBasePath],
   );
 
   const closeChat = useCallback(() => {
@@ -693,7 +693,29 @@ export function MessagesApp({
 
   const showMobileChat = !!routeConvId;
 
-  return (
+  const a11yBridge = a11yMode
+    ? {
+        conversations,
+        messages,
+        activePeer,
+        routeConvId,
+        search,
+        searchResults,
+        text,
+        setText,
+        setSearch,
+        openChat,
+        closeChat,
+        startWithPeer,
+        sendText: handleSend,
+        startCall,
+        startRecording,
+        stopRecording,
+        recording,
+      }
+    : null;
+
+  const content = (
     <div
       className="flex h-full min-h-0 flex-col"
       style={{ background: "var(--bg)" }}
@@ -799,6 +821,7 @@ export function MessagesApp({
                 activePeer={activePeer}
                 onClose={closeChat}
                 onCall={() => void startCall()}
+                hideCall={a11yMode}
               />
               <MessagesList
                 messages={messages}
@@ -818,6 +841,8 @@ export function MessagesApp({
                 onDeleteCallLog={(entry) => void handleDeleteCallLog(entry)}
                 onCallAgain={() => void startCall()}
               />
+              {a11yMode && <A11yThreadToolbar />}
+              {!hideInputFooter && (
               <ChatInputFooter
                 text={text}
                 sending={sending}
@@ -835,6 +860,7 @@ export function MessagesApp({
                 onEditTextChange={setEditText}
                 onSaveEdit={() => void handleSaveEdit()}
               />
+              )}
             </>
           )}
         </section>
