@@ -11,12 +11,15 @@ export const PageNav = () => {
     const hero     = document.getElementById("hero");
     const globe    = document.getElementById("globe");
     const features = document.getElementById("features");
+    const mobile   = document.getElementById("mobile");
     if (!hero) return;
     const vh            = window.innerHeight;
     const teamStart     = hero.offsetTop + (hero.offsetHeight - vh) * 0.38;
     const globeStart    = globe    ? globe.offsetTop    - vh * 0.35 : Infinity;
     const featuresStart = features ? features.offsetTop - vh * 0.35 : Infinity;
-    if      (y >= featuresStart) setActive(3);
+    const mobileStart   = mobile   ? mobile.offsetTop   - vh * 0.35 : Infinity;
+    if      (y >= mobileStart)   setActive(4);
+    else if (y >= featuresStart) setActive(3);
     else if (y >= globeStart)    setActive(2);
     else if (y >= teamStart)     setActive(1);
     else                         setActive(0);
@@ -24,17 +27,19 @@ export const PageNav = () => {
 
   const goTo = (index: number) => {
     const lenis = getLenis();
-    const hero = document.getElementById("hero");
+    const hero  = document.getElementById("hero");
     const scroll = (top: number) => lenis ? lenis.scrollTo(top) : window.scrollTo({ top, behavior: "smooth" });
-    if (index === 0) scroll(0);
+    const scrollId = (id: string) => lenis ? lenis.scrollTo(`#${id}`) : document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    if      (index === 0) scroll(0);
     else if (index === 1 && hero) scroll(hero.offsetTop + (hero.offsetHeight - window.innerHeight) * 0.44);
-    else if (index === 2) lenis ? lenis.scrollTo("#globe") : document.getElementById("globe")?.scrollIntoView({ behavior: "smooth" });
-    else if (index === 3) lenis ? lenis.scrollTo("#features") : document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+    else if (index === 2) scrollId("globe");
+    else if (index === 3) scrollId("features");
+    else if (index === 4) scrollId("mobile");
   };
 
   return (
     <div className="fixed bottom-10 left-8 z-50 flex flex-col gap-2">
-      {[0, 1, 2, 3].map((i) => (
+      {[0, 1, 2, 3, 4].map((i) => (
         <button
           key={i}
           type="button"

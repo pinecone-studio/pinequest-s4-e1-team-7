@@ -179,6 +179,13 @@
 .lnav-links a:hover { color:var(--text); background:var(--olive-soft); }
 .lnav-right { display:flex; align-items:center; gap:10px; }
 
+/* ── Landing page nav overrides ── */
+.lp .lnav { background:transparent; backdrop-filter:none; border-bottom:1px solid rgba(255,255,255,0.08); }
+.lp .db-pillbtn { background:transparent; border-color:rgba(255,255,255,0.28); color:rgba(255,255,255,0.78); }
+.lp .db-pillbtn:not(.green):hover { background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.5); color:#fff; }
+.lp .db-pillbtn.green { background:transparent; border-color:rgba(245,197,24,0.6); color:#f5c518; }
+.lp .db-pillbtn.green:hover { background:rgba(245,197,24,0.08); border-color:#f5c518; }
+
 /* ── Landing section tag ── */
 .ltag { font-size:13px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--olive); margin-bottom:14px; }
 
