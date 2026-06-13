@@ -137,22 +137,22 @@ export function CallCaptionHistory({
         aria-label="Ярианы түүх"
       >
         <div
-          className="pointer-events-auto relative mx-3 mb-3 flex flex-1 flex-col overflow-hidden rounded-2xl"
+          className="pointer-events-auto relative mx-3 mb-3 flex flex-1 flex-col overflow-hidden rounded-2xl backdrop-blur-xl"
           style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border-c)",
+            background: "transparent",
+            border: "1px solid color-mix(in srgb, var(--border-c) 50%, transparent)",
           }}
         >
           {/* Header */}
           <div
             className="flex shrink-0 items-center justify-between px-4 py-3"
-            style={{ borderBottom: "1px solid var(--border-c)" }}
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.2)" }}
           >
             <div className="flex items-center gap-2">
               <ChatBubbleLeftRightIcon className="h-4 w-4 shrink-0" style={{ color: "var(--olive)" }} />
               <p
                 className="text-[11px] font-bold uppercase tracking-widest"
-                style={{ color: "var(--text-3)", fontFamily: "var(--font-sans)" }}
+                style={{ color: "#fff", fontFamily: "var(--font-sans)", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}
               >
                 Ярианы түүх
               </p>
@@ -164,9 +164,9 @@ export function CallCaptionHistory({
                 aria-label="Чат хаах"
                 className="flex h-7 w-7 items-center justify-center rounded-full transition-all duration-150 active:scale-95"
                 style={{
-                  background: "var(--surface-2)",
-                  border: "1px solid var(--border-c)",
-                  color: "var(--text-2)",
+                  background: "rgba(255,255,255,0.25)",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  color: "#fff",
                 }}
               >
                 <ChevronRightIcon className="h-4 w-4" />
@@ -179,7 +179,7 @@ export function CallCaptionHistory({
             {entries.length === 0 ? (
               <p
                 className="px-1 py-6 text-center text-[14px] leading-relaxed"
-                style={{ color: "var(--text-3)", fontFamily: "var(--font-sans)" }}
+                style={{ color: "rgba(255,255,255,0.75)", fontFamily: "var(--font-sans)", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}
               >
                 Хөрвүүлсэн бичвэр энд харагдана...
               </p>
