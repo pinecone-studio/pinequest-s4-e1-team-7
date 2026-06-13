@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useA11yChatBridge } from "@/lib/a11y-chat-bridge";
 import { A11yNavContext, type ThreadAction } from "@/lib/a11y-nav-context";
-import { a11ySpeak, a11yStopSpeak } from "@/lib/a11y-speak";
+import { a11yStopSpeak } from "@/lib/a11y-speak";
 import { playVoice } from "@/lib/play-voice";
 import { useA11yGestures } from "@/lib/use-a11y-gestures";
 import { A11yFocusBar } from "./A11yFocusBar";
@@ -44,7 +44,7 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
   const speakOnce = useCallback((text: string) => {
     if (spokeRef.current === text) return;
     spokeRef.current = text;
-    a11ySpeak(text);
+    playVoice(text);
     window.setTimeout(() => { spokeRef.current = ""; }, 1400);
   }, []);
 
@@ -170,7 +170,7 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
           playVoice("Буцлаа");
         } else {
           a11yStopSpeak();
-          a11ySpeak("Нүүр хуудас");
+          playVoice("Буцлаа");
         }
       }
     },
@@ -226,7 +226,7 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
           }
           onBack={() => {
             setBrailleOpen(false);
-            a11ySpeak("Буцлаа");
+            playVoice("Буцлаа");
           }}
         />
       )}

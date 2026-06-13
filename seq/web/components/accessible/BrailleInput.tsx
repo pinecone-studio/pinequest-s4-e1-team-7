@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { charFromMask, maskFromSet, type BrailleDots } from "@/lib/braille-mn";
-import { a11ySpeak } from "@/lib/a11y-speak";
 import { playVoice, stopVoice } from "@/lib/play-voice";
 
 type Props = {
@@ -72,9 +71,7 @@ export function BrailleInput({
   }, []);
 
   useEffect(() => {
-    a11ySpeak(
-      `${label}. Зүүн гар: 4, 5, 6. Баруун гар: 1, 2, 3. Зэрэг дарж үсэг бичнэ. Баруун — зай. Зүүн — устгах. Хоёр хуруу давхар дарж илгээх.`,
-    );
+    playVoice("Бичих");
   }, [label]);
 
   /**
@@ -124,15 +121,10 @@ export function BrailleInput({
       if (dots.size === 0) return;
       const ch = charFromMask(maskFromSet(dots));
       if (ch === null) {
-        playVoice("Танигдаагүй", true);
+        // Танигдаагүй хослол — дуугүй өнгөрнө
       } else {
         onChange(value + ch);
-        // Зай тэмдэгт TTS, үсэг бол audio файл
-        if (ch === " ") {
-          a11ySpeak("Зай", { dedup: false });
-        } else {
-          playVoice(ch);
-        }
+        playVoice(ch);
       }
     },
     [onChange, value],
@@ -152,7 +144,6 @@ export function BrailleInput({
         if (dot && !touchedDots.current.has(dot)) {
           touchedDots.current.add(dot);
           setVisualDots(new Set(touchedDots.current));
-          a11ySpeak(`${dot}`, { interrupt: false, dedup: false });
         }
       }
     }
@@ -200,11 +191,9 @@ export function BrailleInput({
         if (fingerCount === 1 && effAH > effAV) {
           if (effH > 0) {
             onChange(`${value} `);
-            a11ySpeak("Зай");
           } else {
             if (value.length > 0) {
               onChange(value.slice(0, -1));
-              a11ySpeak("Устгалаа");
             }
           }
         } else if (fingerCount === 2 && effAH > effAV && effH < 0) {
@@ -220,7 +209,6 @@ export function BrailleInput({
           twoFingerLastTap.current = 0;
           if (onSend && value.trim()) {
             onSend();
-            a11ySpeak("Зурвасыг илгээлээ");
           }
         } else {
           twoFingerLastTap.current = now;
