@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { m, AnimatePresence } from "framer-motion";
-import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { InformationCircleIcon, ExclamationCircleIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { STARS, MONGOLIA_PIN, type FilterId } from "./globeData";
 import { GlobeDetailPanel } from "./GlobeDetailPanel";
 import { GlobeStatsPanel } from "./GlobeStatsPanel";
@@ -19,6 +19,7 @@ export const GlobeSection = () => {
   const [filter,    setFilter]    = useState<FilterId>("global");
   const [hovered,   setHovered]   = useState<FilterId | null>(null);
   const [selected,  setSelected]  = useState(false);
+  const [compare,   setCompare]   = useState<"before" | "after">("after");
 
   useEffect(() => {
     const upd = () => { setGlobeSize(Math.round(window.innerHeight * 0.82)); setVw(window.innerWidth); };
@@ -95,19 +96,28 @@ export const GlobeSection = () => {
 
       <GlobeFilterArc visible={!selected} globeCenterX={globeCenter} globeSize={globeSize} filter={filter} hovered={hovered} onEnter={onFilterEnter} onLeave={onFilterLeave} />
       <GlobeDetailPanel selected={selected} onBack={handleBack} />
-      <GlobeStatsPanel visible={!selected} />
+      <GlobeStatsPanel visible={!selected} compare={compare} />
 
       <div className="pointer-events-none absolute bottom-[2%] left-[2%] font-black text-white leading-none select-none"
         style={{ fontSize: "clamp(64px,11vw,160px)", opacity: 0.07, letterSpacing: "-5px" }}>2024</div>
 
-      <div className="absolute bottom-7 left-1/2 -translate-x-1/2 flex items-center rounded-full p-1"
-        style={{ border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.03)" }}>
-        {(["Одоо", "1 жил", "5 жил"] as const).map((lbl, i) => (
-          <button key={lbl} className="relative rounded-full px-6 py-2.5 text-[13px] font-semibold" style={{ color: i === 0 ? "#0d1e35" : "rgba(255,255,255,0.5)" }}>
-            {i === 0 && <div className="absolute inset-0 rounded-full" style={{ background: "#fff" }} />}
-            <span className="relative z-10">{lbl}</span>
-          </button>
-        ))}
+      <div className="absolute left-10 top-1/2 -translate-y-1/2 z-20">
+        <div className="relative flex flex-col gap-7">
+          <div className="pointer-events-none absolute bottom-1 left-[1px] top-1 w-[1px]" style={{ background: "rgba(255,255,255,0.14)" }} />
+          {([
+            { mode: "before", Icon: ExclamationCircleIcon },
+            { mode: "after",  Icon: CheckCircleIcon },
+          ] as const).map(({ mode, Icon }) => {
+            const active = compare === mode;
+            const col = active ? "#f5c518" : "rgba(255,255,255,0.28)";
+            return (
+              <button key={mode} onClick={() => setCompare(mode)} className="flex items-center gap-4">
+                <div className="shrink-0 self-stretch rounded-full" style={{ width: 3, minHeight: "1.5rem", background: col, transition: "background 0.3s" }} />
+                <Icon style={{ width: "clamp(28px,3vw,52px)", height: "clamp(28px,3vw,52px)", color: col, transition: "color 0.3s" }} />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <button aria-label="Мэдээлэл" className="absolute bottom-6 right-6 flex h-10 w-10 items-center justify-center rounded-full"
