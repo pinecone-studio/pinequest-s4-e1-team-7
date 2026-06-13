@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
-import { useScroll, useMotionValueEvent, m, AnimatePresence } from "framer-motion";
+import { useScroll, useMotionValueEvent, AnimatePresence, m } from "framer-motion";
 import { getLenis } from "./LenisProvider";
 
-const LABELS = ["Нүүр", "Баг", "Асуудал", "Онцлог", "Апп"];
+const LABELS = ["Эхлэл", "Багийн танилцуулга", "Асуудал", "Шийдэл", "Бар код"];
 
 export const PageNav = () => {
   const [active, setActive]   = useState(0);
@@ -41,47 +41,42 @@ export const PageNav = () => {
   };
 
   return (
-    <div className="fixed bottom-10 left-8 z-50 flex flex-col gap-2">
-      {[0, 1, 2, 3, 4].map((i) => {
-        const isActive = active === i;
-        const isHovered = hovered === i;
-        return (
-          <div key={i} className="relative flex items-center">
-            <button
-              type="button"
-              onClick={() => goTo(i)}
-              onMouseEnter={() => setHovered(i)}
-              onMouseLeave={() => setHovered(null)}
-              aria-label={LABELS[i]}
-              className="flex items-center justify-center rounded-full font-black transition-all duration-300 active:scale-95"
-              style={{
-                width: isActive ? 44 : isHovered ? 36 : 28,
-                height: isActive ? 44 : 28,
-                background: isActive ? "#f5c518" : isHovered ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.10)",
-                color: isActive ? "#0d1e35" : "rgba(255,255,255,0.55)",
-                fontSize: isActive ? 15 : 12,
-              }}
-            >
-              {i + 1}
-            </button>
-
-            <AnimatePresence>
-              {isHovered && (
-                <m.span
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -8 }}
-                  transition={{ duration: 0.15 }}
-                  className="pointer-events-none absolute left-12 whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] font-bold"
-                  style={{ background: "rgba(0,0,0,0.75)", color: "#fff", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.12)" }}
-                >
-                  {LABELS[i]}
-                </m.span>
-              )}
-            </AnimatePresence>
-          </div>
-        );
-      })}
+    <div className="fixed bottom-10 left-8 z-50 flex flex-col gap-3">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <div key={i} className="flex items-center gap-4"
+          onMouseEnter={() => setHovered(i)}
+          onMouseLeave={() => setHovered(null)}>
+          <AnimatePresence>
+            {hovered === i && (
+              <m.span
+                className="pointer-events-none whitespace-nowrap rounded-full px-4 py-1.5 font-black uppercase"
+                style={{ fontSize: 14, letterSpacing: "0.04em", background: active === i ? "#f5c518" : "rgba(255,255,255,0.15)", color: active === i ? "#0d1e35" : "#fff", backdropFilter: "blur(8px)", border: `1px solid ${active === i ? "#f5c518" : "rgba(255,255,255,0.3)"}` }}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.15 }}
+              >
+                {LABELS[i]}
+              </m.span>
+            )}
+          </AnimatePresence>
+          <button
+            type="button"
+            onClick={() => goTo(i)}
+            aria-label={LABELS[i]}
+            className="flex shrink-0 items-center justify-center rounded-full font-black transition-all duration-300"
+            style={{
+              width: 34,
+              height: active === i ? 56 : 30,
+              background: active === i ? "#f5c518" : "rgba(255,255,255,0.13)",
+              color: active === i ? "#0d1e35" : "rgba(255,255,255,0.6)",
+              fontSize: active === i ? 15 : 13,
+            }}
+          >
+            {i + 1}
+          </button>
+        </div>
+      ))}
     </div>
   );
 };

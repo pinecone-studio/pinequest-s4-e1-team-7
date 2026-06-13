@@ -78,9 +78,8 @@ export const MobileSection = () => (
               className="mb-1 font-black text-white"
               style={{ fontSize: "clamp(17px,1.8vw,22px)" }}
             >
-              SignBridge RWD version
+              SignBridge Mobile version
             </p>
-
             <div
               className="my-4 h-px"
               style={{ background: "rgba(255,255,255,0.1)" }}

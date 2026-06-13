@@ -13,7 +13,8 @@ export const Hero = () => {
   const [showOpening, setShowOpening] = useState(true);
 
   useEffect(() => {
-    if (reduce) { setShowOpening(false); return; }
+    if (reduce || sessionStorage.getItem("sb_opened")) { setShowOpening(false); return; }
+    sessionStorage.setItem("sb_opened", "1");
     document.body.style.overflow = "hidden";
     const t1 = setTimeout(() => setShowOpening(false), 2100);
     const t2 = setTimeout(() => { document.body.style.overflow = ""; }, 2800);

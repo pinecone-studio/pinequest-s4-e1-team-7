@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
@@ -49,9 +48,7 @@ export const Header = ({ landing }: { landing?: boolean } = {}) => {
         {!user ? (
           <>
             <Link href="/auth/login" className="db-pillbtn hidden sm:inline-flex">Нэвтрэх</Link>
-            <Link href="/auth/register" className="db-pillbtn green">
-              <UserPlusIcon className="h-4 w-4" /> Бүртгүүлэх
-            </Link>
+            <Link href="/auth/register" className="db-pillbtn green">Бүртгүүлэх</Link>
           </>
         ) : (
           <HeaderUserMenu />
