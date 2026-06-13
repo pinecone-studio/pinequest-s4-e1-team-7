@@ -1,0 +1,15 @@
+export const TEAM = [
+  { src: "/images/team1.JPG", name: "Ариунзул", role: "Developer" },
+  { src: "/images/team2.JPG", name: "Ганхөлөг", role: "Developer" },
+  { src: "/images/team3.JPG", name: "Норовсүрэн", role: "Developer" },
+  { src: "/images/team4.JPG", name: "Мөнхжин", role: "Developer" },
+];
+
+export const HERO_IMGS = [
+  { src: "/images/img-insidetext1.png" },
+  { src: "/images/img-insidetext2.jpeg" },
+  { src: "/images/img-insidetext3.jpeg" },
+  { src: "/images/img-insidetext4.jpeg" },
+];
+
+export const AT = [0.05, 0.13, 0.21, 0.29];
