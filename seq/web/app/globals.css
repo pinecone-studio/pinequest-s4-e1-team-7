@@ -13,6 +13,28 @@
   --ease: cubic-bezier(0.4,0,0.2,1);
 }
 
+/* Landing page display font — Unbounded 900, scoped to .lp wrapper */
+.lp h1, .lp h2, .lp [data-lp-font] {
+  font-family: var(--font-landing, var(--font-display));
+}
+
+/* ── Logo marquee ── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-marquee { animation: marquee 32s linear infinite; }
+
+/* ── Flip cards ── */
+.flip-card-inner {
+  transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.flip-card:hover .flip-card-inner,
+.flip-card:focus-within .flip-card-inner { transform: rotateY(180deg); }
+.flip-front, .flip-back { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.flip-back { transform: rotateY(180deg); }
+
 /* ── Shadcn HSL tokens ── */
 :root[data-theme="light"] {
   --background: 207 57% 90%;

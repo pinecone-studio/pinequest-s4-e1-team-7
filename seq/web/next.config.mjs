@@ -20,9 +20,9 @@ const nextConfig = {
     return config;
   },
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
-        // Cloudflare R2 public bucket
         protocol: "https",
         hostname: "pub-0b4b208083b74e5293a1ae3ed2fa6ba1.r2.dev",
         pathname: "/**",

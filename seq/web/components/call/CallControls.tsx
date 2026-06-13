@@ -47,19 +47,19 @@ export function CallControls({
           )}
         </button>
 
-        {/* End call — red, larger */}
+        {/* End call */}
         <button
           type="button"
           onClick={onEnd}
           aria-label="Дуудлага таслах"
-          className="flex h-16 w-16 items-center justify-center rounded-full transition-all duration-150 active:scale-95"
+          className="flex h-14 w-14 items-center justify-center rounded-full transition-all duration-150 active:scale-95"
           style={{
             background: "hsl(var(--destructive))",
             border: "1.5px solid hsl(var(--destructive)/0.7)",
             boxShadow: "0 4px 24px hsl(var(--destructive)/0.45)",
           }}
         >
-          <PhoneXMarkIcon className="h-7 w-7 text-white" />
+          <PhoneXMarkIcon className="h-6 w-6 text-white" />
         </button>
 
         {/* Microphone */}

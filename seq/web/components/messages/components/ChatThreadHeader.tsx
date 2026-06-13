@@ -1,6 +1,6 @@
 "use client";
 
-import { PhoneIcon } from "@heroicons/react/24/solid";
+import { VideoCameraIcon } from "@heroicons/react/24/solid";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { UserAvatar } from "@/components/dashboard/shared/UserAvatar";
 import type { ChatPeer } from "@/lib/chat-api";
@@ -49,7 +49,7 @@ export function ChatThreadHeader({ activePeer, onClose, onCall }: Props) {
         className="flex h-11 w-11 items-center justify-center rounded-full transition-transform active:scale-95"
         style={{ background: "var(--olive)", color: "#0d1e35" }}
       >
-        <PhoneIcon className="h-5 w-5" />
+        <VideoCameraIcon className="h-5 w-5" />
       </button>
     </header>
   );

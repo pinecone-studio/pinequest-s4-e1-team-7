@@ -35,140 +35,111 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full flex bg-[var(--bg)] selection:bg-[var(--olive)] selection:text-slate-900">
-      
-      {/* ─── LEFT SIDE (BRAND PANEL) ────────────────────────────────────────── */}
-<div className="hidden lg:flex lg:w-5/12 xl:w-1/2 relative overflow-hidden p-16 flex-col justify-between bg-gradient-to-br from-[var(--teal)] via-[var(--teal-2)] to-[var(--bg)]">
-  {/* Dynamic Glow Meshes */}
-  <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full blur-[120px] opacity-30 bg-[var(--olive)] animate-pulse" />
-  <div className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full blur-[120px] opacity-20 bg-[var(--teal)]" />
+      <div className="hidden lg:flex lg:w-5/12 xl:w-1/2 relative overflow-hidden p-16 flex-col justify-between bg-gradient-to-br from-[var(--teal)] via-[var(--teal-2)] to-[var(--bg)]">
+        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full blur-[120px] opacity-30 bg-[var(--olive)] animate-pulse" />
+        <div className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full blur-[120px] opacity-20 bg-[var(--teal)]" />
 
-  {/* Brand Header - Kept Left-Aligned */}
-  <div className="relative z-10">
-    <Link href="/" className="inline-flex items-center gap-3 group">
-      <img
-        src="/images/logoShar.png"
-        alt="Sign Bridge"
-        className="h-13 w-13 object-contain"
-      />
-      <div className="flex flex-col">
-        <div className="flex items-baseline gap-0.5">
-          <span className="text-[var(--olive)] font-black text-xl tracking-tight">Sign</span>
-          <span className="text-white font-black text-xl tracking-tight">Bridge</span>
+        <div className="relative z-10">
+          <Link
+            href="/"
+            className="inline-flex flex-nowrap items-center gap-3 group"
+          >
+            <img
+              src="/images/logoShar.png"
+              alt="Sign Bridge"
+              className="h-13 w-13 object-contain flex-shrink-0"
+            />
+            <div className="flex flex-col">
+              <div className="flex items-baseline gap-0.5">
+                <span className="text-[var(--olive)] font-black text-xl tracking-tight">
+                  Sign
+                </span>
+                <span className="text-white font-black text-xl tracking-tight">
+                  Bridge
+                </span>
+              </div>
+              <span className="text-white/50 text-[10px] tracking-widest uppercase font-semibold whitespace-nowrap">
+                Interpreter System
+              </span>
+            </div>
+          </Link>
         </div>
-        <span className="text-white/50 text-[10px] tracking-widest uppercase font-semibold">Interpreter System</span>
+
+        <div className="relative z-10 max-w-lg w-full mx-auto my-auto py-12">
+          <h1 className="text-white text-4xl xl:text-5xl font-black leading-[1.15] tracking-tight mb-6 font-display drop-shadow-sm">
+            Дохионы хэлмэрч <br />
+            <span className="text-[var(--olive)]">таны халаасанд</span>
+          </h1>
+          <p className="text-white/75 text-base xl:text-lg leading-relaxed mb-10 font-medium">
+            Та нэвтэрснээр дохионы хэлний шууд хөрвүүлэгч цогц шийдлийг ашиглах
+            боломжтой
+          </p>
+
+          <div className="space-y-3.5">
+            <Feature
+              title="Дохио - Яриа"
+              description="Монгол дохионы хэлийг яриа руу шууд хөрвүүлэх"
+              index={1}
+            />
+            <Feature
+              title="Яриа - Бичвэр"
+              description="Яриаг бичвэр болгон хөрвүүлэх"
+              index={2}
+            />
+            <Feature
+              title="Чат"
+              description="Найзтайгай видео дуудлага хийж, мессэж бичих"
+              index={3}
+            />
+          </div>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-6 text-white/40 text-xs font-semibold tracking-wider uppercase">
+          <span>Технологи</span>
+          <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+          <span>Шийдэл</span>
+          <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+          <span>Харилцаа</span>
+        </div>
       </div>
-    </Link>
-  </div>
 
-  {/* Value Prop Content - Horizontally and Vertically Centered */}
-  <div className="relative z-10 max-w-lg w-full mx-auto my-auto py-12">
-    <h1 className="text-white text-4xl xl:text-5xl font-black leading-[1.15] tracking-tight mb-6 font-display drop-shadow-sm">
-      Дохионы хэлмэрч <br />
-      <span className="text-[var(--olive)]">таны халаасанд</span>
-    </h1>
-    <p className="text-white/75 text-base xl:text-lg leading-relaxed mb-10 font-medium">
-      Бүртгүүлээд дохионы хэлний шууд хөрвүүлэгч, видео дуудлага болон ухаалаг чатын цогц шийдлийг ашиглаж эхэлнэ үү.
-    </p>
-
-    {/* Feature Bento Stack */}
-    <div className="space-y-3.5">
-      <Feature
-        title="Дохио - Яриа"
-        description="Монгол дохионы хэлийг хөрвүүлж яриа болгоно."
-        index={1}
-      />
-      <Feature
-        title="Яриа - Бичвэр"
-        description="Яриаг бичвэр болгож, дохионы хэлтэн уншина."
-        index={2}
-      />
-      <Feature
-        title="Видео дуудлага"
-        description="Видео дуудлага дээр дохионы хэлийг шууд хөрвүүлэн уншина."
-        index={3}
-      />
-    </div>
-  </div>
-
-  {/* Brand Footer - Kept Left-Aligned */}
-  <div className="relative z-10 flex items-center gap-6 text-white/40 text-xs font-semibold tracking-wider uppercase">
-    <span>Технологи</span>
-    <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-    <span>Шийдэл</span>
-    <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-    <span>Харилцаа</span>
-  </div>
-</div>
-
-      {/* ─── RIGHT SIDE (FORM PANEL) ───────────────────────────────────────── */}
       <div className="w-full lg:w-7/12 xl:w-1/2 flex flex-col bg-[var(--surface)] border-l border-[var(--border-c)]/30 shadow-2xl relative z-10">
-        
-        {/* Navigation Header */}
-         <div
-
-          className="flex items-center justify-between px-8 pt-12 border-b pb-4"
-
+        <div
+          className="flex items-center justify-between px-16 pt-16 border-b pb-4"
           style={{ borderColor: "rgba(255,255,255,0.08)" }}
-
         >
-
           <div className="flex gap-2">
-
-            
-
             <Link
-
               href="/auth/register"
-
               className="px-6 py-2 font-medium text-sm transition-colors duration-300"
-
               style={{ color: "var(--text)" }}
-
             >
-
               Бүртгүүлэх
-
             </Link>
             <button
-
               className="px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90"
-
               style={{
-
                 background: "var(--olive)",
 
                 color: "var(--text)",
-
               }}
-
             >
-Нэвтрэх
-              
-
+              Нэвтрэх
             </button>
-
           </div>
 
           <Link
-
             className="p-2 rounded-full transition-colors duration-300 hover:bg-white/10"
-
             style={{ color: "rgba(255,255,255,0.4)" }}
-
             href="/"
-
           >
-
             <X />
-
           </Link>
-
         </div>
 
         {/* Content Body Layout */}
-        <div className="flex-1 flex items-center justify-center px-6 sm:px-12 py-12 overflow-y-auto">
+        <div className="flex-1 flex items-center justify-center px-16 py-12 overflow-y-auto">
           <div className="w-full max-w-md space-y-8">
-            
             {/* Title Block */}
             <div>
               <h2 className="text-3xl font-black tracking-tight text-[var(--text)] font-display">
@@ -179,12 +150,12 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Login Form */}
             <form onSubmit={submit} className="space-y-5">
-              
-              {/* Login ID Input */}
               <div className="space-y-2">
-                <label htmlFor="login" className="block text-xs font-bold uppercase tracking-wider text-[var(--text-2)]">
+                <label
+                  htmlFor="login"
+                  className="block text-xs font-bold uppercase tracking-wider text-[var(--text-2)]"
+                >
                   И-мэйл эсвэл Утас
                 </label>
                 <div className="relative group">
@@ -202,10 +173,12 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Password Input */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-[var(--text-2)]">
+                  <label
+                    htmlFor="password"
+                    className="block text-xs font-bold uppercase tracking-wider text-[var(--text-2)]"
+                  >
                     Нууц үг
                   </label>
                 </div>
@@ -226,19 +199,21 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--surface)] transition-all"
                   >
-                    {showPassword ? <Eye className="size-4" /> : <EyeClosed className="size-4" />}
+                    {showPassword ? (
+                      <Eye className="size-4" />
+                    ) : (
+                      <EyeClosed className="size-4" />
+                    )}
                   </button>
                 </div>
               </div>
 
-              {/* Error Alert Display */}
               {error && (
                 <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 text-sm font-medium animate-shake">
                   {error}
                 </div>
               )}
 
-              {/* Submit CTA Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -268,12 +243,12 @@ export default function LoginPage() {
 
             {/* Secondary Option Link */}
             <p className="text-center text-sm text-[var(--text-3)] font-medium">
-              Бүртгэл байхгүй юу?{" "}
+              Шинэ хэрэглэгч болох{" "}
               <Link
                 href="/auth/register"
                 className="font-bold text-[var(--olive)] hover:underline underline-offset-4 transition-all"
               >
-                Шинээр бүртгүүлэх
+                Бүртгүүлэх
               </Link>
             </p>
           </div>
@@ -298,9 +273,7 @@ function Feature({
         {index.toString().padStart(2, "0")}
       </div>
       <div className="space-y-0.5">
-        <h3 className="text-white font-bold text-sm tracking-wide">
-          {title}
-        </h3>
+        <h3 className="text-white font-bold text-sm tracking-wide">{title}</h3>
         <p className="text-white/60 text-xs leading-relaxed">{description}</p>
       </div>
     </div>

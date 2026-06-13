@@ -6,7 +6,6 @@ const PUBLIC = [
   "/auth",
   "/call",
   "/welcome",
-  "/mode",
   "/models",
   "/mediapipe-wasm",
   "/tfjs-wasm",

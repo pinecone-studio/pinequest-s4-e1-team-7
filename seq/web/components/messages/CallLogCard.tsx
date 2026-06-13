@@ -1,10 +1,11 @@
 "use client";
 
 import {
-  PhoneArrowDownLeftIcon,
-  PhoneArrowUpRightIcon,
+  ArrowDownLeftIcon,
+  ArrowUpRightIcon,
   TrashIcon,
   VideoCameraIcon,
+  VideoCameraSlashIcon,
 } from "@heroicons/react/24/solid";
 import { useIncomingCall } from "@/context/IncomingCallContext";
 import type { CallLogEntry } from "@/lib/call-log";
@@ -22,7 +23,7 @@ function statusLabel(entry: CallLogEntry) {
     case "completed":
       return formatCallDurationShort(entry.durationMs) ?? "0 сек";
     case "missed":
-      return entry.outgoing ? "Хариулаагүй" : "Алдсан дуудлага";
+      return entry.outgoing ? "Хариулаагүй" : "Аваагүй дуудлага";
     case "declined":
       return "Татгалзсан";
     case "ringing":
@@ -52,7 +53,9 @@ export function CallLogCard({
   const peerName = peer.name ?? peer.email ?? "Хэрэглэгч";
   const subtitle = statusLabel(entry);
   const isBad = entry.status === "missed" || entry.status === "declined";
-  const Icon = entry.outgoing ? PhoneArrowUpRightIcon : PhoneArrowDownLeftIcon;
+  const Icon = isBad ? VideoCameraSlashIcon : VideoCameraIcon;
+  const showOutgoingBadge = entry.outgoing && !isBad;
+  const showIncomingBadge = !entry.outgoing && !isBad;
 
   const handleJoin = () => {
     const msg = entry.inviteMsg;
@@ -81,18 +84,27 @@ export function CallLogCard({
       >
         <div className="flex gap-2 px-2.5 py-2">
           <div
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+            className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
             style={{
               background: isBad ? "hsl(var(--destructive)/0.12)" : "rgba(245,197,24,0.15)",
               color: isBad ? "hsl(var(--destructive))" : "var(--olive)",
             }}
           >
             <Icon className="h-4 w-4" />
+            {showOutgoingBadge && (
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[var(--olive)]">
+                <ArrowUpRightIcon className="h-2 w-2 text-white" />
+              </span>
+            )}
+            {showIncomingBadge && (
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[var(--olive)]">
+                <ArrowDownLeftIcon className="h-2 w-2 text-white" />
+              </span>
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-1">
               <div className="flex min-w-0 items-center gap-1">
-                <VideoCameraIcon className="h-3 w-3 shrink-0 opacity-60" style={{ color: "var(--text-3)" }} />
                 <p className="truncate text-[13px] font-bold leading-none" style={{ color: "var(--text)" }}>
                   Видео дуудлага
                 </p>
