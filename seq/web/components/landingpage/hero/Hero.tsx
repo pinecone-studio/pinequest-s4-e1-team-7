@@ -27,10 +27,11 @@ export const Hero = () => {
   const r        = useTransform(p, [0.25, 0.58], ["4%", "100%"]);
   const imgClip  = useTransform(r, (v) => `circle(${v} at 5% 58%)`);
   const imgScale = useTransform(p, [0.25, 0.58], [1, 1.12]);
-  const imgOp    = useTransform(p, [0.22, 0.36], [0, 1]);
+  const imgOp    = useTransform(p, [0.22, 0.36, 0.54, 0.58], [0, 1, 1, 0]);
   const textOp   = useTransform(p, [0.4, 0.54], [1, 0]);
-  const panelY   = useTransform(p, [0.58, 1.0], ["20%", "0%"]);
-  const panelOp  = useTransform(p, [0.58, 0.68], [0, 1]);
+
+  const rawInset = useTransform(p, [0.58, 0.88], [100, 0]);
+  const panelClip = useTransform(rawInset, (v) => `inset(${Math.max(0, Math.min(100, v))}% 0 0 0)`);
 
   return (
     <section id="hero" ref={ref} className="relative h-[380vh] bg-black">
@@ -44,7 +45,7 @@ export const Hero = () => {
         <m.div style={{ opacity: textOp }} className="absolute inset-0 z-10 bg-black">
           <HeroText p={p} />
         </m.div>
-        <m.div style={{ y: panelY, opacity: panelOp }} className="absolute inset-0 z-20">
+        <m.div style={{ clipPath: panelClip }} className="absolute inset-0 z-20">
           <HeroTeamPanel p={p} />
         </m.div>
         <HeroOpening show={showOpening} />

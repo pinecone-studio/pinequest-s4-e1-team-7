@@ -1,20 +1,24 @@
+import Image from "next/image";
+
 export const Footer = () => (
-  <footer className="fixed bottom-0 left-0 right-0 z-0 flex h-screen flex-col items-center justify-center bg-black">
-    <div className="text-center leading-none">
-      <p
-        className="block select-none font-black uppercase"
-        style={{ fontSize: "clamp(5rem, 15vw, 18rem)", letterSpacing: "-0.04em", color: "#fff" }}
+  <footer className="relative z-10 flex flex-col items-center justify-center gap-3 bg-black py-8">
+    <div className="flex items-center gap-3">
+      <Image
+        src="/images/logoShar.png"
+        alt="Sign Bridge"
+        width={48}
+        height={48}
+        className="select-none object-contain"
+      />
+      <span
+        className="select-none font-black "
+        style={{ fontSize: "clamp(1.4rem, 3vw, 2.8rem)", letterSpacing: "-0.03em" }}
       >
-        Sign
-      </p>
-      <p
-        className="block select-none font-black uppercase"
-        style={{ fontSize: "clamp(5rem, 15vw, 18rem)", letterSpacing: "-0.04em", color: "var(--olive)" }}
-      >
-        Bridge
-      </p>
+        <span style={{ color: "var(--olive)" }}>Sign</span>
+        <span style={{ color: "#fff" }}>Bridge</span>
+      </span>
     </div>
-    <p className="absolute bottom-8 text-[13px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+    <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.3)" }}>
       © 2026 Sign Bridge.
     </p>
   </footer>

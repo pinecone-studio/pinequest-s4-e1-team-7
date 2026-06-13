@@ -8,6 +8,7 @@ import { Hero } from "@/components/landingpage/hero/Hero";
 import { GlobeSection } from "@/components/landingpage/globe/GlobeSection";
 import { FeaturesSection } from "@/components/landingpage/features/FeaturesSection";
 import { Footer } from "@/components/landingpage/Footer";
+import { MobileSection } from "@/components/landingpage/MobileSection";
 import { PageNav } from "@/components/landingpage/PageNav";
 import { HeroWordmark } from "@/components/landingpage/HeroWordmark";
 
@@ -22,15 +23,15 @@ const HomePage = () => (
   <LenisProvider>
     <LazyMotion features={domAnimation} strict>
       <>
-        <Footer />
         <HeroWordmark />
         <main className={`${unbounded.variable} lp relative z-10 bg-black`}>
-          <Header />
+          <Header landing />
           <Hero />
           <GlobeSection />
           <FeaturesSection />
+          <MobileSection />
+          <Footer />
         </main>
-        <div className="relative z-10 h-screen" aria-hidden="true" />
         <PageNav />
         <Suspense>
           <AuthOverlay />
