@@ -1,16 +1,10 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { m, AnimatePresence } from "framer-motion";
-import {
-  InformationCircleIcon,
-  ExclamationCircleIcon,
-  CheckCircleIcon,
-} from "@heroicons/react/24/solid";
-import { STARS, MONGOLIA_PIN, type FilterId } from "./globeData";
-import { GlobeDetailPanel } from "./GlobeDetailPanel";
-import { GlobeStatsPanel } from "./GlobeStatsPanel";
-import { GlobeFilterArc } from "./GlobeFilterArc";
+import { m, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ArrowRightIcon } from "@heroicons/react/24/solid";
+import { STARS, MONGOLIA_PIN } from "./globeData";
+import { GlobeExpanded } from "./GlobeExpanded";
 import { EASE } from "../motion";
 
 const GlobeViz = dynamic(() => import("./GlobeViz"), {
@@ -18,21 +12,58 @@ const GlobeViz = dynamic(() => import("./GlobeViz"), {
   loading: () => <div />,
 });
 
+const ITEMS = [
+  {
+    mode: "before" as const,
+    label: "Өмнө",
+    accent: "#ef4444",
+    tag: "Одоогийн байдал",
+    stats: [
+      { label: "Ажилгүйдэлтэй иргэд", value: "2,400+" },
+      { label: "Дохионы хэлээр ярьдаг иргэд", value: "25,000+" },
+      { label: "Хөдөлмөр эрхлэх бэрхшээл", value: "90%" },
+      { label: "Дохионы хэлмэрч", value: "Шаардлагатай" },
+    ],
+  },
+  {
+    mode: "after" as const,
+    label: "Дараа",
+    accent: "#f5c518",
+    tag: "SignBridge-тэй",
+    stats: [
+      { label: "Ажилгүйдэл буурах", value: "−90%" },
+      {
+        label: "Эдгээр иргэдийн ниймгийн харилцаа, чадамжийг нэмэгдүүлэх",
+        value: "25,000+",
+      },
+      { label: "Хэрэглэгчдийн хүлээлт", value: "98%" },
+      { label: "Хөрвүүлэх тусламж", value: "24/7" },
+    ],
+  },
+];
+
+type GlobeInstance = {
+  controls?: () => {
+    update?: () => void;
+    autoRotate?: boolean;
+    autoRotateSpeed?: number;
+    enableZoom?: boolean;
+    enablePan?: boolean;
+  } | null;
+  pointOfView?: (v: object, d: number) => void;
+} | null;
+
+const SPLIT = 67;
+
 export const GlobeSection = () => {
   const globeRef = useRef<unknown>(null);
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [globeSize, setGlobeSize] = useState(700);
-  const [vw, setVw] = useState(1440);
-  const [filter, setFilter] = useState<FilterId>("global");
-  const [hovered, setHovered] = useState<FilterId | null>(null);
-  const [selected, setSelected] = useState(false);
+  const [size, setSize] = useState(560);
   const [compare, setCompare] = useState<"before" | "after">("after");
+  const [expanded, setExpanded] = useState(false);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
-    const upd = () => {
-      setGlobeSize(Math.round(window.innerHeight * 0.82));
-      setVw(window.innerWidth);
-    };
+    const upd = () => setSize(Math.round(window.innerHeight * 0.92));
     upd();
     window.addEventListener("resize", upd);
     return () => window.removeEventListener("resize", upd);
@@ -40,58 +71,27 @@ export const GlobeSection = () => {
 
   useEffect(() => {
     const t = setInterval(() => {
-      const g = globeRef.current as {
-        controls?: () => {
-          update?: () => void;
-          autoRotate?: boolean;
-          autoRotateSpeed?: number;
-          enableZoom?: boolean;
-          enablePan?: boolean;
-        };
-        pointOfView?: (v: object, d: number) => void;
-      } | null;
+      const g = globeRef.current as GlobeInstance;
       if (!g) return;
       const c = g.controls?.();
       if (!c?.update) return;
       clearInterval(t);
       c.autoRotate = true;
-      c.autoRotateSpeed = 0.45;
+      c.autoRotateSpeed = 0.4;
       c.enableZoom = false;
       c.enablePan = false;
-      g.pointOfView?.({ lat: 28, lng: 95, altitude: 2.2 }, 0);
+      g.pointOfView?.({ lat: 47, lng: 103, altitude: 2.2 }, 0);
     }, 150);
     return () => clearInterval(t);
   }, []);
 
-  const handleCountryClick = useCallback((name: string) => {
-    if (name === "Mongolia") setSelected(true);
-  }, []);
-  const handleBack = useCallback(() => setSelected(false), []);
-  const onFilterEnter = useCallback((id: FilterId) => {
-    setHovered(id);
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    hoverTimer.current = setTimeout(() => setFilter(id), 160);
-  }, []);
-  const onFilterLeave = useCallback(() => {
-    setHovered(null);
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-  }, []);
-
-  const globeCenter = (selected ? 0.68 : 0.55) * vw;
-  const globeX = globeCenter - globeSize / 2;
-  const arcX = globeCenter - (globeSize + 80) / 2;
+  const onBack = useCallback(() => setExpanded(false), []);
 
   return (
     <section
       id="globe"
-      style={{
-        height: "100vh",
-        position: "relative",
-        background: "#000",
-        overflow: "hidden",
-        contentVisibility: "auto",
-        containIntrinsicSize: "0 100vh",
-      }}
+      className="relative overflow-hidden bg-black"
+      style={{ height: "100vh" }}
     >
       <div aria-hidden className="pointer-events-none absolute inset-0">
         {STARS.map((s, i) => (
@@ -109,202 +109,237 @@ export const GlobeSection = () => {
         ))}
       </div>
 
-      <m.div
+      <div
         aria-hidden
-        className="pointer-events-none absolute"
-        animate={{ x: arcX }}
-        transition={{ duration: 0.75, ease: EASE }}
-        style={{
-          left: 0,
-          top: "50%",
-          y: "-50%",
-          width: globeSize + 80,
-          height: globeSize + 80,
-          borderRadius: "50%",
-          border: "1px solid rgba(255,255,255,0.09)",
-          clipPath: "polygon(0 0, 52% 0, 52% 100%, 0 100%)",
-        }}
-      />
+        className="pointer-events-none absolute inset-0"
+        style={{ zIndex: 1 }}
+      >
+        <div
+          className="absolute"
+          style={{
+            left: `${SPLIT}%`,
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: size * 1.9,
+            height: size * 1.9,
+          }}
+        >
+          <svg
+            width="100%"
+            height="100%"
+            viewBox={`0 0 ${size * 1.9} ${size * 1.9}`}
+          >
+            {[0.28, 0.4, 0.54, 0.68, 0.82].map((f) => (
+              <circle
+                key={f}
+                cx={size * 0.95}
+                cy={size * 0.95}
+                r={size * 0.95 * f}
+                fill="none"
+                stroke="rgba(255,255,255,0.07)"
+                strokeWidth={1}
+              />
+            ))}
+            {!reduce && (
+              <m.circle
+                cx={size * 0.95}
+                cy={size * 0.95}
+                r={size * 0.18}
+                fill="none"
+                stroke="rgba(255,255,255,0.28)"
+                strokeWidth={1.5}
+                animate={{ r: [size * 0.18, size * 0.88], opacity: [0.5, 0] }}
+                transition={{
+                  duration: 3.5,
+                  repeat: Infinity,
+                  ease: "easeOut",
+                  repeatDelay: 1.5,
+                }}
+              />
+            )}
+          </svg>
+        </div>
+      </div>
 
       <m.div
-        className="absolute will-change-transform"
-        animate={{ x: globeX }}
-        transition={{ duration: 0.75, ease: EASE }}
+        className="absolute top-0 bottom-0"
+        style={{ left: `${SPLIT}%`, right: 0, zIndex: 2 }}
+        initial={{ clipPath: "inset(0 0 0 100%)" }}
+        animate={{ clipPath: "inset(0 0 0 0%)" }}
+        transition={{ duration: 0.85, delay: 0.7, ease: EASE }}
+      >
+        <div
+          className="absolute"
+          style={{
+            left: 0,
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: size,
+            height: size,
+          }}
+        >
+          <GlobeViz
+            ref={globeRef}
+            width={size}
+            height={size}
+            regions={MONGOLIA_PIN}
+            highlightCountry="Mongolia"
+            onCountryClick={() => setExpanded(true)}
+          />
+        </div>
+      </m.div>
+
+      <button
+        onClick={() => setExpanded(true)}
+        aria-label="Өгөгдлийг судлах"
+        className="absolute flex items-center justify-center rounded-full transition-transform hover:scale-110 active:scale-95"
         style={{
-          left: 0,
+          width: 64,
+          height: 64,
+          background: "#f5c518",
+          left: `${SPLIT}%`,
           top: "50%",
-          y: "-50%",
-          width: globeSize,
-          height: globeSize,
+          transform: "translate(-50%,-50%)",
+          zIndex: 20,
         }}
       >
-        <GlobeViz
-          ref={globeRef}
-          width={globeSize}
-          height={globeSize}
-          regions={MONGOLIA_PIN}
-          highlightCountry="Mongolia"
-          onCountryClick={handleCountryClick}
-        />
-        <AnimatePresence>
-          {selected && (
-            <m.div
-              key="card"
-              initial={{ opacity: 0, y: 16, scale: 0.94 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.94 }}
-              transition={{ delay: 0.38, duration: 0.32, ease: EASE }}
-              className="absolute"
-              style={{
-                bottom: "10%",
-                right: "-5%",
-                width: "clamp(260px,22vw,340px)",
-                background: "#fff",
-                borderRadius: "6px",
-                boxShadow: "0 12px 60px rgba(0,0,0,0.5)",
-              }}
-            >
-              <div className="px-5 pt-4 pb-3 border-b border-black/10">
-                <p
-                  className="text-[11px] font-bold uppercase tracking-[0.16em]"
-                  style={{ color: "rgba(0,0,0,0.45)" }}
+        <ArrowRightIcon className="h-7 w-7" style={{ color: "#0d1e35" }} />
+      </button>
+
+      <m.div
+        className="pointer-events-none absolute top-0 bottom-0 w-px"
+        style={{
+          left: `${SPLIT}%`,
+          background: "rgba(255,255,255,0.18)",
+          transformOrigin: "top",
+          zIndex: 15,
+        }}
+        initial={{ scaleY: 0 }}
+        animate={{ scaleY: 1 }}
+        transition={{ duration: 0.75, delay: 0.2, ease: EASE }}
+      />
+
+      <div
+        className="absolute left-0 top-0 flex h-full flex-col justify-center px-[5vw]"
+        style={{ width: `${SPLIT}%`, zIndex: 10 }}
+      >
+        <m.div
+          className="mb-8 flex flex-col gap-3"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: {
+              transition: { staggerChildren: 0.1, delayChildren: 0.3 },
+            },
+          }}
+        >
+          {ITEMS.map((item, i) => {
+            const isActive = compare === item.mode;
+            return (
+              <m.button
+                key={item.mode}
+                onClick={() => setCompare(item.mode)}
+                className="flex items-center gap-5 text-left"
+                variants={{
+                  hidden: { opacity: 0, x: -48 },
+                  visible: {
+                    opacity: 1,
+                    x: 0,
+                    transition: { duration: 0.6, ease: EASE },
+                  },
+                }}
+              >
+                <div
+                  className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
+                  style={{
+                    border: `1.5px solid ${isActive ? item.accent : "rgba(255,255,255,0.18)"}`,
+                    transition: "border-color 0.3s",
+                  }}
                 >
-                  18+ насны иргэдийн
+                  {isActive && (
+                    <m.div
+                      layoutId="pill"
+                      className="absolute inset-0 rounded-full"
+                      style={{ background: item.accent }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
+                    />
+                  )}
+                  <span
+                    className="relative z-10 text-[15px] font-black"
+                    style={{
+                      color: isActive ? "#0d1e35" : "rgba(255,255,255,0.35)",
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                </div>
+                <span
+                  className="font-black uppercase transition-colors duration-300"
+                  style={{
+                    fontSize: "clamp(3rem, 6vw, 9rem)",
+                    lineHeight: 0.88,
+                    letterSpacing: "-0.03em",
+                    color: isActive ? item.accent : "rgba(255,255,255,0.55)",
+                  }}
+                >
+                  {item.label}
+                </span>
+              </m.button>
+            );
+          })}
+        </m.div>
+
+        <div className="flex gap-12 pl-[76px]">
+          {ITEMS.map((item) => {
+            const isActive = compare === item.mode;
+            return (
+              <div
+                key={item.mode}
+                className="flex flex-col gap-5 transition-opacity duration-300"
+                style={{ opacity: isActive ? 1 : 0.28, minWidth: 0, flex: 1 }}
+              >
+                <p
+                  className="text-[11px] font-bold uppercase tracking-[0.22em] mb-1"
+                  style={{ color: item.accent }}
+                >
+                  {item.tag}
                 </p>
-              </div>
-              <div className="grid grid-cols-2 divide-x divide-black/10">
-                {[
-                  { label: "Ажилгүйдлйг бууруулах", value: "90% хүртэл" },
-                  { label: "Хэрэглэгчдийн хүлээлт", value: "98%" },
-                ].map(({ label, value }) => (
-                  <div key={label} className="px-5 py-4">
+                <div
+                  className="h-px"
+                  style={{ background: item.accent, opacity: 0.35 }}
+                />
+                {item.stats.map(({ label, value }) => (
+                  <div key={label}>
                     <p
-                      className="text-[10px] leading-snug mb-1"
-                      style={{ color: "rgba(0,0,0,0.45)" }}
+                      className="text-[11px] uppercase tracking-[0.15em] mb-1"
+                      style={{ color: "rgba(255,255,255,0.38)" }}
                     >
                       {label}
                     </p>
-                    <p className="text-[32px] font-black leading-none text-black">
+                    <p
+                      className="font-black leading-tight"
+                      style={{
+                        color: item.accent,
+                        fontSize: "clamp(1.4rem, 2.6vw, 3rem)",
+                        letterSpacing: "-0.5px",
+                      }}
+                    >
                       {value}
                     </p>
                   </div>
                 ))}
               </div>
-            </m.div>
-          )}
-        </AnimatePresence>
-      </m.div>
-
-      <GlobeFilterArc
-        visible={!selected}
-        globeCenterX={globeCenter}
-        globeSize={globeSize}
-        filter={filter}
-        hovered={hovered}
-        onEnter={onFilterEnter}
-        onLeave={onFilterLeave}
-      />
-      <GlobeDetailPanel selected={selected} onBack={handleBack} />
-      <GlobeStatsPanel visible={!selected} compare={compare} />
-
-      <div
-        className="pointer-events-none absolute bottom-[2%] left-[2%] font-black text-white leading-none select-none"
-        style={{
-          fontSize: "clamp(64px,11vw,160px)",
-          opacity: 0.07,
-          letterSpacing: "-5px",
-        }}
-      >
-        2024
-      </div>
-
-      <div className="absolute left-10 top-1/2 -translate-y-1/2 z-20">
-        <div className="relative flex flex-col gap-7">
-          <div
-            className="pointer-events-none absolute bottom-1 left-[1px] top-1 w-[1px]"
-            style={{ background: "rgba(255,255,255,0.14)" }}
-          />
-          {(
-            [
-              { mode: "before", Icon: ExclamationCircleIcon },
-              { mode: "after", Icon: CheckCircleIcon },
-            ] as const
-          ).map(({ mode, Icon }) => {
-            const active = compare === mode;
-            const col = active ? "#f5c518" : "rgba(255,255,255,0.28)";
-            return (
-              <button
-                key={mode}
-                onClick={() => setCompare(mode)}
-                className="flex items-center gap-4"
-              >
-                <div
-                  className="shrink-0 self-stretch rounded-full"
-                  style={{
-                    width: 3,
-                    minHeight: "1.5rem",
-                    background: col,
-                    transition: "background 0.3s",
-                  }}
-                />
-                <Icon
-                  style={{
-                    width: "clamp(28px,3vw,52px)",
-                    height: "clamp(28px,3vw,52px)",
-                    color: col,
-                    transition: "color 0.3s",
-                  }}
-                />
-              </button>
             );
           })}
         </div>
       </div>
 
-      <button
-        aria-label="Мэдээлэл"
-        className="absolute bottom-6 right-6 flex h-10 w-10 items-center justify-center rounded-full"
-        style={{
-          border: "1px solid rgba(255,255,255,0.2)",
-          background: "rgba(255,255,255,0.04)",
-          color: "rgba(255,255,255,0.55)",
-        }}
-      >
-        <InformationCircleIcon className="h-5 w-5" />
-      </button>
-
       <AnimatePresence>
-        {!selected && (
-          <m.div
-            key="mob"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.15 } }}
-            className="absolute bottom-16 left-0 right-0 flex flex-wrap justify-center gap-5 px-6 lg:hidden"
-          >
-            {[
-              { value: "2,400+", label: "Ажилгүйдэлтэй иргэд" },
-              { value: "25,000+", label: "Дохионы хэлээр ярьдаг иргэд" },
-              { value: "98%", label: "Хэрэглэгчдийн хүлээлт" },
-              { value: "24/7", label: "Хөрвүүлэх тусламж" },
-            ].map(({ value, label }) => (
-              <div key={label} className="text-center">
-                <p
-                  className="text-[17px] font-black"
-                  style={{ color: "#F5C518" }}
-                >
-                  {value}
-                </p>
-                <p
-                  className="text-[9px]"
-                  style={{ color: "rgba(255,255,255,0.38)" }}
-                >
-                  {label}
-                </p>
-              </div>
-            ))}
-          </m.div>
-        )}
+        {expanded && <GlobeExpanded onBack={onBack} />}
       </AnimatePresence>
     </section>
   );
