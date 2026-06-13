@@ -46,11 +46,18 @@ import { ConversationSidebar } from "./components/ConversationSidebar";
 import { MessagesList } from "./components/MessagesList";
 import { ChatInputFooter } from "./components/ChatInputFooter";
 import { PageHeader } from "@/components/ui/PageHeader";
+import {
+  A11yChatBridgeContext,
+  type A11yChatBridge,
+} from "@/lib/a11y-chat-bridge";
+import { a11ySpeak } from "@/lib/a11y-speak";
+import { A11yNavProvider } from "@/components/accessible/A11yNavProvider";
+import { A11yThreadToolbar } from "@/components/accessible/A11yThreadToolbar";
 
 const readUntilId = new Map<string, number>();
 
-function chatPath(conversationId: string) {
-  return `/dashboard/call/${encodeURIComponent(conversationId)}`;
+function buildChatPath(base: string, conversationId: string) {
+  return `${base}/${encodeURIComponent(conversationId)}`;
 }
 
 function persistChatPeer(conversationId: string, peer: ChatPeer) {
@@ -97,12 +104,20 @@ type MessagesAppProps = {
   initialConversations?: ConversationSummary[];
   initialMessages?: ChatMessage[];
   initialConvId?: string;
+  chatBasePath?: string;
+  settingsPath?: string;
+  a11yMode?: boolean;
+  hideInputFooter?: boolean;
 };
 
 export function MessagesApp({
   initialConversations,
   initialMessages,
   initialConvId,
+  chatBasePath = "/dashboard/call",
+  settingsPath = "/dashboard/settings",
+  a11yMode = false,
+  hideInputFooter = false,
 }: MessagesAppProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
@@ -230,8 +245,8 @@ export function MessagesApp({
   );
 
   const closeChat = useCallback(() => {
-    router.push("/dashboard/call");
-  }, [router]);
+    router.push(chatBasePath);
+  }, [router, chatBasePath]);
 
   const refreshConversations = useCallback(async (silent = true) => {
     if (!silent) setLoadingList(true);
@@ -351,9 +366,9 @@ export function MessagesApp({
   ]);
 
   useEffect(() => {
-    if (!pathname.startsWith("/dashboard/call")) return;
+    if (!pathname.startsWith(chatBasePath)) return;
     markAvailable();
-  }, [pathname, markAvailable]);
+  }, [pathname, markAvailable, chatBasePath]);
 
   useEffect(() => {
     if (!routeConvId) {
@@ -535,14 +550,14 @@ export function MessagesApp({
     openChat(conv.id, conv.peer);
   };
 
-  const startWithPeer = async (peer: ChatPeer) => {
+  const startWithPeer = useCallback(async (peer: ChatPeer) => {
     const conv = await openConversation(peer.id);
     setSearch("");
     setSearchResults([]);
     openChat(conv.id, conv.peer);
-  };
+  }, [openChat]);
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (!activeId || !text.trim() || sending) return;
     setSending(true);
     try {
@@ -555,11 +570,12 @@ export function MessagesApp({
         return merged;
       });
       setText("");
+      if (a11yMode) a11ySpeak("Илгээгдлээ");
       void refreshConversations(true);
     } finally {
       setSending(false);
     }
-  };
+  }, [activeId, activePeer?.id, a11yMode, refreshConversations, sending, text]);
 
   const handleDeleteMessage = async (msg: ChatMessage) => {
     if (!activeId) return;
@@ -609,7 +625,7 @@ export function MessagesApp({
     }
   };
 
-  const startCall = async () => {
+  const startCall = useCallback(async () => {
     if (!activeId || !activePeer) return;
     markInCall();
     try {
@@ -626,9 +642,9 @@ export function MessagesApp({
       /* still open call screen */
     }
     router.push(
-      `/call/${encodeURIComponent(activeId)}?as=host&returnTo=${encodeURIComponent(chatPath(activeId))}`,
+      `/call/${encodeURIComponent(activeId)}?as=host&returnTo=${encodeURIComponent(buildChatPath(chatBasePath, activeId))}`,
     );
-  };
+  }, [activeId, activePeer, chatBasePath, markInCall, refreshConversations, router]);
 
   const startRecording = async () => {
     if (!activeId || recording) return;
@@ -690,7 +706,7 @@ export function MessagesApp({
             right={
               <button
                 type="button"
-                onClick={() => router.push("/dashboard/settings")}
+                onClick={() => router.push(settingsPath)}
                 aria-label="Тохиргоо"
                 className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70"
                 style={{
@@ -825,4 +841,14 @@ export function MessagesApp({
       </div>
     </div>
   );
+
+  if (a11yBridge) {
+    return (
+      <A11yChatBridgeContext.Provider value={a11yBridge}>
+        <A11yNavProvider>{content}</A11yNavProvider>
+      </A11yChatBridgeContext.Provider>
+    );
+  }
+
+  return content;
 }

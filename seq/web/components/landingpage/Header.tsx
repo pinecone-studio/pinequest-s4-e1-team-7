@@ -4,12 +4,14 @@ import Link from "next/link";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/context/AuthContext";
+import { useAppMode } from "@/context/AppModeContext";
 import { useTheme } from "@/hooks/useTheme";
 import { useEffect, useState } from "react";
 import { m, useScroll, useTransform } from "framer-motion";
 
 export const Header = () => {
   const { user } = useAuth();
+  const { homePath } = useAppMode();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [thresh, setThresh] = useState(300);
@@ -59,6 +61,13 @@ export const Header = () => {
       </Link>
       <div className="lnav-right">
         <ThemeToggle />
+        <Link
+          href={user ? "/accessible/chat" : "/auth/login?next=/accessible/chat"}
+          className="db-pillbtn hidden sm:inline-flex"
+          style={{ borderColor: "#ffbf00", color: "var(--text)" }}
+        >
+          Харааны бэрхшээлтэй
+        </Link>
         {!user ? (
           <>
             <Link
@@ -72,9 +81,7 @@ export const Header = () => {
             </Link>
           </>
         ) : (
-          <Link href="/dashboard/translator" className="db-pillbtn green">
-            Эхлэх
-          </Link>
+          <Link href={homePath} className="db-pillbtn green">Эхлэх</Link>
         )}
       </div>
     </nav>

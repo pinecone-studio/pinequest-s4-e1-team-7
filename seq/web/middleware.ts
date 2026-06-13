@@ -19,7 +19,16 @@ export function middleware(request: NextRequest) {
   if (isPublic) return NextResponse.next();
 
   const token = request.cookies.get("sb_token")?.value;
-  if (!token && pathname.startsWith("/dashboard")) {
+  if (!token && (pathname.startsWith("/dashboard") || pathname.startsWith("/accessible"))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/login";
+    if (pathname.startsWith("/accessible")) {
+      url.searchParams.set("next", pathname);
+    }
+    return NextResponse.redirect(url);
+  }
+
+  if (!token && pathname === "/mode") {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);

@@ -6,6 +6,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { IncomingCallProvider } from "@/context/IncomingCallContext";
 import { ChatRealtimeProvider } from "@/context/ChatRealtimeContext";
 import { AppProvider } from "@/context/AppContext";
+import { AppModeProvider } from "@/context/AppModeContext";
 import { Toaster } from "@/components/ui/sonner";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -35,9 +36,11 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
         <IncomingCallProvider>
           <ChatRealtimeProvider>
             <AppProvider>
-              {children}
-              <Toaster />
-              <SpeedInsights />
+              <AppModeProvider>
+                {children}
+                <Toaster />
+                <SpeedInsights />
+              </AppModeProvider>
             </AppProvider>
           </ChatRealtimeProvider>
         </IncomingCallProvider>

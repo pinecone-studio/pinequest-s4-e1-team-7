@@ -21,7 +21,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(loginId, password);
-      router.replace("/dashboard/translator");
+      const next =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("next")
+          : null;
+      router.replace(next ?? "/mode");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Алдаа үүслээ");
     } finally {
@@ -229,6 +233,15 @@ export default function LoginPage() {
               </button>
             </form>
 
+            <Link
+              href="/auth/login?next=/accessible/chat"
+              className="block w-full rounded-2xl border-2 px-6 py-4 text-center text-[15px] font-bold transition-all active:scale-[0.98]"
+              style={{ borderColor: "#ffbf00", color: "var(--text)" }}
+            >
+              Харааны бэрхшээлтэй горим
+            </Link>
+
+            {/* Secondary Option Link */}
             <p className="text-center text-sm text-[var(--text-3)] font-medium">
               Шинэ хэрэглэгч болох{" "}
               <Link
