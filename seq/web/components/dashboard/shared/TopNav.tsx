@@ -7,21 +7,27 @@ import { useTheme } from "@/hooks/useTheme";
 import { ProfileAvatarButton } from "../shared/ProfileAvatarButton";
 import { NotificationBell } from "../shared/NotificationBell";
 import {
-  HomeIcon as HomeO, HandRaisedIcon as HandO, MicrophoneIcon as MicO,
-  ChatBubbleLeftRightIcon as ChatO, BookOpenIcon as BookO,
+  HomeIcon as HomeO,
+  HandRaisedIcon as HandO,
+  MicrophoneIcon as MicO,
+  ChatBubbleLeftRightIcon as ChatO,
+  BookOpenIcon as BookO,
 } from "@heroicons/react/24/outline";
 import {
-  HomeIcon as HomeS, HandRaisedIcon as HandS, MicrophoneIcon as MicS,
-  ChatBubbleLeftRightIcon as ChatS, BookOpenIcon as BookS,
+  HomeIcon as HomeS,
+  HandRaisedIcon as HandS,
+  MicrophoneIcon as MicS,
+  ChatBubbleLeftRightIcon as ChatS,
+  BookOpenIcon as BookS,
 } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { id: "overview",   label: "Нүүр",  O: HomeO,  S: HomeS  },
-  { id: "translator", label: "Дохио", O: HandO,  S: HandS  },
-  { id: "voice",      label: "Яриа",  O: MicO,   S: MicS   },
-  { id: "call",       label: "Чат",   O: ChatO, S: ChatS },
-  { id: "dict",       label: "Толь",  O: BookO,  S: BookS  },
+  { id: "overview", label: "Нүүр", O: HomeO, S: HomeS },
+  { id: "translator", label: "Дохио", O: HandO, S: HandS },
+  { id: "voice", label: "Яриа", O: MicO, S: MicS },
+  { id: "call", label: "Чат", O: ChatO, S: ChatS },
+  { id: "dict", label: "Толь", O: BookO, S: BookS },
 ] as const;
 
 export const TopNav = () => {
@@ -29,7 +35,9 @@ export const TopNav = () => {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!mounted) return null;
 
@@ -39,22 +47,53 @@ export const TopNav = () => {
   return (
     <header
       className="sticky top-0 z-40 hidden items-center justify-between gap-3 px-4 py-4 md:flex md:px-6 lg:px-10 xl:px-16"
-      style={{ background: "var(--surface)", borderBottom: "1px solid var(--border-c)", backdropFilter: "blur(12px)" }}
+      style={{
+        background: "var(--surface)",
+        borderBottom: "1px solid var(--border-c)",
+        backdropFilter: "blur(12px)",
+      }}
     >
       {/* Left: logo + nav tabs */}
       <div className="flex min-w-0 flex-1 items-center gap-4">
-        <Link href="/dashboard" className="flex shrink-0 items-center" aria-label="Нүүр хуудас">
-          <img src={logoSrc} alt="Sign Bridge" className="h-13 w-13 rounded-xl object-contain" />
+        <Link
+          href="/dashboard/overview"
+          className="flex shrink-0 items-center"
+          aria-label="Нүүр хуудас"
+        >
+          <img
+            src={logoSrc}
+            alt="Sign Bridge"
+            className="h-13 w-13 rounded-xl object-contain"
+          />
           <div className="flex items-baseline gap-1">
-            <span style={{ color: "var(--olive)", fontWeight: 900, fontSize: "20px" }}>Sign</span>
-            <span style={{ color: "var(--text)", fontWeight: 900, fontSize: "20px" }}>Bridge</span>
+            <span
+              style={{
+                color: "var(--olive)",
+                fontWeight: 900,
+                fontSize: "20px",
+              }}
+            >
+              Sign
+            </span>
+            <span
+              style={{
+                color: "var(--text)",
+                fontWeight: 900,
+                fontSize: "20px",
+              }}
+            >
+              Bridge
+            </span>
           </div>
         </Link>
 
         <nav
           aria-label="Хяналтын самбар цэс"
           className="flex items-center gap-1 rounded-full px-2 py-1.5"
-          style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
+          style={{
+            background: "var(--surface-2)",
+            border: "1px solid var(--border-c)",
+          }}
         >
           {NAV.map(({ id, label, O, S }) => {
             const isActive = active === id;
@@ -68,7 +107,11 @@ export const TopNav = () => {
                   "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-all duration-200",
                   !isActive && "hover:opacity-80",
                 )}
-                style={isActive ? { background: "var(--olive)", color: "#0d1e35" } : { color: "var(--text-3)" }}
+                style={
+                  isActive
+                    ? { background: "var(--olive)", color: "#0d1e35" }
+                    : { color: "var(--text-3)" }
+                }
               >
                 <Icon className="size-3.5" />
                 {label}

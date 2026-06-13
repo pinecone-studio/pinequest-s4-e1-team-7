@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useIncomingCall } from "@/context/IncomingCallContext";
-import { buildCallLogs, callLogByAnchor, callLogMessageIds, type CallLogEntry } from "@/lib/call-log";
+import {
+  buildCallLogs,
+  callLogByAnchor,
+  callLogMessageIds,
+  type CallLogEntry,
+} from "@/lib/call-log";
 import {
   type ChatMessage,
   type ChatPeer,
@@ -32,16 +37,16 @@ import { useChatRealtime } from "@/context/ChatRealtimeContext";
 import { createAdaptivePoller, FALLBACK_POLL_MS } from "@/lib/poll-schedule";
 import { useAuth } from "@/context/AuthContext";
 import { fireChatNotification } from "@/lib/chat-notify";
-import { ChatBubbleLeftRightIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
+import {
+  ChatBubbleLeftRightIcon,
+  Cog6ToothIcon,
+} from "@heroicons/react/24/outline";
 import { ChatThreadHeader } from "./components/ChatThreadHeader";
 import { ConversationSidebar } from "./components/ConversationSidebar";
 import { MessagesList } from "./components/MessagesList";
 import { ChatInputFooter } from "./components/ChatInputFooter";
 import { PageHeader } from "@/components/ui/PageHeader";
 
-// Persists across remounts (e.g. navigating /call ↔ /call/[id]).
-// Maps convId → lastMessage.id the user has seen, so initial-load scan
-// doesn't re-mark already-read conversations as unread.
 const readUntilId = new Map<string, number>();
 
 function chatPath(conversationId: string) {
@@ -50,7 +55,10 @@ function chatPath(conversationId: string) {
 
 function persistChatPeer(conversationId: string, peer: ChatPeer) {
   try {
-    sessionStorage.setItem(`sb-chat-peer:${conversationId}`, JSON.stringify(peer));
+    sessionStorage.setItem(
+      `sb-chat-peer:${conversationId}`,
+      JSON.stringify(peer),
+    );
   } catch {
     /* ignore */
   }
@@ -65,14 +73,20 @@ function loadStoredChatPeer(conversationId: string): ChatPeer | null {
   }
 }
 
-function mergeMessages(prev: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] {
+function mergeMessages(
+  prev: ChatMessage[],
+  incoming: ChatMessage[],
+): ChatMessage[] {
   if (!incoming.length) return prev;
   const seen = new Set(prev.map((m) => m.id));
   const added = incoming.filter((m) => !seen.has(m.id));
   return added.length ? [...prev, ...added] : prev;
 }
 
-function prependMessages(prev: ChatMessage[], older: ChatMessage[]): ChatMessage[] {
+function prependMessages(
+  prev: ChatMessage[],
+  older: ChatMessage[],
+): ChatMessage[] {
   if (!older.length) return prev;
   const seen = new Set(prev.map((m) => m.id));
   const added = older.filter((m) => !seen.has(m.id));
@@ -99,20 +113,24 @@ export function MessagesApp({
   const { connected: realtimeConnected, subscribe } = useChatRealtime();
   const hasServerConversations = initialConversations !== undefined;
   const hasServerMessages =
-    initialMessages !== undefined && !!initialConvId && initialConvId === routeConvId;
+    initialMessages !== undefined &&
+    !!initialConvId &&
+    initialConvId === routeConvId;
   const [conversations, setConversations] = useState<ConversationSummary[]>(
     () => initialConversations ?? [],
   );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activePeer, setActivePeer] = useState<ChatPeer | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>(
-    () => (hasServerMessages ? initialMessages! : []),
+  const [messages, setMessages] = useState<ChatMessage[]>(() =>
+    hasServerMessages ? initialMessages! : [],
   );
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<ChatPeer[]>([]);
   const [searching, setSearching] = useState(false);
-  const [loadingList, setLoadingList] = useState(() => initialConversations === undefined);
+  const [loadingList, setLoadingList] = useState(
+    () => initialConversations === undefined,
+  );
   const [sending, setSending] = useState(false);
   const [recording, setRecording] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -143,7 +161,10 @@ export function MessagesApp({
     () => buildCallLogs(messages),
     [messages],
   );
-  const callLogMap = useMemo(() => callLogByAnchor(callLogEntries), [callLogEntries]);
+  const callLogMap = useMemo(
+    () => callLogByAnchor(callLogEntries),
+    [callLogEntries],
+  );
 
   // Detect new incoming messages and fire notifications + track unread.
   // prevConvsRef must only advance after both user and conversations are ready —
@@ -158,7 +179,8 @@ export function MessagesApp({
       // Initial load: mark conversations with unread messages, skipping already-seen ones
       const ids = conversations
         .filter((c) => {
-          if (!c.lastMessage || c.lastMessage.senderId === user.id) return false;
+          if (!c.lastMessage || c.lastMessage.senderId === user.id)
+            return false;
           if (c.id === routeConvId) return false;
           const seenId = readUntilId.get(c.id);
           return seenId === undefined || seenId < c.lastMessage.id;
@@ -179,7 +201,9 @@ export function MessagesApp({
       const seenId = readUntilId.get(conv.id);
       if (seenId !== undefined && seenId >= last.id) continue;
       newUnread.push(conv.id);
-      fireChatNotification(last.id, conv.id, last.kind, pathname, (href) => router.push(href));
+      fireChatNotification(last.id, conv.id, last.kind, pathname, (href) =>
+        router.push(href),
+      );
     }
     if (newUnread.length) setUnreadIds((s) => new Set([...s, ...newUnread]));
   }, [conversations, user?.id, routeConvId, pathname, router]);
@@ -187,16 +211,23 @@ export function MessagesApp({
   // Mark conversation as read when user navigates into it
   useEffect(() => {
     if (!routeConvId) return;
-    setUnreadIds((s) => { const n = new Set(s); n.delete(routeConvId); return n; });
+    setUnreadIds((s) => {
+      const n = new Set(s);
+      n.delete(routeConvId);
+      return n;
+    });
     // Record last-seen messageId so remounts don't re-mark this conv as unread
     const conv = conversations.find((c) => c.id === routeConvId);
     if (conv?.lastMessage) readUntilId.set(routeConvId, conv.lastMessage.id);
   }, [routeConvId, conversations]);
 
-  const openChat = useCallback((convId: string, peer: ChatPeer) => {
-    persistChatPeer(convId, peer);
-    router.push(chatPath(convId));
-  }, [router]);
+  const openChat = useCallback(
+    (convId: string, peer: ChatPeer) => {
+      persistChatPeer(convId, peer);
+      router.push(chatPath(convId));
+    },
+    [router],
+  );
 
   const closeChat = useCallback(() => {
     router.push("/dashboard/call");
@@ -235,7 +266,11 @@ export function MessagesApp({
     loadingOlderRef.current = true;
     setLoadingOlder(true);
     try {
-      const rows = await fetchOlderMessages(routeConvId, firstId, MESSAGE_PAGE_SIZE);
+      const rows = await fetchOlderMessages(
+        routeConvId,
+        firstId,
+        MESSAGE_PAGE_SIZE,
+      );
       if (!rows.length) {
         setHasMoreOlder(false);
         return;
@@ -280,7 +315,13 @@ export function MessagesApp({
         skippedInitialMsgLoadRef.current = true;
       }
     }
-  }, [initialConversations, initialMessages, initialConvId, hasServerMessages, routeConvId]);
+  }, [
+    initialConversations,
+    initialMessages,
+    initialConvId,
+    hasServerMessages,
+    routeConvId,
+  ]);
 
   useEffect(() => {
     void refreshConversations(!hasServerConversations);
@@ -302,7 +343,12 @@ export function MessagesApp({
       window.removeEventListener("focus", poller.poke);
       poller.stop();
     };
-  }, [refreshConversations, hasServerConversations, realtimeConnected, subscribe]);
+  }, [
+    refreshConversations,
+    hasServerConversations,
+    realtimeConnected,
+    subscribe,
+  ]);
 
   useEffect(() => {
     if (!pathname.startsWith("/dashboard/call")) return;
@@ -344,7 +390,8 @@ export function MessagesApp({
           if (!rows.length) return;
           setMessages((prev) => {
             const merged = mergeMessages(prev, rows);
-            lastMessageIdRef.current = merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
+            lastMessageIdRef.current =
+              merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
             writeCachedMessages(activeId, merged);
             return merged;
           });
@@ -382,9 +429,8 @@ export function MessagesApp({
         .catch(() => {});
     };
 
-    const poller = createAdaptivePoller(
-      pollNewMessages,
-      () => (realtimeConnected ? null : FALLBACK_POLL_MS),
+    const poller = createAdaptivePoller(pollNewMessages, () =>
+      realtimeConnected ? null : FALLBACK_POLL_MS,
     );
     poller.start();
     document.addEventListener("visibilitychange", poller.onVisibility);
@@ -415,7 +461,10 @@ export function MessagesApp({
   const scrollToBottom = useCallback((instant = false) => {
     const el = messagesScrollRef.current;
     if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: instant ? "auto" : "smooth" });
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: instant ? "auto" : "smooth",
+    });
   }, []);
 
   useEffect(() => {
@@ -501,7 +550,8 @@ export function MessagesApp({
       shouldScrollToBottomRef.current = true;
       setMessages((p) => {
         const merged = mergeMessages(p, [msg]);
-        lastMessageIdRef.current = merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
+        lastMessageIdRef.current =
+          merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
         return merged;
       });
       setText("");
@@ -539,16 +589,21 @@ export function MessagesApp({
   };
 
   const handleSaveEdit = async () => {
-    if (!activeId || editingId == null || !editText.trim() || savingEdit) return;
+    if (!activeId || editingId == null || !editText.trim() || savingEdit)
+      return;
     setSavingEdit(true);
     setEditError(null);
     try {
       const updated = await editMessage(activeId, editingId, editText.trim());
-      setMessages((prev) => prev.map((m) => (m.id === editingId ? updated : m)));
+      setMessages((prev) =>
+        prev.map((m) => (m.id === editingId ? updated : m)),
+      );
       cancelEdit();
       void refreshConversations(true);
     } catch (err) {
-      setEditError(err instanceof Error ? err.message : "Хадгалахад алдаа гарлаа");
+      setEditError(
+        err instanceof Error ? err.message : "Хадгалахад алдаа гарлаа",
+      );
     } finally {
       setSavingEdit(false);
     }
@@ -562,7 +617,8 @@ export function MessagesApp({
       shouldScrollToBottomRef.current = true;
       setMessages((p) => {
         const merged = mergeMessages(p, [msg]);
-        lastMessageIdRef.current = merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
+        lastMessageIdRef.current =
+          merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
         return merged;
       });
       void refreshConversations(true);
@@ -589,11 +645,17 @@ export function MessagesApp({
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         const durationMs = Date.now() - recordStartRef.current;
         if (blob.size > 0 && activeId) {
-          const msg = await sendVoiceMessage(activeId, blob, durationMs, activePeer?.id);
+          const msg = await sendVoiceMessage(
+            activeId,
+            blob,
+            durationMs,
+            activePeer?.id,
+          );
           shouldScrollToBottomRef.current = true;
           setMessages((p) => {
             const merged = mergeMessages(p, [msg]);
-            lastMessageIdRef.current = merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
+            lastMessageIdRef.current =
+              merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
             return merged;
           });
           void refreshConversations(true);
@@ -616,8 +678,10 @@ export function MessagesApp({
   const showMobileChat = !!routeConvId;
 
   return (
-    <div className="flex h-full min-h-0 flex-col" style={{ background: "var(--bg)" }}>
-
+    <div
+      className="flex h-full min-h-0 flex-col"
+      style={{ background: "var(--bg)" }}
+    >
       {/* Mobile page header — outside all cards, identical pattern to Translator */}
       {!showMobileChat && (
         <div className="shrink-0 px-4 md:hidden">
@@ -629,111 +693,135 @@ export function MessagesApp({
                 onClick={() => router.push("/dashboard/settings")}
                 aria-label="Тохиргоо"
                 className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70"
-                style={{ background: "var(--surface)", border: "1px solid var(--border-c)" }}
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border-c)",
+                }}
               >
-                <Cog6ToothIcon className="h-5 w-5" style={{ color: "var(--text)" }} />
+                <Cog6ToothIcon
+                  className="h-5 w-5"
+                  style={{ color: "var(--text)" }}
+                />
               </button>
             }
           />
         </div>
       )}
 
-      <div className={cn("flex min-h-0 flex-1 gap-4 px-4 pb-3 md:gap-3 md:p-4 lg:px-10 lg:pb-4 xl:px-16", showMobileChat ? "pt-3" : "pt-0")}>
       <div
         className={cn(
-          "min-h-0 shrink-0 overflow-hidden rounded-[18px] w-full md:w-[min(340px,36vw)]",
-          showMobileChat ? "hidden md:flex md:flex-col" : "flex flex-col",
+          "flex min-h-0 flex-1 gap-4 px-4 pb-3 md:gap-3 md:p-4 lg:px-10 lg:pb-4 xl:px-16",
+          showMobileChat ? "pt-3" : "pt-0",
         )}
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border-c)",
-        }}
       >
-        <ConversationSidebar
-          conversations={conversations}
-          activeId={activeId}
-          search={search}
-          searchResults={searchResults}
-          searching={searching}
-          loadingList={loadingList}
-          showMobileChat={showMobileChat}
-          unreadIds={unreadIds}
-          onSearch={setSearch}
-          onSelectConversation={selectConversation}
-          onStartWithPeer={startWithPeer}
-        />
-      </div>
+        <div
+          className={cn(
+            "min-h-0 shrink-0 overflow-hidden rounded-[18px] w-full md:w-[min(340px,36vw)]",
+            showMobileChat ? "hidden md:flex md:flex-col" : "flex flex-col",
+          )}
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-c)",
+          }}
+        >
+          <ConversationSidebar
+            conversations={conversations}
+            activeId={activeId}
+            search={search}
+            searchResults={searchResults}
+            searching={searching}
+            loadingList={loadingList}
+            showMobileChat={showMobileChat}
+            unreadIds={unreadIds}
+            onSearch={setSearch}
+            onSelectConversation={selectConversation}
+            onStartWithPeer={startWithPeer}
+          />
+        </div>
 
-      <section
-        className={cn(
-          "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[18px]",
-          !showMobileChat ? "hidden md:flex" : "flex",
-        )}
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border-c)",
-        }}
-      >
-        {!activeId || !activePeer ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-            <div
-              className="flex h-20 w-20 items-center justify-center rounded-full"
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
-            >
-              <ChatBubbleLeftRightIcon className="h-9 w-9" style={{ color: "var(--text-3)" }} />
+        <section
+          className={cn(
+            "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[18px]",
+            !showMobileChat ? "hidden md:flex" : "flex",
+          )}
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-c)",
+          }}
+        >
+          {!activeId || !activePeer ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+              <div
+                className="flex h-20 w-20 items-center justify-center rounded-full"
+                style={{
+                  background: "var(--surface-2)",
+                  border: "1px solid var(--border-c)",
+                }}
+              >
+                <ChatBubbleLeftRightIcon
+                  className="h-9 w-9"
+                  style={{ color: "var(--text-3)" }}
+                />
+              </div>
+              <p
+                className="text-[17px] font-bold"
+                style={{ color: "var(--text)" }}
+              >
+                Sign Bridge Чат
+              </p>
+              <p
+                className="max-w-sm text-[14px] leading-relaxed"
+                style={{ color: "var(--text-3)" }}
+              >
+                Нэр эсвэл утасны дугаараар хайж, чат бичих, дуу илгээх, видео
+                дуудлага хийнэ
+              </p>
             </div>
-            <p className="text-[17px] font-bold" style={{ color: "var(--text)" }}>
-              Sign Bridge Чат
-            </p>
-            <p className="max-w-sm text-[14px] leading-relaxed" style={{ color: "var(--text-3)" }}>
-              Нэр эсвэл утасны дугаараар хайж, чат бичих, дуу илгээх, видео дуудлага хийнэ
-            </p>
-          </div>
-        ) : (
-          <>
-            <ChatThreadHeader
-              activePeer={activePeer}
-              onClose={closeChat}
-              onCall={() => void startCall()}
-            />
-            <MessagesList
-              messages={messages}
-              callHiddenIds={callHiddenIds}
-              callLogMap={callLogMap}
-              activePeer={activePeer}
-              editingId={editingId}
-              loadingOlder={loadingOlder}
-              scrollRef={messagesScrollRef}
-              onScroll={handleMessagesScroll}
-              onStartEdit={(id, body) => {
-                setEditingId(id);
-                setEditText(body);
-                setEditError(null);
-              }}
-              onDeleteMessage={(msg) => void handleDeleteMessage(msg)}
-              onDeleteCallLog={(entry) => void handleDeleteCallLog(entry)}
-              onCallAgain={() => void startCall()}
-            />
-            <ChatInputFooter
-              text={text}
-              sending={sending}
-              recording={recording}
-              editingId={editingId}
-              editText={editText}
-              savingEdit={savingEdit}
-              editError={editError}
-              editInputRef={editInputRef}
-              onTextChange={setText}
-              onSend={() => void handleSend()}
-              onStartRecording={() => void startRecording()}
-              onStopRecording={stopRecording}
-              onCancelEdit={cancelEdit}
-              onEditTextChange={setEditText}
-              onSaveEdit={() => void handleSaveEdit()}
-            />
-          </>
-        )}
-      </section>
+          ) : (
+            <>
+              <ChatThreadHeader
+                activePeer={activePeer}
+                onClose={closeChat}
+                onCall={() => void startCall()}
+              />
+              <MessagesList
+                messages={messages}
+                callHiddenIds={callHiddenIds}
+                callLogMap={callLogMap}
+                activePeer={activePeer}
+                editingId={editingId}
+                loadingOlder={loadingOlder}
+                scrollRef={messagesScrollRef}
+                onScroll={handleMessagesScroll}
+                onStartEdit={(id, body) => {
+                  setEditingId(id);
+                  setEditText(body);
+                  setEditError(null);
+                }}
+                onDeleteMessage={(msg) => void handleDeleteMessage(msg)}
+                onDeleteCallLog={(entry) => void handleDeleteCallLog(entry)}
+                onCallAgain={() => void startCall()}
+              />
+              <ChatInputFooter
+                text={text}
+                sending={sending}
+                recording={recording}
+                editingId={editingId}
+                editText={editText}
+                savingEdit={savingEdit}
+                editError={editError}
+                editInputRef={editInputRef}
+                onTextChange={setText}
+                onSend={() => void handleSend()}
+                onStartRecording={() => void startRecording()}
+                onStopRecording={stopRecording}
+                onCancelEdit={cancelEdit}
+                onEditTextChange={setEditText}
+                onSaveEdit={() => void handleSaveEdit()}
+              />
+            </>
+          )}
+        </section>
       </div>
     </div>
   );

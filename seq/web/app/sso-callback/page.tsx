@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function SsoCallbackPage() {
-  redirect("/dashboard");
+  redirect("/dashboard/translator");
 }

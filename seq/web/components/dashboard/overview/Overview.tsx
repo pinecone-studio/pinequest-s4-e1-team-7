@@ -59,7 +59,9 @@ export function Overview() {
   const { user } = useAuth();
   const displayName = user?.name ?? user?.email ?? "Хэрэглэгч";
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isDark = theme === "dark";
   const logoSrc = isDark ? "/images/logoShar.png" : "/images/logoBlue.png";
@@ -72,7 +74,7 @@ export function Overview() {
       {/* Mobile header: logo · theme toggle · settings */}
       <div className="flex items-center justify-between pt-4 pb-1 md:hidden">
         <Link
-          href="/dashboard"
+          href="/dashboard/overview"
           className="flex items-center"
           aria-label="Нүүр хуудас"
         >
@@ -116,7 +118,10 @@ export function Overview() {
       {/* Greeting row */}
       <div className="flex items-start justify-between pb-1 pt-2 md:pt-3">
         <div>
-          <p className="text-[14px] md:text-[15px]" style={{ color: "var(--text-3)" }}>
+          <p
+            className="text-[14px] md:text-[15px]"
+            style={{ color: "var(--text-3)" }}
+          >
             Сайн байна уу?
           </p>
           <h2

@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC = ["/", "/auth", "/call", "/welcome", "/models", "/mediapipe-wasm", "/tfjs-wasm"];
+const PUBLIC = [
+  "/",
+  "/auth",
+  "/call",
+  "/welcome",
+  "/models",
+  "/mediapipe-wasm",
+  "/tfjs-wasm",
+];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
