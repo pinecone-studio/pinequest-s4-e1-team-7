@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useLayoutEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "@/context/AppContext";
 import { Upload, Trash2 } from "lucide-react";
 import {
   ChevronLeftIcon,
+  ChevronRightIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { DICT_CATEGORIES } from "@/lib/constants";
@@ -42,13 +43,22 @@ export function Dictionary({
   const filteredItems = search.trim()
     ? items.filter((i) => i.toLowerCase().includes(search.trim().toLowerCase()))
     : items;
-  const [activeItem, setActiveItem] = useState<number>(-1);
+  const [activeItem, setActiveItem] = useState<number>(0);
   const stripRef = useRef<HTMLDivElement>(null);
-  const cardRefs = useRef<(HTMLElement | null)[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const activeItemRef = useRef(0);
+  const programmaticScrollRef = useRef(false);
+  const touchRef = useRef({ x: 0, y: 0, axis: null as "x" | "y" | null });
 
-  const [stripHeight, setStripHeight] = useState(600);
+  const [stripHeight, setStripHeight] = useState(560);
+  const [sidePad, setSidePad] = useState(0);
+
   const [winWidth, setWinWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 1200,
+  );
+  const [winHeight, setWinHeight] = useState(
+    typeof window !== "undefined" ? window.innerHeight : 800,
   );
 
   useEffect(() => {
@@ -58,33 +68,187 @@ export function Dictionary({
   }, [category]);
 
   useEffect(() => {
+    activeItemRef.current = activeItem;
+  }, [activeItem]);
+
+  useEffect(() => {
     const el = stripRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([e]) =>
-      setStripHeight(e.contentRect.height),
+    if (!el || winWidth < 768) return;
+    const ro = new ResizeObserver(([entry]) =>
+      setStripHeight(entry.contentRect.height),
     );
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [winWidth]);
 
   useEffect(() => {
-    const onResize = () => setWinWidth(window.innerWidth);
+    const onResize = () => {
+      setWinWidth(window.innerWidth);
+      setWinHeight(window.innerHeight);
+    };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
   const isMobile = winWidth < 768;
-  const collapsedW = isMobile ? "2rem" : "4rem";
-  const activeW = stripHeight;
+  const mobileCardSize = Math.min(winWidth - 16, winHeight - 168);
+  const cardSize = isMobile ? mobileCardSize : stripHeight;
 
-  const handleActivate = (index: number) => {
-    setActiveItem(index);
-    if (isMobile) {
-      setTimeout(() => {
-        cardRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-      }, 300);
-    }
+  const onMobileTouchStart = (e: React.TouchEvent) => {
+    touchRef.current = {
+      x: e.touches[0]?.clientX ?? 0,
+      y: e.touches[0]?.clientY ?? 0,
+      axis: null,
+    };
   };
+
+  const onMobileTouchMove = (e: React.TouchEvent) => {
+    const t = touchRef.current;
+    if (t.axis) return;
+    const dx = Math.abs((e.touches[0]?.clientX ?? 0) - t.x);
+    const dy = Math.abs((e.touches[0]?.clientY ?? 0) - t.y);
+    if (dx > 10 || dy > 10) t.axis = dx > dy ? "x" : "y";
+  };
+
+  const onMobileTouchEnd = (e: React.TouchEvent) => {
+    const t = touchRef.current;
+    if (t.axis === "x") {
+      const dx = (e.changedTouches[0]?.clientX ?? 0) - t.x;
+      if (dx < -36) goToItem(activeItemRef.current + 1);
+      else if (dx > 36) goToItem(activeItemRef.current - 1);
+    }
+    touchRef.current = { x: 0, y: 0, axis: null };
+  };
+
+  const scrollToIndex = useCallback(
+    (index: number, behavior: ScrollBehavior = "smooth") => {
+      const scroller = scrollRef.current;
+      const card = cardRefs.current[index];
+      if (!scroller || !card) return;
+
+      const targetLeft =
+        card.offsetLeft - (scroller.clientWidth - card.offsetWidth) / 2;
+      const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+      const left = Math.max(0, Math.min(targetLeft, maxLeft));
+
+      programmaticScrollRef.current = true;
+      scroller.scrollTo({ left, behavior });
+      if (behavior === "auto") {
+        programmaticScrollRef.current = false;
+      }
+    },
+    [],
+  );
+
+  const syncActiveFromScroll = useCallback(() => {
+    const scroller = scrollRef.current;
+    if (!scroller || isMobile) return;
+    if (filteredItems.length === 0) return;
+
+    const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+    let closest = 0;
+
+    if (scroller.scrollLeft <= 8) {
+      closest = 0;
+    } else if (scroller.scrollLeft >= maxScroll - 8) {
+      closest = filteredItems.length - 1;
+    } else {
+      const center = scroller.scrollLeft + scroller.clientWidth / 2;
+      let minDist = Infinity;
+      cardRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const cardCenter = el.offsetLeft + el.offsetWidth / 2;
+        const dist = Math.abs(center - cardCenter);
+        if (dist < minDist) {
+          minDist = dist;
+          closest = i;
+        }
+      });
+    }
+
+    if (closest !== activeItemRef.current) {
+      activeItemRef.current = closest;
+      setActiveItem(closest);
+    }
+  }, [filteredItems.length, isMobile]);
+
+  useLayoutEffect(() => {
+    if (isMobile) return;
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+
+    const updateSidePad = () => {
+      setSidePad(Math.max(0, (scroller.clientWidth - cardSize) / 2));
+    };
+    updateSidePad();
+
+    const ro = new ResizeObserver(updateSidePad);
+    ro.observe(scroller);
+
+    return () => ro.disconnect();
+  }, [isMobile, cardSize]);
+
+  useLayoutEffect(() => {
+    if (isMobile) return;
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+
+    const onScroll = () => {
+      if (programmaticScrollRef.current) return;
+      syncActiveFromScroll();
+    };
+
+    const onScrollEnd = () => {
+      programmaticScrollRef.current = false;
+    };
+
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    scroller.addEventListener("scrollend", onScrollEnd, { passive: true });
+
+    return () => {
+      scroller.removeEventListener("scroll", onScroll);
+      scroller.removeEventListener("scrollend", onScrollEnd);
+    };
+  }, [isMobile, filteredItems.length, syncActiveFromScroll]);
+
+  useEffect(() => {
+    if (isMobile) return;
+    requestAnimationFrame(() => scrollToIndex(activeItemRef.current, "auto"));
+  }, [sidePad, cardSize, isMobile, scrollToIndex]);
+
+  useEffect(() => {
+    setActiveItem(0);
+    activeItemRef.current = 0;
+    if (isMobile) return;
+    requestAnimationFrame(() => scrollToIndex(0, "auto"));
+  }, [search, category, isMobile, scrollToIndex]);
+
+  const goToItem = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= filteredItems.length) return;
+      activeItemRef.current = index;
+      setActiveItem(index);
+      if (isMobile) return;
+      scrollToIndex(index);
+    },
+    [filteredItems.length, scrollToIndex, isMobile],
+  );
+
+  useEffect(() => {
+    if (isMobile) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+      if (e.key === "ArrowLeft") goToItem(activeItemRef.current - 1);
+      if (e.key === "ArrowRight") goToItem(activeItemRef.current + 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isMobile, goToItem]);
 
   const handleUpload = async (label: string, file: File) => {
     setUploading(label);
@@ -114,11 +278,168 @@ export function Dictionary({
     }
   };
 
+  const navBtnClass =
+    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm transition-all hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-30 md:h-11 md:w-11";
+
+  const desktopNavBtnClass = `${navBtnClass} absolute top-1/2 z-30 -translate-y-1/2`;
+
+  const mobileNavBtnClass = `${navBtnClass} absolute top-1/2 z-20 -translate-y-1/2`;
+
+  const navBtnStyle = {
+    background: "var(--surface)",
+    border: "1px solid var(--border-c)",
+  };
+
+  const renderCard = (
+    item: string,
+    index: number,
+    isActive: boolean,
+    isUploading: boolean,
+    sign: SignEntry | undefined,
+    ref?: (el: HTMLDivElement | null) => void,
+  ) => (
+    <motion.div
+      key={`${item}-${index}`}
+      ref={ref}
+      className="relative shrink-0 cursor-pointer snap-center overflow-hidden rounded-[24px] md:rounded-[28px]"
+      animate={{
+        scale: isMobile || isActive ? 1 : 0.88,
+        opacity: isMobile || isActive ? 1 : 0.5,
+      }}
+      transition={{ duration: 0.32, ease: "easeInOut" }}
+      onClick={() => {
+        if (!isMobile) goToItem(index);
+      }}
+      style={{
+        width: cardSize,
+        height: cardSize,
+        background: sign ? "var(--surface)" : "var(--surface-2)",
+        border: "1px solid var(--border-c)",
+      }}
+    >
+      {sign && (
+        <img
+          src={sign.url}
+          alt={item}
+          className={`absolute inset-0 h-full w-full object-cover transition-all duration-300 ${
+            !isMobile && !isActive ? "scale-105 blur-[3px] brightness-75" : ""
+          }`}
+          draggable={false}
+        />
+      )}
+
+      {(isMobile || isActive) && (
+        <div
+          className="absolute inset-0 flex flex-col justify-between p-3 md:p-4"
+          style={{
+            background: sign
+              ? "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)"
+              : "var(--surface-2)",
+          }}
+        >
+          <div className="flex justify-end gap-1.5">
+            {sign && (
+              <>
+                <button
+                  title="Зураг солих"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    inputRefs.current[item]?.click();
+                  }}
+                  className="flex size-8 items-center justify-center rounded-xl bg-black/50 text-white hover:bg-black/70"
+                >
+                  <Upload className="size-3.5" />
+                </button>
+                <button
+                  title="Зураг устгах"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(sign);
+                  }}
+                  className="flex size-8 items-center justify-center rounded-xl bg-red-500/70 text-white hover:bg-red-600"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-end justify-between">
+            <p
+              className="text-[22px] font-bold leading-none md:text-[28px]"
+              style={{ color: sign ? "white" : "var(--text)" }}
+            >
+              {item}
+            </p>
+            {!sign && (
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUpload(item, file);
+                    e.target.value = "";
+                  }}
+                />
+                <span
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold"
+                  style={{ background: "var(--olive)", color: "#0d1e35" }}
+                >
+                  {isUploading ? (
+                    "Хүлээнэ үү…"
+                  ) : (
+                    <>
+                      <Upload className="size-3" />
+                      Нэмэх
+                    </>
+                  )}
+                </span>
+              </label>
+            )}
+          </div>
+        </div>
+      )}
+
+      {!isMobile && !isActive && !sign && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span
+            className="text-[22px] font-bold md:text-[26px]"
+            style={{ color: "var(--text-2)" }}
+          >
+            {item}
+          </span>
+        </div>
+      )}
+
+      <input
+        ref={(el) => {
+          inputRefs.current[item] = el;
+        }}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleUpload(item, file);
+          e.target.value = "";
+        }}
+      />
+    </motion.div>
+  );
+
+  const activeLabel = filteredItems[activeItem];
+  const activeSign = activeLabel ? signMap.get(activeLabel) : undefined;
+
   return (
-    <div className="flex h-full flex-col" style={{ background: "var(--bg)" }}>
+    <div
+      className="flex h-full flex-col overflow-y-auto overscroll-y-contain md:overflow-hidden"
+      style={{ background: "var(--bg)" }}
+    >
       {/* Header + tabs — constrained width */}
-      <div className="mx-auto w-full px-4 md:px-6 lg:px-10 xl:px-16">
-        <div className="flex items-center pb-2 pt-5">
+      <div className="mx-auto w-full shrink-0 px-3 md:px-6 lg:px-10 xl:px-16">
+        <div className="flex items-center pb-1 pt-3 md:pb-2 md:pt-5">
           <button
             onClick={() => router.back()}
             aria-label="Буцах"
@@ -142,7 +463,7 @@ export function Dictionary({
           <div className="h-10 w-10" />
         </div>
 
-        <div className="flex gap-2 pb-3">
+        <div className="flex flex-wrap items-center gap-2 pb-2 md:pb-3">
           {DICT_CATEGORIES.map((cat) => (
             <Link
               key={cat.id}
@@ -189,184 +510,134 @@ export function Dictionary({
         </div>
       </div>
 
-      {/* Skiper expand strip */}
-      <div className="flex-1 min-h-0 flex flex-col justify-center pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 md:block">
-        <div
-          className="overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden h-[55vh] mx-6 md:mx-0 md:h-full md:px-8 lg:px-12 xl:px-20"
-          style={{ scrollbarWidth: "none" }}
-        >
+      {/* Card strip */}
+      <div className="flex min-h-0 flex-1 flex-col justify-start pt-1 pb-[max(calc(env(safe-area-inset-bottom)+4.25rem),5rem)] md:justify-center md:pb-4 md:pt-0">
+        {isMobile ? (
           <div
-            ref={stripRef}
-            className="flex h-full items-stretch gap-1 py-2 md:gap-2 md:py-4"
+            className="relative mx-auto touch-pan-y"
+            style={{ width: cardSize, height: cardSize }}
+            onTouchStart={onMobileTouchStart}
+            onTouchMove={onMobileTouchMove}
+            onTouchEnd={onMobileTouchEnd}
           >
-            {filteredItems.map((item, index) => {
-              const sign = signMap.get(item);
-              const isActive = activeItem === index;
-              const isUploading = uploading === item;
+            <button
+              type="button"
+              aria-label="Өмнөх үсэг"
+              disabled={activeItem <= 0}
+              className={mobileNavBtnClass}
+              style={{ ...navBtnStyle, left: 6 }}
+              onClick={() => goToItem(activeItem - 1)}
+            >
+              <ChevronLeftIcon
+                className="h-5 w-5"
+                style={{ color: "var(--text-2)" }}
+              />
+            </button>
 
-              return (
+            {activeLabel ? (
+              <AnimatePresence mode="wait">
                 <motion.div
-                  key={item}
-                  ref={(el) => { cardRefs.current[index] = el; }}
-                  className="relative shrink-0 cursor-pointer overflow-hidden rounded-[28px]"
-                  animate={{ width: isActive ? activeW : collapsedW }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  onClick={() => handleActivate(index)}
-                  style={{
-                    height: "100%",
-                    background: sign ? "var(--surface)" : "var(--surface-2)",
-                    border: "1px solid var(--border-c)",
+                  key={activeLabel}
+                  className="h-full w-full"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.12}
+                  onDragEnd={(_, info) => {
+                    if (info.offset.x < -50 || info.velocity.x < -400) {
+                      goToItem(activeItem + 1);
+                    } else if (info.offset.x > 50 || info.velocity.x > 400) {
+                      goToItem(activeItem - 1);
+                    }
                   }}
                 >
-                  {/* Image — only rendered when active so it fills properly */}
-                  <AnimatePresence>
-                    {isActive && sign && (
-                      <motion.img
-                        key="img"
-                        src={sign.url}
-                        alt={item}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute inset-0 h-full w-full object-cover"
-                      />
-                    )}
-                  </AnimatePresence>
-
-                  {/* Collapsed: vertical letter + image dot */}
-                  <AnimatePresence>
-                    {!isActive && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute inset-0 flex flex-col items-center justify-center gap-2 pb-3 pt-3"
-                      >
-                        <span
-                          className="text-[12px] font-bold md:text-[14px]"
-                          style={{ color: "var(--text-2)" }}
-                        >
-                          {item}
-                        </span>
-                        {sign && (
-                          <span
-                            className="h-1.5 w-1.5 rounded-full shrink-0"
-                            style={{ background: "var(--olive)" }}
-                          />
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Expanded overlay */}
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute inset-0 flex flex-col justify-between p-3 md:p-4"
-                        style={{
-                          background: sign
-                            ? "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)"
-                            : "var(--surface-2)",
-                        }}
-                      >
-                        {/* Top controls */}
-                        <div className="flex justify-end gap-1.5">
-                          {sign && (
-                            <>
-                              <button
-                                title="Зураг солих"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  inputRefs.current[item]?.click();
-                                }}
-                                className="flex size-8 items-center justify-center rounded-xl bg-black/50 text-white hover:bg-black/70"
-                              >
-                                <Upload className="size-3.5" />
-                              </button>
-                              <button
-                                title="Зураг устгах"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(sign);
-                                }}
-                                className="flex size-8 items-center justify-center rounded-xl bg-red-500/70 text-white hover:bg-red-600"
-                              >
-                                <Trash2 className="size-3.5" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-
-                        {/* Bottom label + actions */}
-                        <div className="flex items-end justify-between">
-                          <div>
-                            <p
-                              className="text-[20px] font-bold leading-none md:text-[28px]"
-                              style={{ color: sign ? "white" : "var(--text)" }}
-                            >
-                              {item}
-                            </p>
-                          </div>
-                          {!sign && (
-                            <label className="cursor-pointer">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleUpload(item, file);
-                                  e.target.value = "";
-                                }}
-                              />
-                              <span
-                                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold"
-                                style={{
-                                  background: "var(--olive)",
-                                  color: "#0d1e35",
-                                }}
-                              >
-                                {isUploading ? (
-                                  "Хүлээнэ үү…"
-                                ) : (
-                                  <>
-                                    <Upload className="size-3" />
-                                    Нэмэх
-                                  </>
-                                )}
-                              </span>
-                            </label>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Hidden file input for replace */}
-                  <input
-                    ref={(el) => {
-                      inputRefs.current[item] = el;
-                    }}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleUpload(item, file);
-                      e.target.value = "";
-                    }}
-                  />
+                  {renderCard(
+                    activeLabel,
+                    activeItem,
+                    true,
+                    uploading === activeLabel,
+                    activeSign,
+                  )}
                 </motion.div>
-              );
-            })}
+              </AnimatePresence>
+            ) : null}
+
+            <button
+              type="button"
+              aria-label="Дараагийн үсэг"
+              disabled={activeItem >= filteredItems.length - 1}
+              className={mobileNavBtnClass}
+              style={{ ...navBtnStyle, right: 6 }}
+              onClick={() => goToItem(activeItem + 1)}
+            >
+              <ChevronRightIcon
+                className="h-5 w-5"
+                style={{ color: "var(--text-2)" }}
+              />
+            </button>
           </div>
-        </div>
+        ) : (
+          <div className="relative flex min-h-0 flex-1 flex-col">
+            <button
+              type="button"
+              aria-label="Өмнөх үсэг"
+              disabled={activeItem <= 0}
+              className={desktopNavBtnClass}
+              style={{ ...navBtnStyle, left: "max(1rem, env(safe-area-inset-left))" }}
+              onClick={() => goToItem(activeItem - 1)}
+            >
+              <ChevronLeftIcon
+                className="h-5 w-5"
+                style={{ color: "var(--text-2)" }}
+              />
+            </button>
+
+            <button
+              type="button"
+              aria-label="Дараагийн үсэг"
+              disabled={activeItem >= filteredItems.length - 1}
+              className={desktopNavBtnClass}
+              style={{ ...navBtnStyle, right: "max(1rem, env(safe-area-inset-right))" }}
+              onClick={() => goToItem(activeItem + 1)}
+            >
+              <ChevronRightIcon
+                className="h-5 w-5"
+                style={{ color: "var(--text-2)" }}
+              />
+            </button>
+
+            <div
+              ref={scrollRef}
+              className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden scroll-smooth touch-pan-x snap-x snap-mandatory py-2 [&::-webkit-scrollbar]:hidden"
+              style={{ scrollbarWidth: "none" }}
+            >
+              <div
+                ref={stripRef}
+                className="flex h-full min-h-[min(600px,calc(100vh-220px))] items-center gap-5 py-4 md:gap-6"
+                style={{
+                  paddingLeft: sidePad,
+                  paddingRight: sidePad,
+                }}
+              >
+                {filteredItems.map((item, index) =>
+                  renderCard(
+                    item,
+                    index,
+                    activeItem === index,
+                    uploading === item,
+                    signMap.get(item),
+                    (el) => {
+                      cardRefs.current[index] = el;
+                    },
+                  ),
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
