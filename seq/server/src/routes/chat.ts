@@ -9,7 +9,7 @@ import {
   users,
 } from "@/db/schema";
 import { getAuthUser, requireAuth } from "@/middleware/auth";
-import { pushToPeer } from "@/lib/push-notify";
+import { pushToPeer, pushToUser } from "@/lib/push-notify";
 import { and, desc, eq, gt, inArray, isNotNull, lt, or, sql } from "drizzle-orm";
 
 const DEFAULT_MESSAGE_LIMIT = 30;
@@ -17,7 +17,7 @@ const MAX_MESSAGE_LIMIT = 100;
 
 const PUBLIC_URL_BASE = "https://pub-0b4b208083b74e5293a1ae3ed2fa6ba1.r2.dev";
 
-const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+const ONLINE_THRESHOLD_MS = 90_000; // 1.5 minutes
 
 type PeerSummary = {
   id: string;
@@ -175,6 +175,23 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
       .update(users)
       .set({ lastSeenAt: new Date() })
       .where(eq(users.id, me.id));
+
+    const convRows = await db
+      .select({ userAId: conversations.userAId, userBId: conversations.userBId })
+      .from(conversations)
+      .where(or(eq(conversations.userAId, me.id), eq(conversations.userBId, me.id)))
+      .limit(50);
+
+    const peerIds = new Set<string>();
+    for (const conv of convRows) {
+      peerIds.add(conv.userAId === me.id ? conv.userBId : conv.userAId);
+    }
+
+    const event = { type: "presence" as const, userId: me.id, isOnline: true };
+    for (const peerId of peerIds) {
+      void pushToUser(c.env, peerId, event);
+    }
+
     return c.json({ ok: true });
   })
 
@@ -280,6 +297,15 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
     const me = getAuthUser(c);
     const convId = c.req.param("id");
     const db = createDb(c.env);
+
+    const conv = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, convId))
+      .get();
+    if (!conv || (conv.userAId !== me.id && conv.userBId !== me.id)) {
+      return c.json({ error: "Хандах эрхгүй" }, 403);
+    }
 
     const lastMsg = await db
       .select({ id: messages.id })

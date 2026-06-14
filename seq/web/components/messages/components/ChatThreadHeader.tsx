@@ -27,11 +27,18 @@ export function ChatThreadHeader({ activePeer, onClose, onCall, hideCall }: Prop
       >
         <ChevronLeftIcon className="h-5 w-5" style={{ color: "var(--text)" }} />
       </button>
-      <UserAvatar
-        name={activePeer.name ?? activePeer.email}
-        avatarUrl={activePeer.avatarUrl}
-        size={40}
-      />
+      <div className="relative shrink-0">
+        <UserAvatar
+          name={activePeer.name ?? activePeer.email}
+          avatarUrl={activePeer.avatarUrl}
+          size={40}
+        />
+        <span
+          className="absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-[var(--surface)]"
+          style={{ background: activePeer.isOnline ? "#22c55e" : "#ef4444" }}
+          aria-hidden
+        />
+      </div>
       <div className="min-w-0 flex-1">
         <p
           className="truncate text-[16px] font-bold"
@@ -40,7 +47,8 @@ export function ChatThreadHeader({ activePeer, onClose, onCall, hideCall }: Prop
           {activePeer.name ?? "Хэрэглэгч"}
         </p>
         <p className="truncate text-[12px]" style={{ color: "var(--text-3)" }}>
-          {activePeer.phone ?? activePeer.email}
+          {activePeer.isOnline ? "Онлайн" : "Офлайн"}
+          {activePeer.phone ? ` · ${activePeer.phone}` : activePeer.email ? ` · ${activePeer.email}` : ""}
         </p>
       </div>
       {!hideCall && (

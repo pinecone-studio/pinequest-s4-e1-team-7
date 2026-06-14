@@ -25,7 +25,7 @@ export type ChatPeer = {
 };
 
 export function pingPresence(): void {
-  const token = typeof window !== "undefined" ? (localStorage.getItem("sb-token") ?? "") : "";
+  const token = getStoredToken();
   if (!token) return;
   void fetch(`${BASE}/api/chat/presence`, {
     method: "POST",
@@ -59,7 +59,7 @@ export type ConversationSummary = {
 };
 
 export function markConversationRead(convId: string): void {
-  const token = typeof window !== "undefined" ? (localStorage.getItem("sb-token") ?? "") : "";
+  const token = getStoredToken();
   if (!token) return;
   void fetch(`${BASE}/api/chat/conversations/${encodeURIComponent(convId)}/read`, {
     method: "POST",

@@ -1,11 +1,17 @@
 import type { Env } from "@/db";
 
-export type ChatPushEvent = {
-  type: "chat";
-  conversationId: string;
-  messageId: number;
-  kind: string;
-};
+export type ChatPushEvent =
+  | {
+      type: "chat";
+      conversationId: string;
+      messageId: number;
+      kind: string;
+    }
+  | {
+      type: "presence";
+      userId: string;
+      isOnline: boolean;
+    };
 
 export async function pushToUser(
   env: Env,
