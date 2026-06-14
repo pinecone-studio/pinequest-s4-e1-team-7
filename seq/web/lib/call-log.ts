@@ -1,4 +1,5 @@
 import type { ChatMessage } from "@/lib/chat-api";
+import { parseCallRoom } from "@/lib/call-mode";
 
 export type CallLogStatus = "completed" | "missed" | "declined" | "ringing";
 
@@ -8,6 +9,7 @@ export type CallLogEntry = {
   roomId: string;
   conversationId: string;
   outgoing: boolean;
+  audioOnly: boolean;
   callerName: string;
   status: CallLogStatus;
   durationMs: number | null;
@@ -45,12 +47,15 @@ function finalizePending(
   if (pending.invite.id !== anchorId) hiddenIds.push(pending.invite.id);
   if (pending.answered && pending.answered.id !== anchorId) hiddenIds.push(pending.answered.id);
 
+  const parsed = parseCallRoom(pending.invite.body ?? pending.invite.conversationId);
+
   return {
     anchorId,
     hiddenIds,
-    roomId: pending.invite.body ?? pending.invite.conversationId,
+    roomId: parsed.roomId,
     conversationId: pending.invite.conversationId,
     outgoing: pending.invite.mine,
+    audioOnly: parsed.audioOnly,
     callerName: pending.invite.senderName,
     status,
     durationMs,
@@ -142,12 +147,14 @@ export function buildCallLogs(messages: ChatMessage[]): {
     const status = staleStatus(pending);
     const hidden: number[] = [];
     if (pending.answered) hidden.push(pending.answered.id);
+    const parsed = parseCallRoom(pending.invite.body ?? pending.invite.conversationId);
     pushEntry({
       anchorId: pending.invite.id,
       hiddenIds: hidden,
-      roomId: pending.invite.body ?? pending.invite.conversationId,
+      roomId: parsed.roomId,
       conversationId: pending.invite.conversationId,
       outgoing: pending.invite.mine,
+      audioOnly: parsed.audioOnly,
       callerName: pending.invite.senderName,
       status,
       durationMs: null,
@@ -174,4 +181,8 @@ export function formatCallDurationShort(ms: number | null): string | null {
   const s = totalSec % 60;
   if (m > 0) return `${m} мин ${s} сек`;
   return `${s} сек`;
+}
+
+export function callLogTitle(entry: CallLogEntry): string {
+  return entry.audioOnly ? "Аудио дуудлага" : "Видео дуудлага";
 }

@@ -17,7 +17,7 @@ export type A11yChatBridge = {
   closeChat: () => void;
   startWithPeer: (peer: ChatPeer) => Promise<void>;
   sendText: () => Promise<void>;
-  startCall: () => Promise<void>;
+  startCall: (opts?: { audioOnly?: boolean }) => Promise<void>;
   startRecording: () => Promise<void>;
   stopRecording: () => void;
   recording: boolean;

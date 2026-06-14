@@ -18,6 +18,7 @@ import {
   sendCallDeclined,
   type PendingCall,
 } from "@/lib/chat-api";
+import { buildCallPath } from "@/lib/call-mode";
 import {
   INCOMING_CALL_LS_KEY,
   notifyIncomingCall,
@@ -205,7 +206,11 @@ export function IncomingCallProvider({ children }: { children: ReactNode }) {
       void sendCallAnswered(call.conversationId).catch(() => {});
       const returnTo = `/dashboard/call/${encodeURIComponent(call.conversationId)}`;
       router.push(
-        `/call/${encodeURIComponent(call.roomId)}?as=guest&returnTo=${encodeURIComponent(returnTo)}`,
+        buildCallPath({
+          roomId: call.roomId,
+          as: "guest",
+          returnTo,
+        }),
       );
     },
     [clearIncoming, router],

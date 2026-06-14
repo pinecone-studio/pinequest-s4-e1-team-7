@@ -18,7 +18,8 @@ import { useChatRealtime } from "@/context/ChatRealtimeContext";
 import { CALL_DECLINE_POLL_MS, createAdaptivePoller } from "@/lib/poll-schedule";
 import { releaseAllCameras } from "@/lib/camera-registry";
 import { playVoiceLoop, stopAllVoice, stopVoiceLoop } from "@/lib/play-voice";
-import { VideoCameraSlashIcon } from "@heroicons/react/24/solid";
+import { releaseMediaStream } from "@/lib/video-utils";
+import { VideoCameraSlashIcon, PhoneIcon } from "@heroicons/react/24/solid";
 
 const fmtDur = (s: number) => {
   const m = Math.floor(s / 60);
@@ -40,6 +41,7 @@ export function CallSession({ roomId }: { roomId: string }) {
   const asRole = searchParams.get("as") === "guest" ? "guest" : "host";
   const returnTo = searchParams.get("returnTo") ?? "/dashboard/call";
   const peerHint = searchParams.get("peer") ?? "";
+  const audioOnly = searchParams.get("mode") === "audio";
   const [hostNotice, setHostNotice] = useState<string | null>(null);
   const callStartedAtRef = useRef(Date.now());
   const { connected: realtimeConnected, subscribe } = useChatRealtime();
@@ -52,11 +54,8 @@ export function CallSession({ roomId }: { roomId: string }) {
     onMyVoiceFinal,
     onTheirPhrase,
   } = useCallCaptions();
-  const [camMuted, setCamMuted] = useState(false);
-  const [chatOpen, setChatOpen] = useState(true);
-  const [elapsed, setElapsed] = useState(0);
-  const connectedAtRef = useRef<number | null>(null);
-  const elapsedRef = useRef(0);
+
+  const ignoreCaption = useCallback(() => {}, []);
   const leavingRef = useRef(false);
   const leaveSessionRef = useRef<(reportEnd?: boolean) => void>(() => {});
 
@@ -72,7 +71,9 @@ export function CallSession({ roomId }: { roomId: string }) {
     hangUp,
   } = useCallPeer(
     roomId,
-    { onCaption: onTheirCaption, onPhrase: onTheirPhrase },
+    audioOnly
+      ? { onCaption: ignoreCaption, onPhrase: ignoreCaption }
+      : { onCaption: onTheirCaption, onPhrase: onTheirPhrase },
     peerHint,
     () => leaveSessionRef.current(false),
     asRole,
@@ -80,16 +81,24 @@ export function CallSession({ roomId }: { roomId: string }) {
 
   const connected = status === "connected";
 
+  const [camMuted, setCamMuted] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true);
+  const [elapsed, setElapsed] = useState(0);
+  const connectedAtRef = useRef<number | null>(null);
+  const elapsedRef = useRef(0);
+
   const onWord = useCallback(
     (word: string) => {
+      if (audioOnly) return;
       const next = onMyWord(word);
       sendCaption(next);
     },
-    [onMyWord, sendCaption],
+    [audioOnly, onMyWord, sendCaption],
   );
 
   const handleSpeech = useCallback(
     (text: string, final: boolean) => {
+      if (audioOnly) return;
       if (final) {
         const phrase = onMyVoiceFinal(text);
         if (phrase) sendPhrase(phrase);
@@ -97,7 +106,7 @@ export function CallSession({ roomId }: { roomId: string }) {
         onMyVoiceInterim(text);
       }
     },
-    [onMyVoiceFinal, onMyVoiceInterim, sendPhrase],
+    [audioOnly, onMyVoiceFinal, onMyVoiceInterim, sendPhrase],
   );
 
   const { listening, start, stop, supported } = useSpeechRecognition(handleSpeech);
@@ -106,12 +115,37 @@ export function CallSession({ roomId }: { roomId: string }) {
     useSignDetection(onWord);
 
   useEffect(() => {
-    if (!connected) {
-      reset();
+    if (!audioOnly) return;
+    let stream: MediaStream | null = null;
+    let cancelled = false;
+
+    void navigator.mediaDevices
+      .getUserMedia({ audio: true, video: false })
+      .then((s) => {
+        if (cancelled) {
+          releaseMediaStream(s);
+          return;
+        }
+        stream = s;
+        onStreamReady(s);
+      })
+      .catch(() => {
+        /* mic permission denied */
+      });
+
+    return () => {
+      cancelled = true;
+      if (stream) releaseMediaStream(stream);
+    };
+  }, [audioOnly, onStreamReady]);
+
+  useEffect(() => {
+    if (audioOnly || !connected) {
+      if (audioOnly) reset();
       return;
     }
     startLoad();
-  }, [connected, reset, startLoad]);
+  }, [audioOnly, connected, reset, startLoad]);
 
   const leaveSession = useCallback(
     async (reportEnd = false) => {
@@ -124,7 +158,7 @@ export function CallSession({ roomId }: { roomId: string }) {
       stop();
       stopAllVoice();
       hangUp();
-      releaseAllCameras();
+      if (!audioOnly) releaseAllCameras();
 
       if (reportEnd && roomId.startsWith("c_") && durationMs >= 1000) {
         try {
@@ -136,7 +170,7 @@ export function CallSession({ roomId }: { roomId: string }) {
 
       router.replace(returnTo);
     },
-    [hangUp, returnTo, roomId, router, stop],
+    [audioOnly, hangUp, returnTo, roomId, router, stop],
   );
 
   useEffect(() => {
@@ -169,9 +203,9 @@ export function CallSession({ roomId }: { roomId: string }) {
 
   useEffect(() => () => stop(), [stop]);
   useEffect(() => () => {
-    releaseAllCameras();
+    if (!audioOnly) releaseAllCameras();
     stopAllVoice();
-  }, []);
+  }, [audioOnly]);
 
   // Host: хариулт ирэх хүртэл calling.mp3 loop
   useEffect(() => {
@@ -249,7 +283,7 @@ export function CallSession({ roomId }: { roomId: string }) {
   };
 
   const handleVoiceToggle = async () => {
-    if (!connected) return;
+    if (audioOnly || !connected) return;
     if (listening) stop();
     else await start();
   };
@@ -267,40 +301,68 @@ export function CallSession({ roomId }: { roomId: string }) {
   return (
     <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden md:bg-black" style={{ background: "var(--bg)" }}>
 
-      {/* ── Camera ── fixed height on mobile, fullscreen on desktop ── */}
-      <div className="relative shrink-0 bg-black [height:48dvh] [min-height:260px] md:absolute md:inset-0 md:z-0 md:[height:unset] md:[min-height:unset]">
-        <CameraView
-          fullscreen
-          showPreview
-          mirrorPreview
-          mirrorDetect
-          previewFit={isDesktop ? "cover" : "contain"}
-          onLandmarks={connected ? handleLandmarks : undefined}
-          onStreamReady={onStreamReady}
-          inferenceActive={connected && modelReady}
-        />
-        {camMuted && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80">
-            <VideoCameraSlashIcon className="h-12 w-12 text-zinc-500" />
+      {/* ── Camera / audio ── */}
+      <div
+        className={`relative bg-black ${
+          audioOnly
+            ? "flex min-h-0 flex-1 flex-col"
+            : "relative shrink-0 [height:48dvh] [min-height:260px] md:absolute md:inset-0 md:z-0 md:[height:unset] md:[min-height:unset]"
+        }`}
+      >
+        {audioOnly ? (
+          <div className="flex h-full flex-col items-center justify-center gap-4 px-6">
+            <div
+              className="flex h-28 w-28 items-center justify-center rounded-full"
+              style={{ background: "color-mix(in srgb, var(--olive) 35%, #000)" }}
+            >
+              <PhoneIcon className="h-12 w-12" style={{ color: "var(--olive)" }} />
+            </div>
+            <p className="text-center text-[15px] font-semibold text-white/90">
+              Аудио дуудлага
+            </p>
+            <video ref={remoteVideoRef} playsInline className="sr-only" aria-hidden />
           </div>
+        ) : (
+          <>
+            <CameraView
+              fullscreen
+              showPreview
+              mirrorPreview
+              mirrorDetect
+              previewFit={isDesktop ? "cover" : "contain"}
+              onLandmarks={connected ? handleLandmarks : undefined}
+              onStreamReady={onStreamReady}
+              inferenceActive={connected && modelReady}
+            />
+            {camMuted && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80">
+                <VideoCameraSlashIcon className="h-12 w-12 text-zinc-500" />
+              </div>
+            )}
+
+            {/* Remote video PiP */}
+            <div
+              className={`absolute left-3 top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 overflow-hidden rounded-2xl border border-white/20 bg-black shadow-lg transition-opacity h-[100px] w-[75px] md:h-[240px] md:w-[180px] md:left-4 ${
+                connected && hasRemoteStream ? "opacity-100" : "pointer-events-none opacity-0"
+              }`}
+            >
+              <video ref={remoteVideoRef} playsInline className="h-full w-full object-cover" />
+            </div>
+          </>
         )}
 
-        {/* Remote video PiP */}
-        <div
-          className={`absolute left-3 top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 overflow-hidden rounded-2xl border border-white/20 bg-black shadow-lg transition-opacity h-[100px] w-[75px] md:h-[240px] md:w-[180px] md:left-4 ${
-            connected && hasRemoteStream ? "opacity-100" : "pointer-events-none opacity-0"
-          }`}
-        >
-          <video ref={remoteVideoRef} playsInline className="h-full w-full object-cover" />
-        </div>
-
-        {/* Mobile subtitles inside camera area */}
-        <div className="md:hidden">
-          <CallSubtitles layout="mobile" speaker={active?.speaker ?? null} text={active?.text ?? ""} />
-        </div>
+        {!audioOnly && (
+          <>
+            {/* Mobile subtitles inside camera area */}
+            <div className="md:hidden">
+              <CallSubtitles layout="mobile" speaker={active?.speaker ?? null} text={active?.text ?? ""} />
+            </div>
+          </>
+        )}
       </div>
 
-      {/* ── Mobile: chat history ── */}
+      {/* ── Mobile: caption history (video call only) ── */}
+      {!audioOnly && (
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:hidden">
         <CallCaptionHistory
           entries={history}
@@ -309,6 +371,7 @@ export function CallSession({ roomId }: { roomId: string }) {
           onToggle={() => setChatOpen((o) => !o)}
         />
       </div>
+      )}
 
       {/* ── Shared overlays (work on both layouts) ── */}
       <CallWaiting status={status} message={message} />
@@ -320,25 +383,29 @@ export function CallSession({ roomId }: { roomId: string }) {
         onBack={() => void leaveSession(true)}
       />
 
-      {(modelError || modelLoading) && connected && (
+      {(modelError || modelLoading) && connected && !audioOnly && (
         <p className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+3.5rem)] z-30 text-center text-xs" style={{ color: "var(--text-3)" }}>
           {modelError ?? "Ачааллаж байна…"}
         </p>
       )}
 
-      {/* ── Desktop: caption sidebar + subtitles ── */}
-      <CallCaptionHistory
-        entries={history}
-        variant="desktop"
-        open={chatOpen}
-        onToggle={() => setChatOpen((o) => !o)}
-      />
-      <CallSubtitles
-        layout="desktop"
-        speaker={active?.speaker ?? null}
-        text={active?.text ?? ""}
-        chatOpen={chatOpen}
-      />
+      {/* ── Desktop: caption sidebar + subtitles (video call only) ── */}
+      {!audioOnly && (
+        <>
+          <CallCaptionHistory
+            entries={history}
+            variant="desktop"
+            open={chatOpen}
+            onToggle={() => setChatOpen((o) => !o)}
+          />
+          <CallSubtitles
+            layout="desktop"
+            speaker={active?.speaker ?? null}
+            text={active?.text ?? ""}
+            chatOpen={chatOpen}
+          />
+        </>
+      )}
 
       {/* ── Controls ── */}
       <div className="shrink-0 z-40 px-3 pb-[max(env(safe-area-inset-bottom),16px)] pt-3 [background:var(--surface)] [border-top:1px_solid_var(--border-c)] md:absolute md:inset-x-0 md:bottom-0 md:px-6 md:pt-4 md:[background:transparent] md:[border-top:none]">
@@ -346,6 +413,8 @@ export function CallSession({ roomId }: { roomId: string }) {
           camMuted={camMuted}
           voiceListening={listening}
           voiceSupported={supported}
+          hideCamera={audioOnly}
+          hideVoice={audioOnly}
           onCamToggle={handleCamToggle}
           onVoiceToggle={handleVoiceToggle}
           onEnd={() => void leaveSession(true)}

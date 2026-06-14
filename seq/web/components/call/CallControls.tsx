@@ -11,6 +11,8 @@ type Props = {
   camMuted: boolean;
   voiceListening: boolean;
   voiceSupported: boolean;
+  hideCamera?: boolean;
+  hideVoice?: boolean;
   onCamToggle: () => void;
   onVoiceToggle: () => void;
   onEnd: () => void;
@@ -20,6 +22,8 @@ export function CallControls({
   camMuted,
   voiceListening,
   voiceSupported,
+  hideCamera = false,
+  hideVoice = false,
   onCamToggle,
   onVoiceToggle,
   onEnd,
@@ -29,6 +33,7 @@ export function CallControls({
       <div className="flex items-end justify-center gap-8">
 
         {/* Camera */}
+        {!hideCamera && (
         <button
           type="button"
           onClick={onCamToggle}
@@ -46,6 +51,7 @@ export function CallControls({
             <VideoCameraIcon className="h-6 w-6" style={{ color: "#0d1e35" }} />
           )}
         </button>
+        )}
 
         {/* End call */}
         <button
@@ -62,7 +68,8 @@ export function CallControls({
           <PhoneXMarkIcon className="h-6 w-6 text-white" />
         </button>
 
-        {/* Microphone */}
+        {/* Microphone (STT — video call only) */}
+        {!hideVoice && (
         <button
           type="button"
           onClick={onVoiceToggle}
@@ -79,6 +86,7 @@ export function CallControls({
         >
           <MicrophoneIcon className="h-6 w-6" style={{ color: "#0d1e35" }} />
         </button>
+        )}
 
       </div>
     </div>

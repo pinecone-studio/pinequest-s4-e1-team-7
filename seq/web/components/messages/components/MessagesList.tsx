@@ -21,7 +21,7 @@ type Props = {
   onStartEdit: (id: number, body: string) => void;
   onDeleteMessage: (msg: ChatMessage) => void;
   onDeleteCallLog: (entry: CallLogEntry) => void;
-  onCallAgain: () => void;
+  onCallAgain: (audioOnly: boolean) => void;
 };
 
 export function MessagesList({

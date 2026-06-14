@@ -251,7 +251,7 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
     if (threadAction === "call") {
       stopHistoryPlayback();
       playVoice(THREAD_ACTIVATE_VOICE.call);
-      await bridge.startCall();
+      await bridge.startCall({ audioOnly: true });
     } else if (threadAction === "voice") {
       if (bridge.recording) {
         bridge.stopRecording();

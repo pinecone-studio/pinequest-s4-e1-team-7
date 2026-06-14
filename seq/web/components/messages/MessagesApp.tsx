@@ -58,6 +58,7 @@ import {
   type A11yChatBridge,
 } from "@/lib/a11y-chat-bridge";
 import { playVoice } from "@/lib/play-voice";
+import { buildCallPath, encodeCallRoom } from "@/lib/call-mode";
 import { A11yNavProvider } from "@/components/accessible/A11yNavProvider";
 import { A11yThreadToolbar } from "@/components/accessible/A11yThreadToolbar";
 
@@ -654,11 +655,12 @@ export function MessagesApp({
     }
   };
 
-  const startCall = useCallback(async () => {
+  const startCall = useCallback(async (opts?: { audioOnly?: boolean }) => {
     if (!activeId || !activePeer) return;
     markInCall();
+    const roomBody = encodeCallRoom(activeId, opts?.audioOnly);
     try {
-      const msg = await sendCallInvite(activeId, activeId, activePeer?.id);
+      const msg = await sendCallInvite(activeId, roomBody, activePeer?.id);
       shouldScrollToBottomRef.current = true;
       setMessages((p) => {
         const merged = mergeMessages(p, [msg]);
@@ -671,7 +673,12 @@ export function MessagesApp({
       /* still open call screen */
     }
     router.push(
-      `/call/${encodeURIComponent(activeId)}?as=host&returnTo=${encodeURIComponent(buildChatPath(chatBasePath, activeId))}`,
+      buildCallPath({
+        roomId: activeId,
+        as: "host",
+        returnTo: buildChatPath(chatBasePath, activeId),
+        audioOnly: opts?.audioOnly,
+      }),
     );
   }, [activeId, activePeer, chatBasePath, markInCall, refreshConversations, router]);
 
@@ -863,7 +870,8 @@ export function MessagesApp({
               <ChatThreadHeader
                 activePeer={activePeer}
                 onClose={closeChat}
-                onCall={() => void startCall()}
+                onVideoCall={() => void startCall()}
+                onAudioCall={() => void startCall({ audioOnly: true })}
                 hideCall={a11yMode}
               />
               <MessagesList
@@ -882,7 +890,7 @@ export function MessagesApp({
                 }}
                 onDeleteMessage={(msg) => void handleDeleteMessage(msg)}
                 onDeleteCallLog={(entry) => void handleDeleteCallLog(entry)}
-                onCallAgain={() => void startCall()}
+                onCallAgain={(audioOnly) => void startCall({ audioOnly })}
               />
               {a11yMode && <A11yThreadToolbar />}
               {!hideInputFooter && (
