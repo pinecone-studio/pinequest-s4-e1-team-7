@@ -5,7 +5,7 @@ import { EASE } from "../motion";
 const DATA = {
   before: {
     accent: "#ef4444",
-    tag: "Одоогийн байдал",
+    tag: "Одоогийн",
     desc: "Дохионы хэлээр ярьдаг иргэд нийгэмд оролцох, ажлын байраар хангагдах боломж хязгаарлагдмал.",
     big: { label: "Ажилгүйдэлтэй иргэд", value: "2,400+" },
     mid: { label: "Дохионы хэлээр ярьдаг иргэд", value: "25,000+" },
@@ -13,7 +13,7 @@ const DATA = {
   },
   after: {
     accent: "#f5c518",
-    tag: "SignBridge платформ нь",
+    tag: "Бидний",
     desc: "Иргэд шууд харилцаж, нийгэмд бүрэн оролцох, хөдөлмөрийн чадвар нэмэгдэх боломжтой болно.",
     big: { label: "Ажилгүйдэл буурах", value: "−90%" },
     mid: { label: "Тэгш нийгэм", value: "25,000+" },
@@ -50,15 +50,6 @@ export const GlobeStatsPanel = ({ visible, compare }: Props) => {
               <div className="my-5 h-px" style={{ background: "rgba(255,255,255,0.16)" }} />
               <p className="mb-1 text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>{d.mid.label}</p>
               <p className="font-black leading-none" style={{ color: d.accent, fontSize: "clamp(26px,2.8vw,38px)" }}>{d.mid.value}</p>
-              <div className="my-5 h-px" style={{ background: "rgba(255,255,255,0.16)" }} />
-              <div className="grid grid-cols-2 gap-x-4">
-                {d.grid.map(({ label, value }) => (
-                  <div key={label}>
-                    <p className="text-[10px] leading-snug mb-2" style={{ color: "rgba(255,255,255,0.32)" }}>{label}</p>
-                    <p className="font-black" style={{ color: d.accent, fontSize: "clamp(22px,2.4vw,32px)" }}>{value}</p>
-                  </div>
-                ))}
-              </div>
             </m.div>
           </AnimatePresence>
         </m.div>
