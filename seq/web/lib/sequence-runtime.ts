@@ -12,6 +12,7 @@ import {
   isLongVowelSign,
   isTwoHandMode,
   frameIsTwoHand,
+  detectActiveHandSide,
   normalizeFrame,
   packRawVector,
   PACK_MIRROR_DETECT,
@@ -68,6 +69,8 @@ export type SeqMetadata = {
   motionMinMargin?: number;
   /** Per label: 0=neutral/any, 1=one-hand only, 2=two-hand only (see hand_modes.json). */
   handModes?: number[];
+  /** Per label: 0=any side, 1=right hand only, 2=left hand only (hand_side_modes.json). */
+  handSideModes?: number[];
   longVowelMinStreak?: number;
   longVowelMinConfidence?: number;
   longVowelMinMargin?: number;
@@ -113,11 +116,45 @@ export type SeqPrediction = {
   isNeutral: boolean;
   /** Current frame has both hands detected. */
   bothHands: boolean;
+  /** 0=аль ч, 1=баруун гар л, 2=зүүн гар л (одоогийн frame). */
+  activeHandSide: 0 | 1 | 2;
   /** Avg hand landmark motion in the sliding window. */
   handMotion: number;
   /** Full softmax vector (pred-decoder stage-2). */
   probs?: Float32Array;
 };
+
+type SeqPredCore = Omit<
+  SeqPrediction,
+  "bothHands" | "activeHandSide" | "handMotion"
+>;
+
+/** Sign-ийн шаардлагатай гарын тал (0=аль ч, 1=баруун, 2=зүүн) таарч байгаа эсэх. */
+export function handSideAllowed(
+  pred: SeqPrediction,
+  handSideModes: number[] | undefined,
+  labels: string[] | undefined,
+  neutralLabel = "neutral"
+): boolean {
+  if (pred.isNeutral || !handSideModes?.length || !labels?.length) return true;
+  const i = labels.indexOf(pred.label);
+  if (i < 0) return true;
+  const required = handSideModes[i] ?? 0;
+  if (required === 0) return true;
+  return pred.activeHandSide === required;
+}
+
+/** Static letters: 2 гар байвал харагдах/emit хийхгүй. */
+export function isPredictionVisible(
+  pred: SeqPrediction,
+  neutralLabel = "neutral",
+  handSideModes?: number[],
+  labels?: string[]
+): boolean {
+  if (pred.isNeutral) return false;
+  if (isStaticSign(pred.label, neutralLabel) && pred.bothHands) return false;
+  return handSideAllowed(pred, handSideModes, labels, neutralLabel);
+}
 
 /** Single Cyrillic/Latin letter (А, В, …) or long vowel — not words like "би". */
 export function isStaticSign(label: string, neutralLabel = "neutral"): boolean {
@@ -125,16 +162,6 @@ export function isStaticSign(label: string, neutralLabel = "neutral"): boolean {
   if (isLongVowelSign(label)) return true;
   const s = label.trim().replace(/_/g, " ");
   return s.length === 1 && /^[\p{L}]$/u.test(s);
-}
-
-/** Static letters are suppressed when both hands are visible (2-hand = motion/word). */
-export function isPredictionVisible(
-  pred: SeqPrediction,
-  neutralLabel = "neutral"
-): boolean {
-  if (pred.isNeutral) return false;
-  if (isStaticSign(pred.label, neutralLabel) && pred.bothHands) return false;
-  return true;
 }
 
 /** 1-hand motion/word sign (би, сурагч, …) — not a single letter. */
@@ -502,11 +529,36 @@ export class SequenceRecognizer {
     }
 
     const motion = this._windowHandMotion();
+    const activeHandSide = detectActiveHandSide(raw);
     const mpHands = lm.hand?.landmarks?.length ?? 0;
+    let pred: SeqPrediction;
     if (mpHands < 2) {
-      return { ...this._inferSingle(false, motion), bothHands: false, handMotion: motion };
+      pred = {
+        ...this._inferSingle(false, motion),
+        bothHands: false,
+        activeHandSide,
+        handMotion: motion,
+      };
+    } else {
+      pred = { ...this._inferDual(motion), activeHandSide, handMotion: motion };
     }
-    return { ...this._inferDual(motion), handMotion: motion };
+    return this._gateHandSide(pred);
+  }
+
+  /** Гарын тал таарахгүй бол prediction-ийг neutral болгоно. */
+  private _gateHandSide(pred: SeqPrediction): SeqPrediction {
+    if (pred.isNeutral) return pred;
+    const modes = this.meta.handSideModes;
+    const labels = this.meta.labels;
+    if (handSideAllowed(pred, modes, labels, this.meta.neutralLabel)) {
+      return pred;
+    }
+    return {
+      ...this._neutralPred(),
+      bothHands: pred.bothHands,
+      activeHandSide: pred.activeHandSide,
+      handMotion: pred.handMotion,
+    };
   }
 
   private _latestFrame(): Float32Array {
@@ -543,7 +595,7 @@ export class SequenceRecognizer {
     return pairs > 0 ? total / pairs : 0;
   }
 
-  private _neutralPred(): Omit<SeqPrediction, "bothHands" | "handMotion"> {
+  private _neutralPred(): SeqPredCore {
     return {
       label: this.meta.neutralLabel,
       confidence: 0,
@@ -609,7 +661,7 @@ export class SequenceRecognizer {
   private _decodeMasked(
     rawProbs: Float32Array,
     bothHands: boolean
-  ): Omit<SeqPrediction, "bothHands" | "handMotion"> {
+  ): SeqPredCore {
     const probs = this._maskProbs(rawProbs, bothHands);
     let bestId = 0;
     let best = -1;
@@ -644,7 +696,7 @@ export class SequenceRecognizer {
   private _inferSingle(
     bothHands: boolean,
     motion: number
-  ): Omit<SeqPrediction, "bothHands" | "handMotion"> {
+  ): SeqPredCore {
     if (!bothHands) {
       const idleMax = this.meta.idleMaxMotion ?? 0.002;
       if (
@@ -666,7 +718,7 @@ export class SequenceRecognizer {
    */
   private _inferDual(
     motion: number
-  ): Omit<SeqPrediction, "bothHands" | "handMotion"> & { bothHands: boolean } {
+  ): SeqPredCore & { bothHands: boolean } {
     const raw = this._forwardProbs();
     const one = this._decodeMasked(raw, false);
     const two = this._decodeMasked(raw, true);
@@ -708,7 +760,7 @@ export class SequenceRecognizer {
   private infer(
     bothHands: boolean,
     motion = this._windowHandMotion()
-  ): Omit<SeqPrediction, "bothHands" | "handMotion"> {
+  ): SeqPredCore {
     return this._inferSingle(bothHands, motion);
   }
 

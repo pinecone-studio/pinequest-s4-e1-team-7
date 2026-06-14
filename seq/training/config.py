@@ -32,6 +32,7 @@ MODELS_DIR = os.path.join(BASE_DIR, "models")             # MediaPipe .task file
 ARTIFACTS_DIR = os.path.join(BASE_DIR, "artifacts")       # trained keras model + reports
 LABELS_FILE = os.path.join(BASE_DIR, "labels.txt")
 HAND_MODES_FILE = os.path.join(BASE_DIR, "hand_modes.json")
+HAND_SIDE_MODES_FILE = os.path.join(BASE_DIR, "hand_side_modes.json")
 
 # Where the exported TFJS model is written (served by the web app).
 WEB_MODEL_DIR = os.path.join(SEQ_DIR, "web", "public", "models", "seq")
@@ -292,6 +293,43 @@ def hand_modes_for_labels(labels: list[str]) -> list[int]:
     return [hand_mode_for(lbl, modes) for lbl in labels]
 
 
+def load_hand_side_modes() -> dict[str, int]:
+    """label → 0 (any / 2-hand), 1 (right hand only), 2 (left hand only)."""
+    sides: dict[str, int] = {NEUTRAL_LABEL: 0}
+    if not os.path.isfile(HAND_SIDE_MODES_FILE):
+        return sides
+    with open(HAND_SIDE_MODES_FILE, encoding="utf-8") as f:
+        raw = json.load(f)
+    for key, val in raw.items():
+        if key.startswith("_"):
+            continue
+        if val in (0, 1, 2):
+            sides[key.strip()] = int(val)
+    return sides
+
+
+def hand_side_for(label: str, sides: dict[str, int] | None = None) -> int:
+    """Default 0 when missing (no side constraint)."""
+    if label == NEUTRAL_LABEL:
+        return 0
+    m = sides if sides is not None else load_hand_side_modes()
+    s = label.strip()
+    if s in m:
+        return m[s]
+    for human, side in m.items():
+        if safe_name(human) == s:
+            return side
+    # 1-hand sign without entry → баруун гар default
+    if hand_mode_for(label) == 1:
+        return 1
+    return 0
+
+
+def hand_side_modes_for_labels(labels: list[str]) -> list[int]:
+    sides = load_hand_side_modes()
+    return [hand_side_for(lbl, sides) for lbl in labels]
+
+
 def live_metadata_extra(labels: list[str] | None = None) -> dict:
     """Extra keys written into web/public/models/seq/metadata.json."""
     extra: dict = {
@@ -373,6 +411,7 @@ def live_metadata_extra(labels: list[str] | None = None) -> dict:
     }
     if labels:
         extra["handModes"] = hand_modes_for_labels(labels)
+        extra["handSideModes"] = hand_side_modes_for_labels(labels)
     return extra
 
 

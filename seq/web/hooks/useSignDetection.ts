@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AllLandmarks } from "@/lib/mediapipe";
 import * as sequenceRuntime from "@/lib/sequence-runtime";
-import type { SequenceEmitter, SequenceRecognizer } from "@/lib/sequence-runtime";
+import type { SequenceEmitter, SequenceRecognizer, SeqMetadata } from "@/lib/sequence-runtime";
 
 export type LivePred = {
   label: string;
@@ -20,6 +20,7 @@ export function useSignDetection(onWord: (word: string) => void) {
 
   const recognizerRef = useRef<SequenceRecognizer | null>(null);
   const emitterRef = useRef<SequenceEmitter | null>(null);
+  const metaRef = useRef<SeqMetadata | null>(null);
   const livePredRef = useRef<LivePred | null>(null);
   const lastLiveUiAtRef = useRef(0);
   const modelLoadStartedRef = useRef(false);
@@ -32,6 +33,7 @@ export function useSignDetection(onWord: (word: string) => void) {
     emitterRef.current = null;
     livePredRef.current = null;
     lastLiveUiAtRef.current = 0;
+    metaRef.current = null;
     modelLoadStartedRef.current = false;
     loadGenRef.current += 1;
     setModelReady(false);
@@ -87,6 +89,7 @@ export function useSignDetection(onWord: (word: string) => void) {
         result.model,
         result.meta
       );
+      metaRef.current = result.meta;
       emitterRef.current = new sequenceRuntime.SequenceEmitter(
         sequenceRuntime.emitterOptionsFromMeta(result.meta)
       );
@@ -121,7 +124,12 @@ export function useSignDetection(onWord: (word: string) => void) {
       const now = performance.now();
       if (
         pred &&
-        sequenceRuntime.isPredictionVisible(pred) &&
+        sequenceRuntime.isPredictionVisible(
+          pred,
+          metaRef.current?.neutralLabel,
+          metaRef.current?.handSideModes,
+          metaRef.current?.labels,
+        ) &&
         now - lastLiveUiAtRef.current >= 350
       ) {
         const st = emitter.getStatus(now);
