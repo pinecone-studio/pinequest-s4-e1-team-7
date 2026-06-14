@@ -1,8 +1,9 @@
 "use client";
 import Image from "next/image";
+import { type MotionValue } from "framer-motion";
 import { TEAM } from "./heroData";
 
-export const HeroTeamPanel = () => (
+export const HeroTeamPanel = ({ p: _ }: { p: MotionValue<number> }) => (
   <div className="absolute inset-0 overflow-hidden bg-[#0a0a0a]">
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
       <p

@@ -1,13 +1,13 @@
 "use client";
 import Image from "next/image";
 import { m, useTransform, type MotionValue } from "framer-motion";
-import { CameraIcon, MicrophoneIcon, VideoCameraIcon } from "@heroicons/react/24/solid";
+import { CameraIcon, MicrophoneIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/solid";
 import { STEPS, T1S, T1E, T2S, T2E } from "./featuresData";
 import type { ComponentType, SVGProps } from "react";
 
 const GRADIENT = "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 28%), linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 28%)";
 
-const ICONS: ComponentType<SVGProps<SVGSVGElement>>[] = [CameraIcon, MicrophoneIcon, VideoCameraIcon];
+const ICONS: ComponentType<SVGProps<SVGSVGElement>>[] = [CameraIcon, MicrophoneIcon, ChatBubbleLeftRightIcon];
 
 const ImgFrame = ({ src }: { src: string }) => (
   <div className="absolute inset-0 bg-black flex items-center justify-center">

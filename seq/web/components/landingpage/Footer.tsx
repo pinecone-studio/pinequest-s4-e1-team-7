@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 
 export const Footer = () => (
@@ -11,7 +12,7 @@ export const Footer = () => (
         className="select-none object-contain"
       />
       <span
-        className="select-none font-black "
+        className="select-none font-black"
         style={{ fontSize: "clamp(1.4rem, 3vw, 2.8rem)", letterSpacing: "-0.03em" }}
       >
         <span style={{ color: "var(--olive)" }}>Sign</span>

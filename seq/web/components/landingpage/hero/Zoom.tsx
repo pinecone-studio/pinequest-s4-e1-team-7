@@ -16,7 +16,7 @@ export const Zoom = ({ p, at, src, round = false }: ZoomProps) => {
         alt=""
         fill
         sizes="100px"
-        className={`object-cover object-top ${round ? "rounded-full" : "rounded-[14px]"}`}
+        className={`object-cover object-center ${round ? "rounded-full" : "rounded-[14px]"}`}
       />
     </m.span>
   );

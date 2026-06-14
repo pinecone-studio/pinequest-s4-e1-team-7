@@ -28,7 +28,7 @@ export const AuthOverlay = () => {
         <button type="button" onClick={() => router.replace("/")} className="absolute right-3 top-3" aria-label="Хаах">
           <XMarkIcon className="h-6 w-6" style={{ color: "var(--text-3)" }} />
         </button>
-        <p className="mb-4 text-[14px]" style={{ color: "var(--text-2)" }}>Шилжиж байна...</p>
+        <p className="mb-4 text-[14px]" style={{ color: "var(--text-2)" }}>Ачааллаж байна...</p>
         <Link href={mode === "login" ? "/auth/login" : "/auth/register"} className="font-bold" style={{ color: "var(--text)" }}>
           {mode === "login" ? "Нэвтрэх" : "Бүртгүүлэх"}
         </Link>
