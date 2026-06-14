@@ -158,8 +158,7 @@ def add_hand_noise(seq_norm: np.ndarray, std: float = 0.018) -> np.ndarray:
 
 def augment(seq_norm: np.ndarray) -> np.ndarray:
     out = seq_norm.copy()
-    if rng.random() < 0.5:
-        out = horizontal_flip(out)
+    # horizontal_flip хассан — баруун/зүүн гар тус бүр тусдаа сурна.
     # scale
     s = rng.uniform(0.88, 1.12)
     out[:, _coord_mask()] *= s

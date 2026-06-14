@@ -140,6 +140,34 @@ export function frameIsTwoHand(raw: Float32Array): boolean {
   return handBlockActive(raw, leftBase) && handBlockActive(raw, rightBase);
 }
 
+/**
+ * Бодит баруун гар (selfie mirror → LEFT block идэвхтэй, RIGHT хоосон).
+ */
+export function isRightHandOnly(raw: Float32Array): boolean {
+  if (raw[LEFT_PRESENT_IDX] === 0 || raw[RIGHT_PRESENT_IDX] !== 0) return false;
+  return handBlockActive(raw, LEFT_BASE);
+}
+
+/**
+ * Бодит зүүн гар (mirror → RIGHT block идэвхтэй, LEFT хоосон).
+ */
+export function isLeftHandOnly(raw: Float32Array): boolean {
+  if (raw[RIGHT_PRESENT_IDX] === 0 || raw[LEFT_PRESENT_IDX] !== 0) return false;
+  return handBlockActive(raw, RIGHT_BASE);
+}
+
+/** 0=аль ч/2 гар, 1=баруун л, 2=зүүн л */
+export function detectActiveHandSide(raw: Float32Array): 0 | 1 | 2 {
+  if (isRightHandOnly(raw)) return 1;
+  if (isLeftHandOnly(raw)) return 2;
+  return 0;
+}
+
+/** @deprecated isRightHandOnly ашиглана */
+export function isLetterHandOnly(raw: Float32Array): boolean {
+  return isRightHandOnly(raw);
+}
+
 export type PackRawOptions = {
   detectionOnMirroredPixels?: boolean;
 };

@@ -121,6 +121,8 @@ def draw_hud(frame, label, idx, total_labels, recording, n_clips, rec_frames, ra
     cv2.addWeighted(overlay, 0.6, frame, 0.4, 0, frame)
     hand_mode = C.hand_mode_for(label)
     hand_txt = {0: "?", 1: "1 гар", 2: "2 гар"}.get(hand_mode, "?")
+    side = C.hand_side_for(label)
+    side_txt = {0: "аль ч", 1: "баруун", 2: "зүүн"}.get(side, "?")
     put_unicode_text(
         frame,
         f"[{idx + 1}/{total_labels}] {label}",
@@ -130,7 +132,7 @@ def draw_hud(frame, label, idx, total_labels, recording, n_clips, rec_frames, ra
     )
     put_unicode_text(
         frame,
-        f"clips: {n_clips}   гар:{hand_txt}",
+        f"clips: {n_clips}   гар:{hand_txt}   тал:{side_txt}",
         (12, 38),
         size=16,
         color=(200, 200, 200),
