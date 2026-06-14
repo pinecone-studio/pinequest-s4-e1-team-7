@@ -27,7 +27,10 @@ export const GlobeSection = () => {
         ))}
       </div>
 
-      <div className="absolute inset-0 z-[1] bg-black">
+      {/* Mobile: full-width centered small globe. Desktop: right half only */}
+      <div className="absolute z-[1]
+        left-[5%] right-[5%] top-[6vh] h-[42vh]
+        md:left-1/2 md:right-0 md:top-0 md:bottom-0 md:h-auto">
         <GlobeR3F onExpand={() => setExpanded(true)} style={{ width: "100%", height: "100%" }} />
       </div>
 
@@ -94,6 +97,23 @@ export const GlobeSection = () => {
               </m.div>
             </AnimatePresence>
           </div>
+
+          {compare === "before" && (
+            <div className="mt-8 pl-[76px] flex flex-col gap-1">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "rgba(255,255,255,0.35)" }}>
+                Эх сурвалж
+              </p>
+              <p className="text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.22)" }}>
+                * 7,800 Deaf (2023, UNDP) · 9,000–16,000 MSL users (linguistic est.)
+              </p>
+              <p className="text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.22)" }}>
+                * &lt;20 sign language interpreters nationwide
+              </p>
+              <p className="text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.22)" }}>
+                * 18% employment rate for persons with disabilities — 2024 gov. data
+              </p>
+            </div>
+          )}
         </div>
 
         <m.div className="pointer-events-none absolute top-0 bottom-0 w-px"
@@ -109,6 +129,7 @@ export const GlobeSection = () => {
 
         <GlobeStatsPanel visible={!expanded} compare={compare} />
       </div>
+
 
       <AnimatePresence>
         {expanded && <GlobeExpanded onBack={onBack} />}

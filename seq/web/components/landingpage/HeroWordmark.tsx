@@ -35,8 +35,8 @@ export const HeroWordmark = () => {
         animate={{ opacity: 1 }}
         transition={{ delay: 2.0, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
-        <span data-lp-font="" style={{ color: "var(--olive)", fontWeight: 900, fontSize: 20 }}>Sign</span>
-        <span data-lp-font="" style={{ color: "#fff",          fontWeight: 900, fontSize: 20 }}>Bridge</span>
+        <span style={{ color: "#fff",          fontWeight: 900, fontSize: 20, fontFamily: "var(--font-display)" }}>Sign</span>
+        <span style={{ color: "var(--olive)", fontWeight: 900, fontSize: 20, fontFamily: "var(--font-display)" }}>Bridge</span>
       </m.div>
     </m.div>
   );

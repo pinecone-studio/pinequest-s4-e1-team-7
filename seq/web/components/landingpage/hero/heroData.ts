@@ -1,8 +1,12 @@
 export const TEAM = [
-  { src: "/images/team1.JPG", name: "Ариунзул", role: "Developer" },
-  { src: "/images/team2.JPG", name: "Ганхөлөг", role: "Developer" },
-  { src: "/images/team3.JPG", name: "Норовсүрэн", role: "Developer" },
-  { src: "/images/team4.JPG", name: "Мөнхжин", role: "Developer" },
+  {
+    src: "/images/team1.JPG",
+    name: "Норовсүрэн",
+    role: "Full-stack Developer",
+  },
+  { src: "/images/team2.JPG", name: "Ганхөлөг", role: "Full-stack Developer" },
+  { src: "/images/team3.JPG", name: "Ариунзул", role: "Full-stack Developer" },
+  { src: "/images/team4.JPG", name: "Мөнхжин", role: "Full-stack Developer" },
 ];
 
 export const HERO_IMGS = [
