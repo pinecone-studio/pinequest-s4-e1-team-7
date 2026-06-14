@@ -52,7 +52,7 @@ export function FeatureCarousel({ features }: { features: CarouselFeature[] }) {
             <Link
               key={f.id}
               href={f.href}
-              className="group relative shrink-0 overflow-hidden rounded-[28px] transition-all duration-300 active:scale-[0.97]"
+              className="group relative shrink-0 overflow-hidden rounded-[28px] transition-all duration-300 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={{
                 width: "78vw",
                 maxWidth: "370px",
@@ -90,7 +90,7 @@ export function FeatureCarousel({ features }: { features: CarouselFeature[] }) {
         {features[0] && (
           <Link
             href={features[0].href}
-            className="group relative col-span-2 row-span-2 overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            className="group relative col-span-2 row-span-2 overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             style={cardStyle(features[0])}
           >
             <FeatureCardContent f={features[0]} size="big" />
@@ -99,7 +99,7 @@ export function FeatureCarousel({ features }: { features: CarouselFeature[] }) {
         {features[1] && (
           <Link
             href={features[1].href}
-            className="group relative overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            className="group relative overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             style={{ ...cardStyle(features[1]), gridColumn: "3 / span 2", gridRow: "1 / span 1" }}
           >
             <FeatureCardContent f={features[1]} size="medium" />
@@ -108,7 +108,7 @@ export function FeatureCarousel({ features }: { features: CarouselFeature[] }) {
         {features[2] && (
           <Link
             href={features[2].href}
-            className="group relative overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            className="group relative overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             style={{ ...cardStyle(features[2]), gridColumn: "5 / span 2", gridRow: "1 / span 2" }}
           >
             <FeatureCardContent f={features[2]} size="big" />
@@ -117,7 +117,7 @@ export function FeatureCarousel({ features }: { features: CarouselFeature[] }) {
         {features[3] && (
           <Link
             href={features[3].href}
-            className="group relative overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98]"
+            className="group relative overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             style={{ ...cardStyle(features[3]), gridColumn: "3 / span 2", gridRow: "2 / span 1" }}
           >
             <FeatureCardContent f={features[3]} size="medium" />

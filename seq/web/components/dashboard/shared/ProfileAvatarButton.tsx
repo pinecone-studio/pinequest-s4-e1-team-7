@@ -14,7 +14,7 @@ export function ProfileAvatarButton({ size = 40 }: { size?: number }) {
       type="button"
       onClick={() => router.push("/dashboard/settings")}
       aria-label="Тохиргоо"
-      className="rounded-full transition-opacity hover:opacity-90 active:scale-95"
+      className="rounded-full transition-all duration-150 hover:scale-105 hover:brightness-105 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
     >
       <UserAvatar name={name} avatarUrl={user?.avatarUrl} size={size} />
     </button>

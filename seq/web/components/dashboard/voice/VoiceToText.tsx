@@ -65,7 +65,7 @@ export function VoiceToText() {
               onClick={toggle}
               disabled={!supported}
               aria-label={listening ? "Зогсоох" : "Эхлүүлэх"}
-              className="flex h-[88px] w-[88px] items-center justify-center rounded-full transition-all duration-300 active:scale-95 disabled:opacity-40 md:h-[120px] md:w-[120px]"
+              className="flex h-[88px] w-[88px] items-center justify-center rounded-full transition-all duration-300 hover:scale-105 hover:brightness-110 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:hover:brightness-100 md:h-[120px] md:w-[120px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--olive)]"
               style={{
                 background: "var(--olive)",
                 boxShadow: listening
