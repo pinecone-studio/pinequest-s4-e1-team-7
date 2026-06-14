@@ -112,17 +112,27 @@ def export_h5_to_tfjs(h5_path: str, out_dir: str) -> None:
 
 
 def _load_keras_model(path: str):
-    """Load model.keras saved by train.py (Keras 3 or legacy tf_keras)."""
-    import tensorflow as tf
+    """Load model.keras saved by train.py (Keras 3).
 
+    Use standalone keras with compile=False — tf.keras/tf_keras cannot reload
+    Keras 3 checkpoints or the custom label-smoothing loss from train.py.
+    """
+    os.environ.pop("TF_USE_LEGACY_KERAS", None)
     try:
-        return tf.keras.models.load_model(path)
-    except TypeError:
-        os.environ["TF_USE_LEGACY_KERAS"] = "1"
-        import importlib
+        import keras
 
-        importlib.reload(tf)
-        return tf.keras.models.load_model(path)
+        return keras.models.load_model(path, compile=False)
+    except Exception as keras_err:
+        import tensorflow as tf
+
+        try:
+            return tf.keras.models.load_model(path, compile=False)
+        except Exception as tf_err:
+            sys.exit(
+                "❌ Model ачаалахад алдаа:\n"
+                f"   keras: {keras_err}\n"
+                f"   tf.keras: {tf_err}"
+            )
 
 
 def main() -> None:

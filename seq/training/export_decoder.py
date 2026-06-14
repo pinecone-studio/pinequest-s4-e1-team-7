@@ -20,13 +20,8 @@ def main() -> None:
     except ImportError as e:
         sys.exit(f"❌ export_model import: {e}")
 
-    import tensorflow as tf
-
     print("→ Loading decoder...")
-    try:
-        model = tf.keras.models.load_model(D.DECODER_KERAS)
-    except TypeError:
-        model = _load_keras_model(D.DECODER_KERAS)
+    model = _load_keras_model(D.DECODER_KERAS)
 
     h5 = os.path.join(D.DECODER_ARTIFACTS, "decoder.h5")
     model.save(h5)

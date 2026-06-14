@@ -181,22 +181,20 @@ def export_tfjs(model, labels: list[str]) -> None:
                 check=True,
             )
             return
-        except subprocess.CalledProcessError as e:
-            print(f"\n⚠ export_model.py амжилтгүй: {e}")
+        except subprocess.CalledProcessError:
+            print("\n⚠ export_model.py амжилтгүй — in-process export оролдож байна...")
 
-    # Fallback: in-process h5 → TFJS (model already in memory).
+    # Fallback: in-process h5 → TFJS (model already in memory, no reload).
     try:
         from export_model import export_h5_to_tfjs
         h5_path = os.path.join(C.ARTIFACTS_DIR, "model.h5")
+        print(f"\n→ Saving {h5_path}...")
         model.save(h5_path)
         export_h5_to_tfjs(h5_path, C.WEB_MODEL_DIR)
         print(f"✓ TFJS export → {C.WEB_MODEL_DIR}")
         return
-    except ImportError:
-        pass
-
-    print("\n⚠ TFJS export алгассан.")
-    print("  python3 export_model.py")
+    except Exception as e:
+        print(f"\n⚠ TFJS export алгассан: {e}")
 
 
 def main() -> None:
