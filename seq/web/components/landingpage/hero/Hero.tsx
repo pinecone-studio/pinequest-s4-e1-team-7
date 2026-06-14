@@ -1,15 +1,15 @@
 "use client";
 import { useRef, useState, useEffect } from "react";
 import { m, useScroll, useTransform, useSpring, useReducedMotion } from "framer-motion";
-import Image from "next/image";
-import { HERO_IMGS } from "./heroData";
 import { HeroText } from "./HeroText";
 import { HeroTeamPanel } from "./HeroTeam";
 import { HeroOpening } from "./HeroOpening";
+import { useMediaQuery } from "@/hooks/useBreakpoint";
 
 export const Hero = () => {
   const ref = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const [showOpening, setShowOpening] = useState(true);
 
   useEffect(() => {
@@ -21,35 +21,47 @@ export const Hero = () => {
     return () => { clearTimeout(t1); clearTimeout(t2); document.body.style.overflow = ""; };
   }, [reduce]);
 
-  const { scrollYProgress: raw } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  // Mobile: 200dvh = 100dvh sticky hero + 100dvh static team below
+  // Desktop: 240vh full scroll-animated hero with team panel clip-reveal
+  const { scrollYProgress: raw } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const springP = useSpring(raw, { stiffness: 80, damping: 20 });
-  const p = reduce ? raw : springP;
+  const p = reduce || isMobile ? raw : springP;
 
-  const r        = useTransform(p, [0.25, 0.58], ["4%", "100%"]);
-  const imgClip  = useTransform(r, (v) => `circle(${v} at 5% 58%)`);
-  const imgScale = useTransform(p, [0.25, 0.58], [1, 1.12]);
-  const imgOp    = useTransform(p, [0.22, 0.36, 0.54, 0.58], [0, 1, 1, 0]);
-  const textOp   = useTransform(p, [0.4, 0.54], [1, 0]);
+  // Hero text fades out well before the sticky pin releases
+  // Desktop pin releases at p=0.583 (140vh/240vh), mobile pin releases at p=0.5 (100dvh/200dvh)
+  const heroOpacity = useTransform(p, (v) => {
+    const end = isMobile ? 0.45 : 0.35;
+    return Math.max(0, 1 - v / end);
+  });
 
-  const rawInset = useTransform(p, [0.58, 0.88], [100, 0]);
+  // Desktop: team panel clips in [0.40→0.57], fully visible before pin releases at 0.583
+  const rawInset = useTransform(p, (v) => {
+    if (v <= 0.40) return 100;
+    if (v >= 0.57) return 0;
+    return 100 - ((v - 0.40) / (0.57 - 0.40)) * 100;
+  });
   const panelClip = useTransform(rawInset, (v) => `inset(${Math.max(0, Math.min(100, v))}% 0 0 0)`);
 
   return (
-    <section id="hero" ref={ref} className="relative h-[240vh] bg-black">
-      <div className="sticky top-0 h-screen overflow-hidden will-change-transform">
-        <m.div style={{ clipPath: imgClip, opacity: imgOp }} className="absolute inset-0 z-0">
-          <m.div style={{ scale: imgScale }} className="absolute inset-0 origin-center">
-            <Image src={HERO_IMGS[0].src} alt="" fill className="object-cover" sizes="100vw" />
-          </m.div>
-          <div className="absolute inset-0 bg-black/20" />
-        </m.div>
-        <m.div style={{ opacity: textOp }} className="absolute inset-0 z-10 bg-black">
+    <section id="hero" ref={ref} className="relative h-[200dvh] bg-black md:h-[240vh]">
+      {/* Sticky animated hero panel */}
+      <div className="sticky top-0 h-dvh overflow-hidden will-change-transform">
+        {/* Hero text on solid black — no background image */}
+        <m.div style={{ opacity: heroOpacity }} className="absolute inset-0 z-10 bg-black">
           <HeroText p={p} />
         </m.div>
-        <m.div style={{ clipPath: panelClip }} className="absolute inset-0 z-20">
-          <HeroTeamPanel />
+
+        {/* Team panel inside sticky — desktop only via scroll-reveal clip */}
+        <m.div style={{ clipPath: panelClip }} className="absolute inset-0 z-20 hidden md:block">
+          <HeroTeamPanel p={p} />
         </m.div>
+
         <HeroOpening show={showOpening} />
+      </div>
+
+      {/* Mobile team section — static, appears naturally below the sticky hero */}
+      <div className="relative h-dvh md:hidden">
+        <HeroTeamPanel p={p} />
       </div>
     </section>
   );

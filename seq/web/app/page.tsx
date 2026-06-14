@@ -31,8 +31,8 @@ const HomePage = () => (
           <FeaturesSection />
           <MobileSection />
           <Footer />
+          <PageNav />
         </main>
-        <PageNav />
         <Suspense>
           <AuthOverlay />
         </Suspense>
