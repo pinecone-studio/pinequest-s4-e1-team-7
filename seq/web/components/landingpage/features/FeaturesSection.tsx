@@ -15,21 +15,34 @@ export const FeaturesSection = () => {
 
   return (
     <section id="features" ref={ref} className="relative bg-black">
-
-      {/* Mobile accordion layout */}
       <div className="md:hidden">
         {STEPS.map((step, i) => {
           const isOpen = active === i;
           return (
-            <div key={i} style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+            <div
+              key={i}
+              style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}
+            >
               {isOpen && (
-                <div className="pb-2">
+                <div>
                   <div className="relative flex h-[48dvh] w-full items-center justify-center overflow-hidden bg-black">
-                    <div className="relative" style={{ width: "72%", height: "84%" }}>
-                      <Image src={step.img} alt={step.title} fill className="object-contain" sizes="100vw" />
+                    <div
+                      className="relative"
+                      style={{ width: "72%", height: "84%" }}
+                    >
+                      <Image
+                        src={step.img}
+                        alt={step.title}
+                        fill
+                        className="object-contain"
+                        sizes="100vw"
+                      />
                     </div>
                   </div>
-                  <div className="px-6 pt-6 pb-4">
+                  <div
+                    className="px-6 py-6"
+                    style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}
+                  >
                     <p className="mb-6 text-[15px] leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
                       {step.desc}
                     </p>
@@ -45,24 +58,34 @@ export const FeaturesSection = () => {
                   </div>
                 </div>
               )}
-
               <button
                 onClick={() => setActive(isOpen ? -1 : i)}
                 className="flex w-full items-center justify-between px-6 py-5 text-left"
-                style={{ borderTop: isOpen ? "1px solid rgba(255,255,255,0.1)" : undefined }}
               >
                 <div>
-                  <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.35em]" style={{ color: "var(--olive)" }}>
+                  <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.35em]" style={{ color: "var(--olive)" }}>
                     Онцлог {step.tag}
                   </p>
                   <h3
                     className="font-black uppercase"
-                    style={{ fontSize: "clamp(1.4rem, 7vw, 2.2rem)", lineHeight: 0.92, letterSpacing: "-0.02em", color: isOpen ? "#fff" : "rgba(255,255,255,0.45)", fontFamily: "var(--font-display)", transition: "color 0.25s" }}
+                    style={{
+                      fontSize: "clamp(1.4rem, 7vw, 2.2rem)",
+                      lineHeight: 0.92,
+                      letterSpacing: "-0.02em",
+                      color: isOpen ? "#fff" : "rgba(255,255,255,0.45)",
+                      fontFamily: "var(--font-display)",
+                      transition: "color 0.25s",
+                    }}
                   >
                     {step.title}
                   </h3>
                 </div>
-                <span className="ml-4 shrink-0 text-[28px] font-thin leading-none" style={{ color: isOpen ? "var(--olive)" : "rgba(255,255,255,0.4)" }}>
+                <span
+                  className="ml-4 shrink-0 text-[28px] font-thin leading-none"
+                  style={{
+                    color: isOpen ? "var(--olive)" : "rgba(255,255,255,0.4)",
+                  }}
+                >
                   {isOpen ? "−" : "+"}
                 </span>
               </button>
@@ -71,23 +94,40 @@ export const FeaturesSection = () => {
         })}
       </div>
 
-      {/* Desktop sticky two-column layout */}
       <div className="hidden md:flex md:items-start">
-        <div className="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-px" style={{ background: "rgba(255,255,255,0.12)" }} />
+        <div
+          className="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-px"
+          style={{ background: "rgba(255,255,255,0.12)" }}
+        />
         <div className="sticky top-0 h-screen w-1/2 shrink-0 overflow-hidden will-change-transform">
           <FeaturesLeftPanel p={p} />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-px" style={{ background: "rgba(255,255,255,0.12)" }} />
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-px"
+            style={{ background: "rgba(255,255,255,0.12)" }}
+          />
         </div>
         <div className="w-1/2 shrink-0">
           {STEPS.map((step, i) => (
-            <div key={i} className="flex h-screen flex-col justify-center px-[6vw]">
+            <div
+              key={i}
+              className="flex h-screen flex-col justify-center px-[6vw]"
+            >
               <p className="mb-4 text-[13px] font-bold uppercase tracking-[0.35em]" style={{ color: "var(--olive)" }}>
                 Онцлог {step.tag}
               </p>
-              <h3 className="mb-7 font-black uppercase" style={{ fontSize: "clamp(1.8rem, 3.8vw, 5rem)", lineHeight: 0.92, letterSpacing: "-0.02em", color: "#fff", fontFamily: "var(--font-display)" }}>
+              <h3
+                className="mb-7 font-black uppercase"
+                style={{
+                  fontSize: "clamp(1.8rem, 3.8vw, 5rem)",
+                  lineHeight: 0.92,
+                  letterSpacing: "-0.02em",
+                  color: "#fff",
+                  fontFamily: "var(--font-display)",
+                }}
+              >
                 {step.title}
               </h3>
-              <p className="mb-9 text-[clamp(16px,1.5vw,20px)] leading-relaxed" style={{ color: "rgba(255,255,255,0.75)", maxWidth: "42ch" }}>
+              <p className="mb-9 leading-relaxed" style={{ fontSize: "clamp(16px,1.5vw,20px)", maxWidth: "42ch", color: "rgba(255,255,255,0.65)" }}>
                 {step.desc}
               </p>
               <ul className="flex flex-col gap-5">
@@ -95,7 +135,7 @@ export const FeaturesSection = () => {
                   <li key={j} className="flex items-start gap-4">
                     <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-black"
                       style={{ background: "var(--olive)", color: "#0d1e35" }}>✓</span>
-                    <span style={{ fontSize: "clamp(15px,1.4vw,19px)", color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>{b}</span>
+                    <span style={{ fontSize: "clamp(15px,1.4vw,19px)", lineHeight: 1.5, color: "rgba(255,255,255,0.8)" }}>{b}</span>
                   </li>
                 ))}
               </ul>
@@ -103,7 +143,6 @@ export const FeaturesSection = () => {
           ))}
         </div>
       </div>
-
     </section>
   );
 };
