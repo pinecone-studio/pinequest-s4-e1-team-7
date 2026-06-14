@@ -24,7 +24,7 @@ export const Header = ({ landing }: { landing?: boolean } = {}) => {
 
   if (!mounted) return null;
 
-  const logoSrc = theme === "dark" ? "/images/logoShar.png" : "/images/logoBlue.png";
+  const logoSrc = landing ? "/images/logoShar.png" : (theme === "dark" ? "/images/logoShar.png" : "/images/logoBlue.png");
 
   return (
     <nav className="lnav overflow-visible">
@@ -38,8 +38,8 @@ export const Header = ({ landing }: { landing?: boolean } = {}) => {
       <Link href="/" className="lnav-logo overflow-visible">
         <img src={logoSrc} alt="Sign Bridge" className="h-13 w-13 object-contain" />
         <m.div style={{ opacity: wmarkOp }} className="flex items-baseline gap-1">
-          <span style={{ color: "var(--olive)", fontWeight: 900, fontSize: "20px" }}>Sign</span>
-          <span style={{ color: "var(--text)", fontWeight: 900, fontSize: "20px" }}>Bridge</span>
+          <span style={{ color: "#fff", fontWeight: 900, fontSize: "20px" }}>Sign</span>
+          <span style={{ color: "var(--olive)", fontWeight: 900, fontSize: "20px" }}>Bridge</span>
         </m.div>
       </Link>
 

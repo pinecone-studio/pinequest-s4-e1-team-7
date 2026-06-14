@@ -20,7 +20,7 @@ export const Footer = () => (
       </span>
     </div>
     <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.3)" }}>
-      © 2026 Sign Bridge.
+      © 2026 Sign Bridge
     </p>
   </footer>
 );

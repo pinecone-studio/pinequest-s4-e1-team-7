@@ -18,7 +18,7 @@ export const HeroTeamPanel = ({ p: _ }: { p: MotionValue<number> }) => (
       <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.4em] text-white/35">SignBridge</p>
       <h2
         className="mb-[3vh] text-center font-black uppercase"
-        style={{ fontSize: "clamp(1.8rem, 5vw, 6.5rem)", lineHeight: 0.92, letterSpacing: "-0.02em", color: "var(--olive)" }}
+        style={{ fontSize: "clamp(1.8rem, 5vw, 6.5rem)", lineHeight: 0.92, letterSpacing: "-0.02em", color: "var(--olive)", fontFamily: "var(--font-display)" }}
       >
         Багийн танилцуулга
       </h2>

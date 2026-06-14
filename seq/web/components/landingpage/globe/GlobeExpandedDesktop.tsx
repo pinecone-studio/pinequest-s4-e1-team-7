@@ -53,7 +53,7 @@ export const GlobeExpandedDesktop = ({ filter, onFilter, onBack }: Props) => {
             style={{ left: pt.x, top: pt.y, transform: "translate(-50%,-50%)", zIndex: 5 }}>
             <AnimatePresence>
               {active && (
-                <m.span className="mr-3 whitespace-nowrap rounded-full px-4 py-1.5 text-[13px] font-bold"
+                <m.span className="mr-4 whitespace-nowrap rounded-full px-5 py-2 text-[18px] font-bold"
                   style={{ background: "#f5c518", color: "#0d1e35" }}
                   initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}
                   transition={{ duration: 0.2, ease: EASE }}>
@@ -62,9 +62,9 @@ export const GlobeExpandedDesktop = ({ filter, onFilter, onBack }: Props) => {
               )}
             </AnimatePresence>
             <button onClick={() => onFilter(id)}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all duration-200"
-              style={{ background: active ? "#f5c518" : "rgba(0,0,0,0.55)", border: `1.5px solid ${active ? "#f5c518" : "rgba(255,255,255,0.45)"}`, backdropFilter: "blur(8px)" }}>
-              <Icon className="h-5 w-5" style={{ color: active ? "#0d1e35" : "rgba(255,255,255,0.85)" }} />
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full transition-all duration-200"
+              style={{ background: active ? "#f5c518" : "rgba(0,0,0,0.55)", border: `2px solid ${active ? "#f5c518" : "rgba(255,255,255,0.55)"}`, backdropFilter: "blur(8px)" }}>
+              <Icon className="h-7 w-7" style={{ color: active ? "#0d1e35" : "rgba(255,255,255,0.9)" }} />
             </button>
           </div>
         );
@@ -96,16 +96,16 @@ export const GlobeExpandedDesktop = ({ filter, onFilter, onBack }: Props) => {
           <m.div key={filter} className="flex flex-col"
             initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -14 }}
             transition={{ duration: 0.28, ease: EASE }}>
-            <p className="mb-6 max-w-[80%] text-[13px] leading-relaxed" style={{ color: "rgba(255,255,255,0.7)" }}>{stat.title}</p>
-            <div className="mb-6 h-px" style={{ background: "rgba(255,255,255,0.18)" }} />
-            <p className="mb-2 text-[11px] uppercase tracking-[0.18em]" style={{ color: "rgba(255,255,255,0.55)" }}>{stat.bigLabel}</p>
-            <p className="mb-8 font-black leading-[0.88]" style={{ color: "#f5c518", fontSize: "clamp(52px,6.5vw,96px)", letterSpacing: "-3px" }}>{stat.big}</p>
-            <div className="mb-6 h-px" style={{ background: "rgba(255,255,255,0.18)" }} />
-            <div className="grid grid-cols-2 gap-x-6 gap-y-6">
+            <p className="mb-7 max-w-[88%] text-[20px] leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>{stat.title}</p>
+            <div className="mb-7 h-px" style={{ background: "rgba(255,255,255,0.22)" }} />
+            <p className="mb-3 text-[16px] uppercase tracking-[0.18em]" style={{ color: "rgba(255,255,255,0.6)" }}>{stat.bigLabel}</p>
+            <p className="mb-9 font-black leading-[0.88]" style={{ color: "#f5c518", fontSize: "clamp(56px,6.5vw,88px)", letterSpacing: "-3px" }}>{stat.big}</p>
+            <div className="mb-7 h-px" style={{ background: "rgba(255,255,255,0.22)" }} />
+            <div className="grid grid-cols-2 gap-x-8 gap-y-7">
               {stat.rows.map(({ label, value }) => (
                 <div key={label}>
-                  <p className="mb-2 text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.55)" }}>{label}</p>
-                  <p className="font-black" style={{ color: "#f5c518", fontSize: "clamp(26px,3.2vw,48px)" }}>{value}</p>
+                  <p className="mb-2 text-[13px] leading-snug" style={{ color: "rgba(255,255,255,0.6)" }}>{label}</p>
+                  <p className="font-black" style={{ color: "#f5c518", fontSize: "clamp(36px,4vw,60px)", letterSpacing: "-1px" }}>{value}</p>
                 </div>
               ))}
             </div>

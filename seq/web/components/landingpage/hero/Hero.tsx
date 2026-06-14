@@ -27,11 +27,13 @@ export const Hero = () => {
   const springP = useSpring(raw, { stiffness: 80, damping: 20 });
   const p = reduce || isMobile ? raw : springP;
 
-  // Hero text fades out well before the sticky pin releases
-  // Desktop pin releases at p=0.583 (140vh/240vh), mobile pin releases at p=0.5 (100dvh/200dvh)
+  // Hero text stays fully visible until all 4 images finish zooming in (last at p=0.36),
+  // then fades out before the team panel fully reveals (desktop: p=0.57, mobile: pin at p=0.5)
   const heroOpacity = useTransform(p, (v) => {
-    const end = isMobile ? 0.45 : 0.35;
-    return Math.max(0, 1 - v / end);
+    const start = 0.36;
+    const end = isMobile ? 0.47 : 0.52;
+    if (v <= start) return 1;
+    return Math.max(0, 1 - (v - start) / (end - start));
   });
 
   // Desktop: team panel clips in [0.40→0.57], fully visible before pin releases at 0.583
