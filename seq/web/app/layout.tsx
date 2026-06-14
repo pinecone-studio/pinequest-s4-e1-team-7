@@ -33,8 +33,8 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
     </head>
     <body className={cn(geist.variable, montserrat.variable)}>
       <AuthProvider>
-        <IncomingCallProvider>
-          <ChatRealtimeProvider>
+        <ChatRealtimeProvider>
+          <IncomingCallProvider>
             <AppProvider>
               <AppModeProvider>
                 {children}
@@ -42,8 +42,8 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
                 <SpeedInsights />
               </AppModeProvider>
             </AppProvider>
-          </ChatRealtimeProvider>
-        </IncomingCallProvider>
+          </IncomingCallProvider>
+        </ChatRealtimeProvider>
       </AuthProvider>
     </body>
   </html>

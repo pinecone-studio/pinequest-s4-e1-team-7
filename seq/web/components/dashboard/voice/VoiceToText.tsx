@@ -52,17 +52,20 @@ export function VoiceToText() {
   const signText = interim || sentences[sentences.length - 1] || "";
 
   return (
-    <div className="flex h-full flex-col" style={{ background: "var(--bg)" }}>
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-y-auto px-4 md:px-6 pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 lg:max-w-none lg:px-10 xl:px-16">
+    <div
+      className="h-full overflow-y-auto overscroll-y-contain lg:flex lg:flex-col lg:overflow-hidden"
+      style={{ background: "var(--bg)" }}
+    >
+      <div className="mx-auto flex w-full max-w-2xl flex-col px-4 pb-[max(calc(env(safe-area-inset-bottom)+5.5rem),6.5rem)] md:px-6 lg:flex lg:h-full lg:max-h-full lg:min-h-0 lg:flex-1 lg:max-w-none lg:overflow-hidden lg:px-10 lg:pb-4 xl:px-16">
         <PageHeader title="Ярианаас бичвэр" />
 
-        <div className="flex items-end justify-center gap-5 py-4">
-          <div className="flex flex-col items-center gap-3 pb-1">
+        <div className="flex items-end justify-center py-2 md:py-4">
+          <div className="flex flex-col items-center gap-2 pb-1 md:gap-3">
             <button
               onClick={toggle}
               disabled={!supported}
               aria-label={listening ? "Зогсоох" : "Эхлүүлэх"}
-              className="flex h-[100px] w-[100px] items-center justify-center rounded-full transition-all duration-300 active:scale-95 disabled:opacity-40 md:h-[120px] md:w-[120px]"
+              className="flex h-[88px] w-[88px] items-center justify-center rounded-full transition-all duration-300 active:scale-95 disabled:opacity-40 md:h-[120px] md:w-[120px]"
               style={{
                 background: "var(--olive)",
                 boxShadow: listening
@@ -70,7 +73,7 @@ export function VoiceToText() {
                   : "0 8px 28px rgba(0,0,0,0.15)",
               }}
             >
-              <MicrophoneIcon className="h-12 w-12 text-black md:h-14 md:w-14" />
+              <MicrophoneIcon className="h-10 w-10 text-black md:h-14 md:w-14" />
             </button>
             <p
               className="text-[12px] font-bold uppercase tracking-[0.18em] transition-colors duration-300"

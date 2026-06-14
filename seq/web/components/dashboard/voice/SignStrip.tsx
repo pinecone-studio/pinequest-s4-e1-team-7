@@ -12,14 +12,15 @@ export function SignStrip({ text, signMap }: Props) {
 
   return (
     <div
-      className="flex gap-1.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden"
-      style={{ scrollbarWidth: "none" }}
+      className="-mx-1 flex gap-1.5 overflow-x-auto overscroll-x-contain px-1 pb-1 [&::-webkit-scrollbar]:hidden"
+      style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
     >
       {letters.map((letter, i) => (
         <SignLetterCard
           key={i}
           letter={letter}
           url={letter === " " ? undefined : signMap.get(letter)}
+          size={60}
         />
       ))}
     </div>

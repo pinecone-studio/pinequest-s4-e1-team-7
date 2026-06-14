@@ -39,6 +39,7 @@ import { useChatRealtime } from "@/context/ChatRealtimeContext";
 import {
   createAdaptivePoller,
   CHAT_CONV_POLL_MS,
+  CHAT_CONV_BACKUP_POLL_MS,
   FALLBACK_POLL_MS,
 } from "@/lib/poll-schedule";
 import { useAuth } from "@/context/AuthContext";
@@ -356,7 +357,8 @@ export function MessagesApp({
     void refreshConversations(!hasServerConversations);
     const poller = createAdaptivePoller(
       () => refreshConversations(true),
-      () => CHAT_CONV_POLL_MS,
+      () =>
+        realtimeConnected ? CHAT_CONV_BACKUP_POLL_MS : CHAT_CONV_POLL_MS,
     );
     poller.start();
     document.addEventListener("visibilitychange", poller.onVisibility);
@@ -381,6 +383,7 @@ export function MessagesApp({
     hasServerConversations,
     subscribe,
     applyPeerPresence,
+    realtimeConnected,
   ]);
 
   useEffect(() => {
