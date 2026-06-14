@@ -338,6 +338,16 @@ export function CameraView({
   }, [releaseCamera]);
 
   useEffect(() => {
+    if (!cameraOn) {
+      const c = canvasRef.current;
+      if (c) {
+        const ctx = c.getContext("2d");
+        if (ctx) ctx.clearRect(0, 0, c.width, c.height);
+      }
+    }
+  }, [cameraOn]);
+
+  useEffect(() => {
     if (inferenceActive) setStatus("");
   }, [inferenceActive]);
 
@@ -364,12 +374,14 @@ export function CameraView({
           aria-hidden
         />
         <canvas ref={canvasRef} className="block h-full w-full object-cover" />
-        {manualStart && !cameraOn && !status && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/70 p-6 text-center">
-            <p className="text-sm text-zinc-300">Камер асаахын тулд эхлүүлэх товчийг дарна уу</p>
+        {manualStart && !cameraOn && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black p-6 text-center">
+            <p className="text-sm text-zinc-300">
+              {status || "Камер асаахын тулд эхлүүлэх товчийг дарна уу"}
+            </p>
           </div>
         )}
-        {status && (
+        {cameraOn && status && (
           <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-4 py-3 text-center text-xs text-zinc-300">
             <p>{status}</p>
           </div>

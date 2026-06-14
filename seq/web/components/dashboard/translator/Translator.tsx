@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { PlayIcon, StopIcon } from "@heroicons/react/24/solid";
@@ -13,7 +13,8 @@ import { TranslatorControlBar } from "./TranslatorControlBar";
 import { OnboardingSheet } from "../shared/OnboardingSheet";
 
 const CameraView = dynamic(
-  () => import("@/components/CameraView").then((m) => ({ default: m.CameraView })),
+  () =>
+    import("@/components/CameraView").then((m) => ({ default: m.CameraView })),
   {
     ssr: false,
     loading: () => (
@@ -27,12 +28,28 @@ const CameraView = dynamic(
 export function Translator() {
   const t = useTranslator();
   const [showSettings, setShowSettings] = useState(false);
+  const [cameraKey, setCameraKey] = useState(0);
+
+  const handleToggle = useCallback(() => {
+    if (t.running) setCameraKey((k) => k + 1);
+    t.toggle();
+  }, [t]);
 
   const settingsBtn = (
-    <button type="button" onClick={() => setShowSettings((s) => !s)} aria-label="Тохиргоо"
+    <button
+      type="button"
+      onClick={() => setShowSettings((s) => !s)}
+      aria-label="Тохиргоо"
       className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70 lg:hidden"
-      style={{ background: showSettings ? "var(--olive)" : "var(--surface)", border: `1px solid ${showSettings ? "var(--olive)" : "var(--border-c)"}` }}>
-      <Cog6ToothIcon className="h-5 w-5" style={{ color: showSettings ? "#0d1e35" : "var(--text)" }} />
+      style={{
+        background: showSettings ? "var(--olive)" : "var(--surface)",
+        border: `1px solid ${showSettings ? "var(--olive)" : "var(--border-c)"}`,
+      }}
+    >
+      <Cog6ToothIcon
+        className="h-5 w-5"
+        style={{ color: showSettings ? "#0d1e35" : "var(--text)" }}
+      />
     </button>
   );
 
@@ -42,7 +59,6 @@ export function Translator() {
         <PageHeader title="Дохионы хэл" right={settingsBtn} />
 
         <div className="flex flex-1 min-h-0 flex-col gap-4 lg:grid lg:grid-cols-2 lg:grid-rows-[1fr_auto] lg:gap-5">
-          {/* Camera section */}
           <section
             className="overflow-hidden rounded-[22px] lg:col-start-1 lg:flex lg:min-h-[440px] lg:flex-col lg:row-start-1"
             style={{
@@ -53,8 +69,14 @@ export function Translator() {
           >
             <div className="relative h-[320px] w-full bg-black sm:h-[400px] lg:h-auto lg:min-h-0 lg:flex-1">
               <CameraView
-                width={640} height={480} fullscreen mirrorPreview mirrorDetect
-                manualStart active={t.running}
+                key={cameraKey}
+                width={640}
+                height={480}
+                fullscreen
+                mirrorPreview
+                mirrorDetect
+                manualStart
+                active={t.running}
                 inferenceActive={t.running && t.modelReady}
                 onLandmarks={t.handleLandmarks}
                 onMediaPipeReady={t.startLoad}
@@ -62,12 +84,21 @@ export function Translator() {
               />
 
               <div className="absolute left-3 top-3 z-10 hidden items-center gap-2 lg:flex">
-                <span className="rounded-full px-3 py-1 text-[11px] font-bold text-white" style={{ background: "rgba(0,0,0,0.55)" }}>
-                  <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full" style={{ background: t.running ? "var(--olive)" : "#888" }} />
+                <span
+                  className="rounded-full px-3 py-1 text-[11px] font-bold text-white"
+                  style={{ background: "rgba(0,0,0,0.55)" }}
+                >
+                  <span
+                    className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full"
+                    style={{ background: t.running ? "var(--olive)" : "#888" }}
+                  />
                   Камер {t.running ? "Идэвхтэй" : "Идэвхгүй"}
                 </span>
                 {t.running && t.livePred && (
-                  <span className="rounded-full px-3 py-1 font-mono text-[11px] text-white/85" style={{ background: "rgba(0,0,0,0.55)" }}>
+                  <span
+                    className="rounded-full px-3 py-1 font-mono text-[11px] text-white/85"
+                    style={{ background: "rgba(0,0,0,0.55)" }}
+                  >
                     {(t.livePred.confidence * 100).toFixed(0)}%
                   </span>
                 )}
@@ -78,7 +109,9 @@ export function Translator() {
                   <p
                     className="rounded-lg px-3 py-2 text-center text-xs"
                     style={{
-                      background: t.modelError ? "rgba(245,158,11,0.9)" : "rgba(0,0,0,0.65)",
+                      background: t.modelError
+                        ? "rgba(245,158,11,0.9)"
+                        : "rgba(0,0,0,0.65)",
                       color: t.modelError ? "#1a1a1a" : "rgba(255,255,255,0.9)",
                     }}
                   >
@@ -89,11 +122,15 @@ export function Translator() {
             </div>
 
             <div className="flex items-center justify-between gap-3 px-4 py-3 lg:hidden">
-              <p className="min-w-0 flex-1 truncate text-[12px] font-medium" style={{ color: "var(--text-3)" }}>
+              <p
+                className="min-w-0 flex-1 truncate text-[12px] font-medium"
+                style={{ color: "var(--text-3)" }}
+              >
                 {t.statusText}
               </p>
               <button
-                type="button" onClick={t.toggle}
+                type="button"
+                onClick={handleToggle}
                 disabled={t.running && t.modelLoading}
                 aria-label={t.running ? "Зогсоох" : "Эхлүүлэх"}
                 className="flex h-11 shrink-0 items-center gap-2 rounded-full px-5 text-[13px] font-bold transition-all active:scale-[0.98] disabled:opacity-40"
@@ -103,43 +140,71 @@ export function Translator() {
                   border: t.running ? "1px solid var(--border-c)" : "none",
                 }}
               >
-                {t.running ? <><StopIcon className="h-4 w-4" />Зогсоох</> : <><PlayIcon className="h-4 w-4" />Эхлүүлэх</>}
+                {t.running ? (
+                  <>
+                    <StopIcon className="h-4 w-4" />
+                    Зогсоох
+                  </>
+                ) : (
+                  <>
+                    <PlayIcon className="h-4 w-4" />
+                    Эхлүүлэх
+                  </>
+                )}
               </button>
             </div>
           </section>
 
-          {/* Desktop: conversation panel */}
           <div className="hidden min-h-0 flex-col gap-4 overflow-y-auto lg:col-start-2 lg:row-start-1 lg:flex">
             <TranslatorConversation
-              detected={t.detected} running={t.running} modelReady={t.modelReady}
-              livePred={t.livePred} placeholder={t.placeholder} speaking={t.speaking}
-              volume={t.volume} onSpeak={t.handleSpeak} onVolumeChange={t.setVolume} onReset={t.clearAll}
+              detected={t.detected}
+              running={t.running}
+              modelReady={t.modelReady}
+              livePred={t.livePred}
+              placeholder={t.placeholder}
+              speaking={t.speaking}
+              volume={t.volume}
+              onSpeak={t.handleSpeak}
+              onVolumeChange={t.setVolume}
+              onReset={t.clearAll}
             />
           </div>
 
-          {/* Mobile: settings + card */}
           {showSettings && (
             <div className="lg:hidden">
-              <TranslatorSettings settings={t.settings} onUpdate={t.updateSettings} onClose={() => setShowSettings(false)} />
+              <TranslatorSettings
+                settings={t.settings}
+                onUpdate={t.updateSettings}
+                onClose={() => setShowSettings(false)}
+              />
             </div>
           )}
           <div className="flex flex-1 flex-col lg:hidden">
             <TranslatorCard
-              detected={t.detected} running={t.running} modelLoading={t.modelLoading}
-              speaking={t.speaking} volume={t.volume} onSpeak={t.handleSpeak} onVolumeChange={t.setVolume}
+              detected={t.detected}
+              running={t.running}
+              modelLoading={t.modelLoading}
+              speaking={t.speaking}
+              volume={t.volume}
+              onSpeak={t.handleSpeak}
+              onVolumeChange={t.setVolume}
             />
           </div>
 
-          {/* Desktop: control bar */}
           <div className="hidden lg:col-span-2 lg:row-start-2 lg:block">
             <TranslatorControlBar
-              running={t.running} modelReady={t.modelReady} gender={t.settings.gender}
-              onToggle={t.toggle} onGenderChange={(g) => t.updateSettings({ gender: g })}
+              running={t.running}
+              modelReady={t.modelReady}
+              gender={t.settings.gender}
+              onToggle={handleToggle}
+              onGenderChange={(g) => t.updateSettings({ gender: g })}
             />
           </div>
         </div>
 
-        {t.showOnboarding && <OnboardingSheet onDismiss={t.dismissOnboarding} />}
+        {t.showOnboarding && (
+          <OnboardingSheet onDismiss={t.dismissOnboarding} />
+        )}
       </div>
     </div>
   );

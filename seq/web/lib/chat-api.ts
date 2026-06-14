@@ -21,7 +21,17 @@ export type ChatPeer = {
   email: string;
   phone: string | null;
   avatarUrl?: string | null;
+  isOnline?: boolean;
 };
+
+export function pingPresence(): void {
+  const token = typeof window !== "undefined" ? (localStorage.getItem("sb-token") ?? "") : "";
+  if (!token) return;
+  void fetch(`${BASE}/api/chat/presence`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  }).catch(() => {});
+}
 
 export type PendingCall = {
   conversationId: string;
@@ -34,6 +44,7 @@ export type PendingCall = {
 export type ConversationSummary = {
   id: string;
   peer: ChatPeer;
+  unread: boolean;
   lastPreview: string | null;
   lastAt: string | null;
   updatedAt: string;
@@ -46,6 +57,15 @@ export type ConversationSummary = {
     createdAt: string;
   } | null;
 };
+
+export function markConversationRead(convId: string): void {
+  const token = typeof window !== "undefined" ? (localStorage.getItem("sb-token") ?? "") : "";
+  if (!token) return;
+  void fetch(`${BASE}/api/chat/conversations/${encodeURIComponent(convId)}/read`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  }).catch(() => {});
+}
 
 export type ChatMessage = {
   id: number;

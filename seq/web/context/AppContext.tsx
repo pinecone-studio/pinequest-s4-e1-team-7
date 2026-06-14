@@ -31,7 +31,7 @@ const EMPTY_STATS: Stats = { words: 0, sessions: 0, history: [] };
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<Settings>({
     gender: "female",
-    rate: 1,
+    rate: 1.5,
     autoSpeak: true,
     textScale: 1,
   });

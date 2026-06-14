@@ -7,7 +7,7 @@ import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/hooks/useTheme";
 import { UserAvatar } from "../shared/UserAvatar";
 import { updateProfile, uploadAvatar } from "@/lib/auth-api";
-import { CameraIcon, MoonIcon, SunIcon, SpeakerWaveIcon, ArrowRightEndOnRectangleIcon, EyeIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { CameraIcon, MoonIcon, SunIcon, SpeakerWaveIcon, ArrowRightEndOnRectangleIcon, EyeIcon } from "@heroicons/react/24/outline";
 import { PageHeader } from "@/components/ui/PageHeader";
 
 const SPEEDS = [{ label: "Удаан", value: 0.7 }, { label: "Хэвийн", value: 1.0 }, { label: "Хурдан", value: 1.5 }] as const;
@@ -32,10 +32,11 @@ export function Settings() {
   const { settings, updateSettings } = useApp();
   const { theme, toggle } = useTheme();
   const { user, logout, refresh } = useAuth();
-  const { setMode } = useAppMode();
+  const { mode, setMode } = useAppMode();
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [showModePicker, setShowModePicker] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
@@ -196,35 +197,45 @@ export function Settings() {
         <p className="mb-4 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
           Хүртээмж
         </p>
-        <button
-          type="button"
-          onClick={() => {
-            setMode("accessible");
-            router.push("/accessible/chat");
-          }}
-          className="flex w-full items-center justify-between gap-3 rounded-2xl px-1 py-2 text-left transition-all active:scale-[0.99]"
-        >
-          <div className="flex items-center gap-3">
-            <EyeIcon className="h-5 w-5 shrink-0" style={{ color: "#ffbf00" }} />
-            <div>
-              <p className="text-[15px] font-semibold" style={{ color: "var(--text)" }}>
-                Харааны бэрхшээлтэй горим
-              </p>
-              <p className="text-[12px]" style={{ color: "var(--text-3)" }}>
-                Брайль бичих, дуу уншуулах, зөвхөн чат
-              </p>
-            </div>
+        <div className="flex w-full items-center gap-3 px-1 py-2">
+          <EyeIcon className="h-5 w-5 shrink-0" style={{ color: mode === "accessible" ? "#ffbf00" : "var(--text-2)" }} />
+          <div>
+            <p className="text-[15px] font-semibold" style={{ color: "var(--text)" }}>
+              {mode === "accessible" ? "Харааны бэрхшээлтэй горим" : "Энгийн горим"}
+            </p>
+            <p className="text-[12px]" style={{ color: "var(--text-3)" }}>
+              {mode === "accessible" ? "Брайль бичих, дуу уншуулах, зөвхөн чат" : "Дохио, дуудлага, толь, бүх функц"}
+            </p>
           </div>
-          <ChevronRightIcon className="h-5 w-5 shrink-0" style={{ color: "var(--text-3)" }} />
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push("/mode")}
-          className="mt-2 w-full rounded-xl py-2.5 text-[13px] font-semibold"
-          style={inactiveBtn}
-        >
-          Горим дахин сонгох
-        </button>
+        </div>
+        {!showModePicker ? (
+          <button
+            type="button"
+            onClick={() => setShowModePicker(true)}
+            className="mt-2 w-full rounded-xl py-2.5 text-[13px] font-semibold"
+            style={inactiveBtn}
+          >
+            Горим дахин сонгох
+          </button>
+        ) : (
+          <div className="mt-2 flex flex-col gap-2">
+            {([
+              { mode: "standard" as const, title: "Энгийн горим", desc: "Дохио, дуудлага, толь, бүх функц" },
+              { mode: "accessible" as const, title: "Харааны бэрхшээлтэй горим", desc: "Брайль бичих, дуу уншуулах, зөвхөн чат" },
+            ]).map((opt) => (
+              <button
+                key={opt.mode}
+                type="button"
+                onClick={() => { setMode(opt.mode); setShowModePicker(false); router.push(opt.mode === "accessible" ? "/accessible/chat" : "/dashboard/overview"); }}
+                className="w-full rounded-xl px-4 py-3 text-left transition-all"
+                style={mode === opt.mode ? activeBtn : inactiveBtn}
+              >
+                <span className="block text-[14px] font-bold">{opt.title}</span>
+                <span className="mt-0.5 block text-[12px] opacity-70">{opt.desc}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mb-4 rounded-[22px] p-5" style={card}>

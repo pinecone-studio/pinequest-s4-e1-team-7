@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useIncomingCall } from "@/context/IncomingCallContext";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { usePresenceHeartbeat } from "@/hooks/usePresenceHeartbeat";
 import {
   buildCallLogs,
   callLogByAnchor,
@@ -19,6 +21,7 @@ import {
   fetchMessages,
   fetchOlderMessages,
   fetchRecentMessages,
+  markConversationRead,
   MESSAGE_PAGE_SIZE,
   openConversation,
   searchUsers,
@@ -54,7 +57,22 @@ import { a11ySpeak } from "@/lib/a11y-speak";
 import { A11yNavProvider } from "@/components/accessible/A11yNavProvider";
 import { A11yThreadToolbar } from "@/components/accessible/A11yThreadToolbar";
 
-const readUntilId = new Map<string, number>();
+const LS_READ_KEY = "sb-read-until";
+function getReadUntil(convId: string): number | undefined {
+  try {
+    const raw = localStorage.getItem(LS_READ_KEY);
+    if (!raw) return undefined;
+    return (JSON.parse(raw) as Record<string, number>)[convId];
+  } catch { return undefined; }
+}
+function setReadUntil(convId: string, msgId: number): void {
+  try {
+    const raw = localStorage.getItem(LS_READ_KEY);
+    const map = raw ? (JSON.parse(raw) as Record<string, number>) : {};
+    map[convId] = msgId;
+    localStorage.setItem(LS_READ_KEY, JSON.stringify(map));
+  } catch { /* ignore */ }
+}
 
 function buildChatPath(base: string, conversationId: string) {
   return `${base}/${encodeURIComponent(conversationId)}`;
@@ -119,6 +137,7 @@ export function MessagesApp({
   a11yMode = false,
   hideInputFooter = false,
 }: MessagesAppProps = {}) {
+  usePresenceHeartbeat();
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
@@ -192,15 +211,9 @@ export function MessagesApp({
     prevConvsRef.current = conversations;
 
     if (!prev.length) {
-      // Initial load: mark conversations with unread messages, skipping already-seen ones
+      // Initial load: use server-computed unread flag, skip currently open conversation
       const ids = conversations
-        .filter((c) => {
-          if (!c.lastMessage || c.lastMessage.senderId === user.id)
-            return false;
-          if (c.id === routeConvId) return false;
-          const seenId = readUntilId.get(c.id);
-          return seenId === undefined || seenId < c.lastMessage.id;
-        })
+        .filter((c) => c.unread && c.id !== routeConvId)
         .map((c) => c.id);
       if (ids.length) setUnreadIds(new Set(ids));
       return;
@@ -214,7 +227,7 @@ export function MessagesApp({
       const prevConv = prev.find((c) => c.id === conv.id);
       if (prevConv?.lastMessage?.id === last.id) continue;
       if (conv.id === routeConvId) continue;
-      const seenId = readUntilId.get(conv.id);
+      const seenId = getReadUntil(conv.id);
       if (seenId !== undefined && seenId >= last.id) continue;
       newUnread.push(conv.id);
       fireChatNotification(last.id, conv.id, last.kind, pathname, (href) =>
@@ -234,7 +247,8 @@ export function MessagesApp({
     });
     // Record last-seen messageId so remounts don't re-mark this conv as unread
     const conv = conversations.find((c) => c.id === routeConvId);
-    if (conv?.lastMessage) readUntilId.set(routeConvId, conv.lastMessage.id);
+    if (conv?.lastMessage) setReadUntil(routeConvId, conv.lastMessage.id);
+    markConversationRead(routeConvId);
   }, [routeConvId, conversations]);
 
   const openChat = useCallback(
@@ -558,11 +572,11 @@ export function MessagesApp({
     openChat(conv.id, conv.peer);
   }, [openChat]);
 
-  const handleSend = useCallback(async () => {
-    if (!activeId || !text.trim() || sending) return;
+  const sendMessage = useCallback(async (body: string) => {
+    if (!activeId || !body.trim()) return;
     setSending(true);
     try {
-      const msg = await sendTextMessage(activeId, text.trim(), activePeer?.id);
+      const msg = await sendTextMessage(activeId, body.trim(), activePeer?.id);
       shouldScrollToBottomRef.current = true;
       setMessages((p) => {
         const merged = mergeMessages(p, [msg]);
@@ -576,7 +590,12 @@ export function MessagesApp({
     } finally {
       setSending(false);
     }
-  }, [activeId, activePeer?.id, a11yMode, refreshConversations, sending, text]);
+  }, [activeId, activePeer?.id, a11yMode, refreshConversations]);
+
+  const handleSend = useCallback(async () => {
+    if (!text.trim() || sending) return;
+    await sendMessage(text);
+  }, [sendMessage, sending, text]);
 
   const handleDeleteMessage = async (msg: ChatMessage) => {
     if (!activeId) return;
@@ -692,6 +711,18 @@ export function MessagesApp({
     recorderRef.current = null;
   };
 
+  // STT: mic button → speech recognized → message sent directly
+  const handleSttResult = useCallback((t: string, final: boolean) => {
+    if (final && t.trim()) {
+      void sendMessage(t.trim());
+    }
+  }, [sendMessage]);
+  const { listening, start: startStt, stop: stopStt } = useSpeechRecognition(handleSttResult);
+  const toggleStt = useCallback(async () => {
+    if (listening) { stopStt(); return; }
+    await startStt();
+  }, [listening, startStt, stopStt]);
+
   const showMobileChat = !!routeConvId;
 
   const a11yBridge = a11yMode
@@ -765,7 +796,6 @@ export function MessagesApp({
         >
           <ConversationSidebar
             conversations={conversations}
-            activeId={activeId}
             search={search}
             searchResults={searchResults}
             searching={searching}
@@ -847,7 +877,7 @@ export function MessagesApp({
               <ChatInputFooter
                 text={text}
                 sending={sending}
-                recording={recording}
+                listening={listening}
                 editingId={editingId}
                 editText={editText}
                 savingEdit={savingEdit}
@@ -855,8 +885,7 @@ export function MessagesApp({
                 editInputRef={editInputRef}
                 onTextChange={setText}
                 onSend={() => void handleSend()}
-                onStartRecording={() => void startRecording()}
-                onStopRecording={stopRecording}
+                onToggleStt={() => void toggleStt()}
                 onCancelEdit={cancelEdit}
                 onEditTextChange={setEditText}
                 onSaveEdit={() => void handleSaveEdit()}

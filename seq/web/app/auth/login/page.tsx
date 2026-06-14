@@ -25,7 +25,7 @@ export default function LoginPage() {
         typeof window !== "undefined"
           ? new URLSearchParams(window.location.search).get("next")
           : null;
-      router.replace(next ?? "/mode");
+      router.replace(next ?? "/dashboard/translator");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Алдаа үүслээ");
     } finally {
@@ -36,8 +36,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full flex bg-[var(--bg)] selection:bg-[var(--olive)] selection:text-slate-900">
       <div className="hidden lg:flex lg:w-5/12 xl:w-1/2 relative overflow-hidden p-16 flex-col justify-between bg-gradient-to-br from-[var(--teal)] via-[var(--teal-2)] to-[var(--bg)]">
-        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full blur-[120px] opacity-30 bg-[var(--olive)] animate-pulse" />
-        <div className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full blur-[120px] opacity-20 bg-[var(--teal)]" />
+        <div aria-hidden="true" className="absolute -top-20 -right-20 w-96 h-96 rounded-full blur-[120px] opacity-30 bg-[var(--olive)] animate-pulse" />
+        <div aria-hidden="true" className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full blur-[120px] opacity-20 bg-[var(--teal)]" />
 
         <div className="relative z-10">
           <Link
@@ -94,7 +94,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="relative z-10 flex items-center gap-6 text-white/40 text-xs font-semibold tracking-wider uppercase">
+        <div aria-hidden="true" className="relative z-10 flex items-center gap-6 text-white/40 text-xs font-semibold tracking-wider uppercase">
           <span>Технологи</span>
           <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
           <span>Шийдэл</span>
@@ -108,7 +108,7 @@ export default function LoginPage() {
           className="flex items-center justify-between px-16 pt-16 border-b pb-4"
           style={{ borderColor: "rgba(255,255,255,0.08)" }}
         >
-          <div className="flex gap-2">
+          <nav aria-label="Нэвтрэх / Бүртгүүлэх" className="flex gap-2">
             <Link
               href="/auth/register"
               className="px-6 py-2 font-medium text-sm transition-colors duration-300"
@@ -117,30 +117,29 @@ export default function LoginPage() {
               Бүртгүүлэх
             </Link>
             <button
+              aria-current="page"
               className="px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 hover:opacity-90"
               style={{
                 background: "var(--olive)",
-
                 color: "var(--text)",
               }}
             >
               Нэвтрэх
             </button>
-          </div>
+          </nav>
 
           <Link
+            aria-label="Нүүр хуудас руу буцах"
             className="p-2 rounded-full transition-colors duration-300 hover:bg-white/10"
-            style={{ color: "rgba(255,255,255,0.4)" }}
+            style={{ color: "var(--text)" }}
             href="/"
           >
-            <X />
+            <X aria-hidden="true" />
           </Link>
         </div>
 
-        {/* Content Body Layout */}
         <div className="flex-1 flex items-center justify-center px-16 py-12 overflow-y-auto">
           <div className="w-full max-w-md space-y-8">
-            {/* Title Block */}
             <div>
               <h2 className="text-3xl font-black tracking-tight text-[var(--text)] font-display">
                 Нэвтрэх
@@ -150,7 +149,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <form onSubmit={submit} className="space-y-5">
+            <form onSubmit={submit} className="space-y-5" noValidate>
               <div className="space-y-2">
                 <label
                   htmlFor="login"
@@ -159,7 +158,7 @@ export default function LoginPage() {
                   И-мэйл эсвэл Утас
                 </label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-[var(--text-3)] group-focus-within:text-[var(--olive)] transition-colors" />
+                  <Mail aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-[var(--text-3)] group-focus-within:text-[var(--olive)] transition-colors" />
                   <input
                     id="login"
                     type="text"
@@ -169,21 +168,20 @@ export default function LoginPage() {
                     className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium bg-[var(--surface-2)] border border-[var(--border-c)] text-[var(--text)] placeholder:text-[var(--text-3)]/60 focus:border-[var(--olive)] focus:ring-2 focus:ring-[var(--olive)]/10 outline-none transition-all"
                     autoComplete="username"
                     required
+                    aria-required="true"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label
-                    htmlFor="password"
-                    className="block text-xs font-bold uppercase tracking-wider text-[var(--text-2)]"
-                  >
-                    Нууц үг
-                  </label>
-                </div>
+                <label
+                  htmlFor="password"
+                  className="block text-xs font-bold uppercase tracking-wider text-[var(--text-2)]"
+                >
+                  Нууц үг
+                </label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-[var(--text-3)] group-focus-within:text-[var(--olive)] transition-colors" />
+                  <Lock aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-[var(--text-3)] group-focus-within:text-[var(--olive)] transition-colors" />
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -193,23 +191,29 @@ export default function LoginPage() {
                     className="w-full pl-11 pr-12 py-3.5 rounded-xl text-sm font-medium bg-[var(--surface-2)] border border-[var(--border-c)] text-[var(--text)] placeholder:text-[var(--text-3)]/60 focus:border-[var(--olive)] focus:ring-2 focus:ring-[var(--olive)]/10 outline-none transition-all"
                     autoComplete="current-password"
                     required
+                    aria-required="true"
                   />
                   <button
                     type="button"
+                    aria-label={showPassword ? "Нууц үг нуух" : "Нууц үг харуулах"}
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--surface)] transition-all"
                   >
                     {showPassword ? (
-                      <Eye className="size-4" />
+                      <Eye aria-hidden="true" className="size-4" />
                     ) : (
-                      <EyeClosed className="size-4" />
+                      <EyeClosed aria-hidden="true" className="size-4" />
                     )}
                   </button>
                 </div>
               </div>
 
               {error && (
-                <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 text-sm font-medium animate-shake">
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 text-sm font-medium animate-shake"
+                >
                   {error}
                 </div>
               )}
@@ -217,32 +221,27 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
+                aria-disabled={loading}
                 className="w-full h-12 mt-4 font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2 group shadow-lg bg-gradient-to-r from-[var(--olive)] to-[var(--olive-2)] text-slate-950 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-[var(--olive)]/10 hover:shadow-xl hover:brightness-105 active:scale-[0.99]"
               >
                 {loading ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                    Түр хүлээнэ үү...
+                    <span
+                      aria-hidden="true"
+                      className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"
+                    />
+                    <span>Түр хүлээнэ үү...</span>
                   </>
                 ) : (
                   <>
                     Нэвтрэх
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight aria-hidden="true" className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
               </button>
             </form>
 
-            <Link
-              href="/auth/login?next=/accessible/chat"
-              className="block w-full rounded-2xl border-2 px-6 py-4 text-center text-[15px] font-bold transition-all active:scale-[0.98]"
-              style={{ borderColor: "#ffbf00", color: "var(--text)" }}
-            >
-              Харааны бэрхшээлтэй горим
-            </Link>
-
-            {/* Secondary Option Link */}
-            <p className="text-center text-sm text-[var(--text-3)] font-medium">
+<p className="text-center text-sm text-[var(--text-3)] font-medium">
               Шинэ хэрэглэгч болох{" "}
               <Link
                 href="/auth/register"
@@ -269,7 +268,7 @@ function Feature({
 }) {
   return (
     <div className="flex gap-4 p-4 rounded-xl transition-all duration-300 bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.02] hover:border-white/[0.08] backdrop-blur-sm group">
-      <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[var(--olive)] font-black text-sm transition-colors duration-300 group-hover:bg-white/10 group-hover:border-white/20">
+      <div aria-hidden="true" className="flex-shrink-0 w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[var(--olive)] font-black text-sm transition-colors duration-300 group-hover:bg-white/10 group-hover:border-white/20">
         {index.toString().padStart(2, "0")}
       </div>
       <div className="space-y-0.5">
