@@ -189,8 +189,10 @@ export function BrailleInput({
         if (ady > adx) {
           if (swipeDy < 0) {
             onChange(`${value} `);
+            playVoice("зай");
           } else if (value.length > 0) {
             onChange(value.slice(0, -1));
+            playVoice("хасах");
           }
         } else if (swipeDx > 0) {
           if (value.trim() && onSend) {
