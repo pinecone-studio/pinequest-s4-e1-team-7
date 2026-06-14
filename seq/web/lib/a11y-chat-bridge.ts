@@ -21,6 +21,9 @@ export type A11yChatBridge = {
   startRecording: () => Promise<void>;
   stopRecording: () => void;
   recording: boolean;
+  hasMoreOlder: boolean;
+  loadingOlder: boolean;
+  loadOlderMessages: () => Promise<number>;
 };
 
 export const A11yChatBridgeContext = createContext<A11yChatBridge | null>(null);

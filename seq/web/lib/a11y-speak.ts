@@ -4,6 +4,8 @@
  * Функцуудыг хэвэр үлдээж, дотроос дуугаа хааж байна.
  */
 
+import { stopAllVoice } from "@/lib/play-voice";
+
 export function a11ySpeak(
   _text: string,
   _opts?: { interrupt?: boolean; rate?: number; dedup?: boolean },
@@ -12,5 +14,6 @@ export function a11ySpeak(
 }
 
 export function a11yStopSpeak() {
+  stopAllVoice();
   if (typeof window !== "undefined") window.speechSynthesis?.cancel();
 }

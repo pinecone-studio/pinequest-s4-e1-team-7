@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 
-export type ThreadAction = "call" | "voice" | "typing";
+export type ThreadAction = "call" | "voice" | "typing" | "history";
 
 /**
  * preChatIndex:
@@ -15,6 +15,7 @@ export type A11yNavContextValue = {
   threadAction: ThreadAction;
   brailleOpen: boolean;
   brailleVisible: boolean;
+  historyFocusId: number | null;
   setPrechatIndex: (i: number) => void;
   setThreadAction: (a: ThreadAction) => void;
   setBrailleOpen: (open: boolean) => void;

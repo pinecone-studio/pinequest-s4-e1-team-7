@@ -57,7 +57,7 @@ import {
   A11yChatBridgeContext,
   type A11yChatBridge,
 } from "@/lib/a11y-chat-bridge";
-import { a11ySpeak } from "@/lib/a11y-speak";
+import { playVoice } from "@/lib/play-voice";
 import { A11yNavProvider } from "@/components/accessible/A11yNavProvider";
 import { A11yThreadToolbar } from "@/components/accessible/A11yThreadToolbar";
 
@@ -284,10 +284,10 @@ export function MessagesApp({
     setHasMoreOlder(rows.length >= MESSAGE_PAGE_SIZE);
   }, []);
 
-  const loadOlderMessages = useCallback(async () => {
-    if (!routeConvId || loadingOlderRef.current || !hasMoreOlder) return;
+  const loadOlderMessages = useCallback(async (): Promise<number> => {
+    if (!routeConvId || loadingOlderRef.current || !hasMoreOlder) return 0;
     const firstId = messages[0]?.id;
-    if (!firstId) return;
+    if (!firstId) return 0;
 
     const el = messagesScrollRef.current;
     const prevHeight = el?.scrollHeight ?? 0;
@@ -303,7 +303,7 @@ export function MessagesApp({
       );
       if (!rows.length) {
         setHasMoreOlder(false);
-        return;
+        return 0;
       }
       setMessages((prev) => {
         const merged = prependMessages(prev, rows);
@@ -315,10 +315,12 @@ export function MessagesApp({
         if (!el) return;
         el.scrollTop = prevTop + (el.scrollHeight - prevHeight);
       });
+      return rows.length;
     } finally {
       loadingOlderRef.current = false;
       setLoadingOlder(false);
     }
+    return 0;
   }, [hasMoreOlder, messages, routeConvId]);
 
   useEffect(() => {
@@ -592,7 +594,7 @@ export function MessagesApp({
         return merged;
       });
       setText("");
-      if (a11yMode) a11ySpeak("Илгээгдлээ");
+      if (a11yMode) playVoice("илгээлээ");
       void refreshConversations(true);
     } finally {
       setSending(false);
@@ -751,6 +753,9 @@ export function MessagesApp({
         startRecording,
         stopRecording,
         recording,
+        hasMoreOlder,
+        loadingOlder,
+        loadOlderMessages,
       }
     : null;
 

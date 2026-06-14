@@ -2,6 +2,7 @@
 
 import type { RefObject } from "react";
 import { cn } from "@/lib/utils";
+import { useA11yNav } from "@/lib/a11y-nav-context";
 import { ChatEmptyState } from "./ChatEmptyState";
 import { MessageBubble } from "./MessageBubble";
 import { CallLogCard } from "../CallLogCard";
@@ -37,6 +38,9 @@ export function MessagesList({
   onDeleteCallLog,
   onCallAgain,
 }: Props) {
+  const nav = useA11yNav();
+  const focusId = nav?.historyFocusId ?? null;
+
   return (
     <div
       ref={scrollRef}
@@ -61,25 +65,34 @@ export function MessagesList({
           {messages.map((m) => {
             if (callHiddenIds.has(m.id)) return null;
             const log = callLogMap.get(m.id);
+            const focused = focusId === m.id;
+            const wrapClass = cn(
+              "scroll-mt-4 scroll-mb-4 rounded-2xl transition-shadow",
+              focused &&
+                "ring-2 ring-[var(--olive)] ring-offset-2 ring-offset-[var(--bg)]",
+            );
+
             if (log) {
               return (
-                <CallLogCard
-                  key={m.id}
-                  entry={log}
-                  peer={activePeer}
-                  onCallAgain={onCallAgain}
-                  onDelete={() => onDeleteCallLog(log)}
-                />
+                <div key={m.id} id={`a11y-msg-${m.id}`} className={wrapClass}>
+                  <CallLogCard
+                    entry={log}
+                    peer={activePeer}
+                    onCallAgain={onCallAgain}
+                    onDelete={() => onDeleteCallLog(log)}
+                  />
+                </div>
               );
             }
             return (
-              <MessageBubble
-                key={m.id}
-                msg={m}
-                editing={editingId === m.id}
-                onStartEdit={() => onStartEdit(m.id, m.body ?? "")}
-                onDelete={() => onDeleteMessage(m)}
-              />
+              <div key={m.id} id={`a11y-msg-${m.id}`} className={wrapClass}>
+                <MessageBubble
+                  msg={m}
+                  editing={editingId === m.id}
+                  onStartEdit={() => onStartEdit(m.id, m.body ?? "")}
+                  onDelete={() => onDeleteMessage(m)}
+                />
+              </div>
             );
           })}
         </div>

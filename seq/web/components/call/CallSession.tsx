@@ -17,6 +17,7 @@ import { sendCallEnded, fetchMessages } from "@/lib/chat-api";
 import { useChatRealtime } from "@/context/ChatRealtimeContext";
 import { CALL_DECLINE_POLL_MS, createAdaptivePoller } from "@/lib/poll-schedule";
 import { releaseAllCameras } from "@/lib/camera-registry";
+import { playVoiceLoop, stopAllVoice, stopVoiceLoop } from "@/lib/play-voice";
 import { VideoCameraSlashIcon } from "@heroicons/react/24/solid";
 
 const fmtDur = (s: number) => {
@@ -121,6 +122,7 @@ export function CallSession({ roomId }: { roomId: string }) {
       const durationMs = connectedMs > 0 ? connectedMs : elapsedRef.current * 1000;
 
       stop();
+      stopAllVoice();
       hangUp();
       releaseAllCameras();
 
@@ -166,7 +168,28 @@ export function CallSession({ roomId }: { roomId: string }) {
   }, [connected]);
 
   useEffect(() => () => stop(), [stop]);
-  useEffect(() => () => releaseAllCameras(), []);
+  useEffect(() => () => {
+    releaseAllCameras();
+    stopAllVoice();
+  }, []);
+
+  // Host: хариулт ирэх хүртэл calling.mp3 loop
+  useEffect(() => {
+    const ringing =
+      asRole === "host" &&
+      !connected &&
+      !hostNotice &&
+      !leavingRef.current &&
+      (status === "idle" || status === "connecting");
+
+    if (ringing) {
+      playVoiceLoop("calling");
+    } else {
+      stopVoiceLoop();
+    }
+
+    return () => stopVoiceLoop();
+  }, [asRole, connected, hostNotice, status]);
 
   // Host: exit waiting room when callee declines (incremental poll only)
   useEffect(() => {
