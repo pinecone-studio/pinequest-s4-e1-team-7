@@ -43,6 +43,13 @@ const VOICE_MAP: Record<string, string | VoiceFile> = {
   "дуудлага хийсэн": "дуудлага хийсэн",
   залгасан: "залгасан",
   илгээлээ: "илгээлээ",
+  нэг: "нэг",
+  хоёр: "хоёр",
+  гурав: "гурав",
+  дөрөв: "дөрөв",
+  тав: "тав",
+  зургаа: "зургаа",
+  долоо: "долоо",
 };
 
 function resolveVoiceEntry(value: string | VoiceFile): VoiceFile {

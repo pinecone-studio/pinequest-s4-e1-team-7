@@ -9,6 +9,12 @@ import {
   stopHistoryPlayback,
   unlockHistoryAudio,
 } from "@/lib/a11y-history";
+import {
+  defaultPreChatIndex,
+  getContactNumber,
+  playContactNumber,
+  syncContactNumbers,
+} from "@/lib/a11y-contact-numbers";
 import { A11yNavContext, type ThreadAction } from "@/lib/a11y-nav-context";
 import { a11yStopSpeak } from "@/lib/a11y-speak";
 import { playVoice } from "@/lib/play-voice";
@@ -36,7 +42,7 @@ const THREAD_ACTIVATE_VOICE: Record<Exclude<ThreadAction, "history">, string> = 
 /**
  * Pre-chat жагсаалт:
  *   index 0       → "Хайлт"
- *   index 1..N    → conversations[index-1]  (хайлт байвал results[index-1])
+ *   index 1..N    → numberedConversations[preChatIndex-1] (тогтмол дугаар)
  */
 export function A11yNavProvider({ children }: { children: ReactNode }) {
   const bridge = useA11yChatBridge();
@@ -49,11 +55,50 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
   const spokeRef = useRef("");
   const pendingHistoryReadRef = useRef<number | null>(null);
   const historyIndexRef = useRef(0);
+  const preChatInitializedRef = useRef(false);
+  const wasInThreadRef = useRef(false);
 
   const inThread = !!bridge.routeConvId;
   const hasSearch = bridge.search.trim().length >= 2;
-  const list = hasSearch ? bridge.searchResults : bridge.conversations.map((c) => c.peer);
-  const listLen = list.length;
+
+  const contactNumbers = useMemo(
+    () =>
+      syncContactNumbers([
+        ...bridge.conversations.map((c) => c.peer.id),
+        ...bridge.searchResults.map((p) => p.id),
+      ]),
+    [bridge.conversations, bridge.searchResults],
+  );
+
+  const numberedConversations = useMemo(
+    () =>
+      [...bridge.conversations].sort((a, b) => {
+        const na = contactNumbers[a.peer.id] ?? Number.MAX_SAFE_INTEGER;
+        const nb = contactNumbers[b.peer.id] ?? Number.MAX_SAFE_INTEGER;
+        return na - nb;
+      }),
+    [bridge.conversations, contactNumbers],
+  );
+
+  const preChatListLen = hasSearch
+    ? bridge.searchResults.length
+    : numberedConversations.length;
+
+  const preChatContactNumber = useMemo(() => {
+    if (preChatIndex < 1) return null;
+    if (hasSearch) {
+      const peer = bridge.searchResults[preChatIndex - 1];
+      return peer ? getContactNumber(peer.id, contactNumbers) ?? null : null;
+    }
+    const conv = numberedConversations[preChatIndex - 1];
+    return conv ? getContactNumber(conv.peer.id, contactNumbers) ?? null : null;
+  }, [
+    contactNumbers,
+    hasSearch,
+    numberedConversations,
+    preChatIndex,
+    bridge.searchResults,
+  ]);
 
   const historyItems = useMemo(
     () => buildHistoryItems(bridge.messages),
@@ -125,13 +170,35 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
       );
       return;
     }
-    const peer = list[preChatIndex - 1];
-    speakOnce(
-      peer
-        ? `${preChatIndex}. ${peer.name ?? peer.email}`
-        : "Жагсаалтын төгсгөл",
-    );
-  }, [bridge.search, list, preChatIndex, speakOnce]);
+    if (preChatContactNumber != null) {
+      playContactNumber(preChatContactNumber);
+      return;
+    }
+    speakOnce("Жагсаалтын төгсгөл");
+  }, [bridge.search, preChatContactNumber, preChatIndex, speakOnce]);
+
+  useEffect(() => {
+    if (inThread) {
+      wasInThreadRef.current = true;
+      return;
+    }
+    if (hasSearch || brailleOpen) return;
+    if (numberedConversations.length === 0) return;
+
+    const shouldPickDefault =
+      !preChatInitializedRef.current || wasInThreadRef.current;
+    if (shouldPickDefault) {
+      setPrechatIndex(defaultPreChatIndex(numberedConversations, contactNumbers));
+      preChatInitializedRef.current = true;
+      wasInThreadRef.current = false;
+    }
+  }, [
+    brailleOpen,
+    contactNumbers,
+    hasSearch,
+    inThread,
+    numberedConversations,
+  ]);
 
   useEffect(() => {
     if (brailleOpen) return;
@@ -164,10 +231,10 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
 
   // Clamp index when list shrinks
   useEffect(() => {
-    if (preChatIndex > 0 && preChatIndex > listLen) {
-      setPrechatIndex(Math.max(0, listLen));
+    if (preChatIndex > 0 && preChatIndex > preChatListLen) {
+      setPrechatIndex(Math.max(0, preChatListLen));
     }
-  }, [listLen, preChatIndex]);
+  }, [preChatListLen, preChatIndex]);
 
   // ── Activate ──────────────────────────────────────────────────────────────
   const activateThread = useCallback(async () => {
@@ -213,13 +280,13 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
         void bridge.startWithPeer(peer);
       }
     } else {
-      const conv = bridge.conversations[preChatIndex - 1];
+      const conv = numberedConversations[preChatIndex - 1];
       if (conv) {
         playVoice("Чаат руу орлоо");
         bridge.openChat(conv.id, conv.peer);
       }
     }
-  }, [bridge, hasSearch, preChatIndex]);
+  }, [bridge, hasSearch, numberedConversations, preChatIndex]);
 
   const moveHistory = useCallback(
     (dir: "up" | "down") => {
@@ -283,7 +350,7 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
 
       // Pre-chat: UP/DOWN → navigate flat list
       if (dir === "up" || dir === "down") {
-        const total = listLen + 1; // +1 for search item at index 0
+        const total = preChatListLen + 1; // +1 for search item at index 0
         setPrechatIndex((i) =>
           dir === "up"
             ? (i - 1 + total) % total
@@ -291,7 +358,7 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
         );
       }
     },
-    [announceThreadNav, historyLen, inThread, listLen, moveHistory, threadAction],
+    [announceThreadNav, historyLen, inThread, moveHistory, preChatListLen, threadAction],
   );
 
   const onTwoFingerSwipe = useCallback(
@@ -328,6 +395,9 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
   const navValue = useMemo(
     () => ({
       preChatIndex,
+      preChatContactNumber,
+      contactNumbers,
+      numberedConversations,
       threadAction,
       brailleOpen,
       brailleVisible,
@@ -336,7 +406,16 @@ export function A11yNavProvider({ children }: { children: ReactNode }) {
       setThreadAction,
       setBrailleOpen,
     }),
-    [brailleOpen, brailleVisible, historyFocusId, preChatIndex, threadAction],
+    [
+      brailleOpen,
+      brailleVisible,
+      contactNumbers,
+      historyFocusId,
+      numberedConversations,
+      preChatContactNumber,
+      preChatIndex,
+      threadAction,
+    ],
   );
 
   const gestureBottom = "calc(4.25rem + env(safe-area-inset-bottom))";

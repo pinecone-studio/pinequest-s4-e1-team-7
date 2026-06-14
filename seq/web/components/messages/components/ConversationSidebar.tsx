@@ -39,12 +39,16 @@ export function ConversationSidebar({
 }: Props) {
   const a11yNav = useA11yNav();
   const listRef = useRef<HTMLDivElement>(null);
+  const displayConversations =
+    a11yNav?.numberedConversations ?? conversations;
 
   useEffect(() => {
-    if (!a11yNav || a11yNav.preChatIndex < 1) return;
-    const el = listRef.current?.children[a11yNav.preChatIndex - 1] as HTMLElement | undefined;
+    if (!a11yNav?.preChatContactNumber || search.trim().length >= 2) return;
+    const el = listRef.current?.querySelector(
+      `[data-a11y-num="${a11yNav.preChatContactNumber}"]`,
+    );
     el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [a11yNav?.preChatIndex]);
+  }, [a11yNav?.preChatContactNumber, search]);
 
   return (
     <aside
@@ -106,7 +110,9 @@ export function ConversationSidebar({
             {searching ? "Хайж байна..." : "Хэрэглэгч"}
           </p>
           {searchResults.map((peer, idx) => {
-            const a11yFocused = a11yNav?.preChatIndex === idx + 1;
+            const contactNum = a11yNav?.contactNumbers[peer.id];
+            const a11yFocused =
+              a11yNav?.preChatIndex === idx + 1 && search.trim().length >= 2;
             return (
             <button
               key={peer.id}
@@ -139,6 +145,7 @@ export function ConversationSidebar({
                   className="truncate text-[15px] font-semibold"
                   style={{ color: "var(--text)" }}
                 >
+                  {contactNum != null ? `${contactNum}. ` : ""}
                   {peer.name ?? "Хэрэглэгч"}
                 </p>
                 <p
@@ -174,7 +181,7 @@ export function ConversationSidebar({
           >
             Ачааллаж байна...
           </p>
-        ) : conversations.length === 0 ? (
+        ) : displayConversations.length === 0 ? (
           <p
             className="p-6 text-center text-[14px] leading-relaxed"
             style={{ color: "var(--text-3)" }}
@@ -182,14 +189,20 @@ export function ConversationSidebar({
             Хайлтаар найз олоод чат эхлүүлнэ үү
           </p>
         ) : (
-          conversations.map((conv, idx) => {
+          displayConversations.map((conv) => {
             const isUnread =
               conv.id !== openConvId && !!conv.unread;
-            const a11yFocused = a11yNav?.preChatIndex === idx + 1;
+            const contactNum = a11yNav?.contactNumbers[conv.peer.id];
+            const a11yFocused =
+              a11yNav != null &&
+              a11yNav.preChatContactNumber != null &&
+              contactNum === a11yNav.preChatContactNumber &&
+              search.trim().length < 2;
             return (
               <button
                 key={conv.id}
                 type="button"
+                data-a11y-num={contactNum ?? undefined}
                 onClick={() => onSelectConversation(conv)}
                 className={cn(
                   "relative mb-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3.5 text-left transition-all overflow-hidden",
@@ -212,6 +225,15 @@ export function ConversationSidebar({
                 )}
 
                 <div className="relative shrink-0">
+                  {contactNum != null && a11yNav && (
+                    <span
+                      className="absolute -left-1 -top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ring-2 ring-[var(--surface)]"
+                      style={{ background: "var(--olive)", color: "#0d1e35" }}
+                      aria-hidden
+                    >
+                      {contactNum}
+                    </span>
+                  )}
                   <UserAvatar
                     name={conv.peer.name ?? conv.peer.email}
                     avatarUrl={conv.peer.avatarUrl}
@@ -228,6 +250,7 @@ export function ConversationSidebar({
                       className={cn("truncate text-[15px]", isUnread ? "font-bold" : "font-semibold")}
                       style={{ color: "var(--text)" }}
                     >
+                      {contactNum != null && a11yNav ? `${contactNum}. ` : ""}
                       {conv.peer.name ?? conv.peer.email}
                     </p>
                     <div className="flex shrink-0 items-center gap-1.5">
