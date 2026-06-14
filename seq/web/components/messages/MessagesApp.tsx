@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useIncomingCall } from "@/context/IncomingCallContext";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
-import { usePresenceHeartbeat } from "@/hooks/usePresenceHeartbeat";
 import {
   buildCallLogs,
   callLogByAnchor,
@@ -37,7 +36,11 @@ import {
 } from "@/lib/chat-cache";
 import { cn } from "@/lib/utils";
 import { useChatRealtime } from "@/context/ChatRealtimeContext";
-import { createAdaptivePoller, FALLBACK_POLL_MS } from "@/lib/poll-schedule";
+import {
+  createAdaptivePoller,
+  CHAT_CONV_POLL_MS,
+  FALLBACK_POLL_MS,
+} from "@/lib/poll-schedule";
 import { useAuth } from "@/context/AuthContext";
 import { fireChatNotification } from "@/lib/chat-notify";
 import {
@@ -56,23 +59,6 @@ import {
 import { a11ySpeak } from "@/lib/a11y-speak";
 import { A11yNavProvider } from "@/components/accessible/A11yNavProvider";
 import { A11yThreadToolbar } from "@/components/accessible/A11yThreadToolbar";
-
-const LS_READ_KEY = "sb-read-until";
-function getReadUntil(convId: string): number | undefined {
-  try {
-    const raw = localStorage.getItem(LS_READ_KEY);
-    if (!raw) return undefined;
-    return (JSON.parse(raw) as Record<string, number>)[convId];
-  } catch { return undefined; }
-}
-function setReadUntil(convId: string, msgId: number): void {
-  try {
-    const raw = localStorage.getItem(LS_READ_KEY);
-    const map = raw ? (JSON.parse(raw) as Record<string, number>) : {};
-    map[convId] = msgId;
-    localStorage.setItem(LS_READ_KEY, JSON.stringify(map));
-  } catch { /* ignore */ }
-}
 
 function buildChatPath(base: string, conversationId: string) {
   return `${base}/${encodeURIComponent(conversationId)}`;
@@ -137,7 +123,6 @@ export function MessagesApp({
   a11yMode = false,
   hideInputFooter = false,
 }: MessagesAppProps = {}) {
-  usePresenceHeartbeat();
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
@@ -189,8 +174,8 @@ export function MessagesApp({
       : 0,
   );
   const skippedInitialMsgLoadRef = useRef(hasServerMessages);
-  const [unreadIds, setUnreadIds] = useState<Set<string>>(new Set());
   const prevConvsRef = useRef<ConversationSummary[]>([]);
+  const markedReadRef = useRef<Map<string, number>>(new Map());
 
   const { entries: callLogEntries, hiddenIds: callHiddenIds } = useMemo(
     () => buildCallLogs(messages),
@@ -201,55 +186,48 @@ export function MessagesApp({
     [callLogEntries],
   );
 
-  // Detect new incoming messages and fire notifications + track unread.
-  // prevConvsRef must only advance after both user and conversations are ready —
-  // otherwise the initial-load unread scan never runs (user loads after conversations).
+  // New incoming messages → toast/bell (unread badges come from server conv.unread).
   useEffect(() => {
     if (!user?.id || !conversations.length) return;
 
     const prev = prevConvsRef.current;
     prevConvsRef.current = conversations;
 
-    if (!prev.length) {
-      // Initial load: use server-computed unread flag, skip currently open conversation
-      const ids = conversations
-        .filter((c) => c.unread && c.id !== routeConvId)
-        .map((c) => c.id);
-      if (ids.length) setUnreadIds(new Set(ids));
-      return;
-    }
+    if (!prev.length) return;
 
-    // Subsequent polls: detect newly arrived messages and fire toast/bell
-    const newUnread: string[] = [];
     for (const conv of conversations) {
       const last = conv.lastMessage;
       if (!last || last.senderId === user.id) continue;
+      if (conv.id === routeConvId) continue;
       const prevConv = prev.find((c) => c.id === conv.id);
       if (prevConv?.lastMessage?.id === last.id) continue;
-      if (conv.id === routeConvId) continue;
-      const seenId = getReadUntil(conv.id);
-      if (seenId !== undefined && seenId >= last.id) continue;
-      newUnread.push(conv.id);
       fireChatNotification(last.id, conv.id, last.kind, pathname, (href) =>
         router.push(href),
       );
     }
-    if (newUnread.length) setUnreadIds((s) => new Set([...s, ...newUnread]));
   }, [conversations, user?.id, routeConvId, pathname, router]);
 
-  // Mark conversation as read when user navigates into it
+  // Mark open conversation as read on server when new messages arrive while viewing.
   useEffect(() => {
     if (!routeConvId) return;
-    setUnreadIds((s) => {
-      const n = new Set(s);
-      n.delete(routeConvId);
-      return n;
-    });
-    // Record last-seen messageId so remounts don't re-mark this conv as unread
-    const conv = conversations.find((c) => c.id === routeConvId);
-    if (conv?.lastMessage) setReadUntil(routeConvId, conv.lastMessage.id);
+
+    const convLast =
+      conversations.find((c) => c.id === routeConvId)?.lastMessage?.id ?? 0;
+    const msgLast = messages.length ? messages[messages.length - 1]!.id : 0;
+    const upTo = Math.max(convLast, msgLast);
+    if (upTo <= 0) return;
+
+    const prevMarked = markedReadRef.current.get(routeConvId) ?? 0;
+    if (upTo <= prevMarked) return;
+
+    markedReadRef.current.set(routeConvId, upTo);
     markConversationRead(routeConvId);
-  }, [routeConvId, conversations]);
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === routeConvId && c.unread ? { ...c, unread: false } : c,
+      ),
+    );
+  }, [routeConvId, conversations, messages]);
 
   const openChat = useCallback(
     (convId: string, peer: ChatPeer) => {
@@ -267,13 +245,34 @@ export function MessagesApp({
     if (!silent) setLoadingList(true);
     try {
       const list = await fetchConversations();
-      setConversations(list);
-      writeCachedConversations(list);
+      const merged = list.map((c) => {
+        const marked = markedReadRef.current.get(c.id) ?? 0;
+        const lastId = c.lastMessage?.id ?? 0;
+        if (marked > 0 && lastId > 0 && lastId <= marked) {
+          return { ...c, unread: false };
+        }
+        return c;
+      });
+      setConversations(merged);
+      writeCachedConversations(merged);
     } catch {
       if (!silent) setConversations([]);
     } finally {
       if (!silent) setLoadingList(false);
     }
+  }, []);
+
+  const applyPeerPresence = useCallback((userId: string, isOnline: boolean) => {
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.peer.id === userId
+          ? { ...c, peer: { ...c.peer, isOnline } }
+          : c,
+      ),
+    );
+    setActivePeer((prev) =>
+      prev?.id === userId ? { ...prev, isOnline } : prev,
+    );
   }, []);
 
   const loadRecentMessages = useCallback(async (convId: string) => {
@@ -357,13 +356,17 @@ export function MessagesApp({
     void refreshConversations(!hasServerConversations);
     const poller = createAdaptivePoller(
       () => refreshConversations(true),
-      () => (realtimeConnected ? null : FALLBACK_POLL_MS),
+      () => CHAT_CONV_POLL_MS,
     );
     poller.start();
     document.addEventListener("visibilitychange", poller.onVisibility);
     window.addEventListener("focus", poller.poke);
 
-    const unsub = subscribe(() => {
+    const unsub = subscribe((event) => {
+      if (event.type === "presence") {
+        applyPeerPresence(event.userId, event.isOnline);
+        return;
+      }
       void refreshConversations(true);
     });
 
@@ -376,8 +379,8 @@ export function MessagesApp({
   }, [
     refreshConversations,
     hasServerConversations,
-    realtimeConnected,
     subscribe,
+    applyPeerPresence,
   ]);
 
   useEffect(() => {
@@ -467,7 +470,8 @@ export function MessagesApp({
     window.addEventListener("focus", poller.poke);
 
     const unsub = subscribe((event) => {
-      if (event.conversationId === routeConvId) pollNewMessages();
+      if (event.type !== "chat" || event.conversationId !== routeConvId) return;
+      pollNewMessages();
     });
 
     return () => {
@@ -796,12 +800,12 @@ export function MessagesApp({
         >
           <ConversationSidebar
             conversations={conversations}
+            openConvId={routeConvId}
             search={search}
             searchResults={searchResults}
             searching={searching}
             loadingList={loadingList}
             showMobileChat={showMobileChat}
-            unreadIds={unreadIds}
             onSearch={setSearch}
             onSelectConversation={selectConversation}
             onStartWithPeer={startWithPeer}

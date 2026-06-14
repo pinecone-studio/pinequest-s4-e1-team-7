@@ -14,12 +14,12 @@ import { useEffect, useRef } from "react";
 
 type Props = {
   conversations: ConversationSummary[];
+  openConvId: string | null;
   search: string;
   searchResults: ChatPeer[];
   searching: boolean;
   loadingList: boolean;
   showMobileChat: boolean;
-  unreadIds: Set<string>;
   onSearch: (value: string) => void;
   onSelectConversation: (conv: ConversationSummary) => void;
   onStartWithPeer: (peer: ChatPeer) => Promise<void>;
@@ -27,12 +27,12 @@ type Props = {
 
 export function ConversationSidebar({
   conversations,
+  openConvId,
   search,
   searchResults,
   searching,
   loadingList,
   showMobileChat,
-  unreadIds,
   onSearch,
   onSelectConversation,
   onStartWithPeer,
@@ -122,11 +122,18 @@ export function ConversationSidebar({
                   : undefined
               }
             >
-              <UserAvatar
-                name={peer.name ?? peer.email}
-                avatarUrl={peer.avatarUrl}
-                size={40}
-              />
+              <div className="relative shrink-0">
+                <UserAvatar
+                  name={peer.name ?? peer.email}
+                  avatarUrl={peer.avatarUrl}
+                  size={40}
+                />
+                <span
+                  className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-[var(--surface)]"
+                  style={{ background: peer.isOnline ? "#22c55e" : "#ef4444" }}
+                  aria-hidden
+                />
+              </div>
               <div className="min-w-0 flex-1">
                 <p
                   className="truncate text-[15px] font-semibold"
@@ -176,7 +183,8 @@ export function ConversationSidebar({
           </p>
         ) : (
           conversations.map((conv, idx) => {
-            const isUnread = unreadIds.has(conv.id);
+            const isUnread =
+              conv.id !== openConvId && !!conv.unread;
             const a11yFocused = a11yNav?.preChatIndex === idx + 1;
             return (
               <button

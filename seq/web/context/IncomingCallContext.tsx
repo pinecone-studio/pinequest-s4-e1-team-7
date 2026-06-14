@@ -269,6 +269,7 @@ export function IncomingCallProvider({ children }: { children: ReactNode }) {
     window.addEventListener("focus", poller.poke);
 
     const unsubPush = subscribe((event) => {
+      if (event.type === "presence") return;
       if (event.kind === "call_invite") {
         void poll();
       } else {

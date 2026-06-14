@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { usePresenceHeartbeat } from "@/hooks/usePresenceHeartbeat";
 import {
   connectChatRealtime,
   disconnectChatRealtime,
@@ -26,6 +27,7 @@ const ChatRealtimeContext = createContext<ChatRealtimeValue | null>(null);
 export function ChatRealtimeProvider({ children }: { children: ReactNode }) {
   const { user, token } = useAuth();
   const [connected, setConnected] = useState(false);
+  usePresenceHeartbeat();
 
   useEffect(() => {
     if (!user?.id || !token) {

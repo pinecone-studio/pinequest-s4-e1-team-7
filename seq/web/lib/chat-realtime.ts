@@ -1,9 +1,15 @@
-export type ChatPushEvent = {
-  type: "chat";
-  conversationId: string;
-  messageId: number;
-  kind: string;
-};
+export type ChatPushEvent =
+  | {
+      type: "chat";
+      conversationId: string;
+      messageId: number;
+      kind: string;
+    }
+  | {
+      type: "presence";
+      userId: string;
+      isOnline: boolean;
+    };
 
 type Listener = (event: ChatPushEvent) => void;
 
@@ -93,7 +99,7 @@ export function connectChatRealtime(token: string) {
     if (ev.data === "pong") return;
     try {
       const parsed = JSON.parse(String(ev.data)) as ChatPushEvent;
-      if (parsed?.type === "chat") emit(parsed);
+      if (parsed?.type === "chat" || parsed?.type === "presence") emit(parsed);
     } catch {
       /* ignore */
     }
