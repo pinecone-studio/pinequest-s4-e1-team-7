@@ -101,7 +101,7 @@ export function Settings() {
             type="button"
             disabled={uploading}
             onClick={() => fileRef.current?.click()}
-            className="relative shrink-0 disabled:opacity-60"
+            className="relative shrink-0 transition-all duration-150 hover:scale-105 active:scale-95 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             aria-label="Профайл зураг солих"
           >
             <UserAvatar name={displayName} avatarUrl={user?.avatarUrl} size={72} />
@@ -162,7 +162,7 @@ export function Settings() {
               type="button"
               disabled={!profileDirty || !editName.trim() || savingProfile}
               onClick={() => void handleSaveProfile()}
-              className="rounded-xl px-4 py-2 text-[13px] font-bold disabled:opacity-40"
+              className="rounded-xl px-4 py-2 text-[13px] font-bold transition-all duration-150 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:brightness-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={{ background: "var(--olive)", color: "#0d1e35" }}
             >
               {savingProfile ? "Хадгалж байна…" : "Хадгалах"}
@@ -212,7 +212,7 @@ export function Settings() {
           <button
             type="button"
             onClick={() => setShowModePicker(true)}
-            className="mt-2 w-full rounded-xl py-2.5 text-[13px] font-semibold"
+            className="mt-2 w-full rounded-xl py-2.5 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             style={inactiveBtn}
           >
             Горим дахин сонгох
@@ -227,7 +227,7 @@ export function Settings() {
                 key={opt.mode}
                 type="button"
                 onClick={() => { setMode(opt.mode); setShowModePicker(false); router.push(opt.mode === "accessible" ? "/accessible/chat" : "/dashboard/overview"); }}
-                className="w-full rounded-xl px-4 py-3 text-left transition-all"
+                className="w-full rounded-xl px-4 py-3 text-left transition-all duration-150 hover:brightness-110 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
                 style={mode === opt.mode ? activeBtn : inactiveBtn}
               >
                 <span className="block text-[14px] font-bold">{opt.title}</span>
@@ -250,21 +250,21 @@ export function Settings() {
         <p className="mb-2 text-[12px] font-semibold" style={{ color: "var(--text-3)" }}>Хоолойн төрөл</p>
         <div className="mb-4 flex gap-2">
           {GENDERS.map(({ label, value }) => (
-            <button key={value} onClick={() => updateSettings({ gender: value })} className="flex-1 rounded-full py-2 text-[13px] font-semibold transition-all duration-150 hover:brightness-105 active:scale-95"
+            <button key={value} onClick={() => updateSettings({ gender: value })} className="flex-1 rounded-full py-2 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={settings.gender === value ? activeBtn : inactiveBtn}>{label}</button>
           ))}
         </div>
         <p className="mb-2 text-[12px] font-semibold" style={{ color: "var(--text-3)" }}>Унших хурд</p>
         <div className="flex gap-2">
           {SPEEDS.map(({ label, value }) => (
-            <button key={value} onClick={() => updateSettings({ rate: value })} className="flex-1 rounded-full py-2 text-[13px] font-semibold transition-all duration-150 hover:brightness-105 active:scale-95"
+            <button key={value} onClick={() => updateSettings({ rate: value })} className="flex-1 rounded-full py-2 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={settings.rate === value ? activeBtn : inactiveBtn}>{label}</button>
           ))}
         </div>
       </div>
 
       <button onClick={() => { logout(); router.push("/"); }}
-        className="flex w-full items-center justify-center gap-2 rounded-[22px] px-5 py-4 text-[15px] font-semibold transition-all duration-150 hover:bg-[hsl(var(--destructive)/0.06)] active:scale-[0.98] active:opacity-80"
+        className="flex w-full items-center justify-center gap-2 rounded-[22px] px-5 py-4 text-[15px] font-semibold transition-all duration-150 hover:bg-[hsl(var(--destructive)/0.08)] hover:-translate-y-0.5 active:scale-[0.98] active:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--destructive))]"
         style={{ ...card, color: "hsl(var(--destructive))" }}>
         <ArrowRightEndOnRectangleIcon className="h-5 w-5" />
         Гарах
