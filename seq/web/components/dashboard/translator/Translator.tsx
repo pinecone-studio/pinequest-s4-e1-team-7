@@ -153,10 +153,9 @@ export function Translator() {
 
               {!t.running && (
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-black p-6 text-center">
-                  <p className="max-w-xs text-sm text-white/75">
+                  <p className="text-sm text-white/75 whitespace-nowrap">
                     Камер асаахын тулд эхлүүлэх товчийг дарна уу
                   </p>
-                  {startStopButton}
                 </div>
               )}
             </div>
@@ -181,11 +180,20 @@ export function Translator() {
                 }}
               >
                 {t.running && t.modelLoading ? (
-                  <><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />Ачааллаж...</>
+                  <>
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Ачааллаж...
+                  </>
                 ) : t.running ? (
-                  <><StopIcon className="h-4 w-4" />Зогсоох</>
+                  <>
+                    <StopIcon className="h-4 w-4" />
+                    Зогсоох
+                  </>
                 ) : (
-                  <><PlayIcon className="h-4 w-4" />Эхлүүлэх</>
+                  <>
+                    <PlayIcon className="h-4 w-4" />
+                    Эхлүүлэх
+                  </>
                 )}
               </button>
               {startStopButton}

@@ -1,10 +1,12 @@
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from "@heroicons/react/24/outline";
 
 type Props = {
   statusLabel: string;
   statusDot: "idle" | "connecting" | "connected" | "error";
   timer?: string;
   onBack: () => void;
+  ttsEnabled: boolean;
+  onTtsToggle: () => void;
 };
 
 const DOT_COLOR: Record<Props["statusDot"], string> = {
@@ -21,7 +23,7 @@ const DOT_ANIM: Record<Props["statusDot"], string> = {
   error: "",
 };
 
-export function CallTopBar({ statusLabel, statusDot, timer, onBack }: Props) {
+export function CallTopBar({ statusLabel, statusDot, timer, onBack, ttsEnabled, onTtsToggle }: Props) {
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-40 px-4 pt-[max(env(safe-area-inset-top),12px)]">
       <div className="pointer-events-auto flex items-center justify-between">
@@ -65,7 +67,23 @@ export function CallTopBar({ statusLabel, statusDot, timer, onBack }: Props) {
           )}
         </div>
 
-        <div className="w-10" />
+        {/* TTS toggle */}
+        <button
+          type="button"
+          onClick={onTtsToggle}
+          aria-label={ttsEnabled ? "Чимэгэ хаах" : "Чимэгэ нээх"}
+          className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 active:scale-95"
+          style={{
+            background: ttsEnabled ? "var(--olive)" : "var(--surface)",
+            border: "1px solid var(--border-c)",
+          }}
+        >
+          {ttsEnabled ? (
+            <SpeakerWaveIcon className="h-5 w-5" style={{ color: "#0d1e35" }} />
+          ) : (
+            <SpeakerXMarkIcon className="h-5 w-5" style={{ color: "var(--text-3)" }} />
+          )}
+        </button>
       </div>
     </div>
   );
