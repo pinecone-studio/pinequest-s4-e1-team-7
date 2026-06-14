@@ -35,6 +35,34 @@ export function Translator() {
     t.toggle();
   }, [t]);
 
+  const startStopButton = (
+    <button
+      type="button"
+      onClick={handleToggle}
+      disabled={t.running && t.modelLoading}
+      aria-label={t.running ? "Зогсоох" : "Эхлүүлэх"}
+      className="flex h-11 shrink-0 items-center gap-2 rounded-full px-5 text-[13px] font-bold transition-all active:scale-[0.98] disabled:opacity-40"
+      style={{
+        background: t.running ? "var(--surface-2)" : "var(--olive)",
+        color: t.running ? "var(--text)" : "#0d1e35",
+        border: t.running ? "1px solid var(--border-c)" : "none",
+        boxShadow: t.running ? "none" : "0 4px 20px rgba(245,197,24,0.35)",
+      }}
+    >
+      {t.running ? (
+        <>
+          <StopIcon className="h-4 w-4" />
+          Зогсоох
+        </>
+      ) : (
+        <>
+          <PlayIcon className="h-4 w-4" />
+          Эхлүүлэх
+        </>
+      )}
+    </button>
+  );
+
   const settingsBtn = (
     <button
       type="button"
@@ -122,6 +150,15 @@ export function Translator() {
                   </p>
                 </div>
               )}
+
+              {!t.running && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-black p-6 text-center">
+                  <p className="max-w-xs text-sm text-white/75">
+                    Камер асаахын тулд эхлүүлэх товчийг дарна уу
+                  </p>
+                  {startStopButton}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between gap-3 px-4 py-3 lg:hidden">
@@ -151,6 +188,7 @@ export function Translator() {
                   <><PlayIcon className="h-4 w-4" />Эхлүүлэх</>
                 )}
               </button>
+              {startStopButton}
             </div>
           </section>
 

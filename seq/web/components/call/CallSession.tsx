@@ -205,6 +205,7 @@ export function CallSession({ roomId }: { roomId: string }) {
     document.addEventListener("visibilitychange", poller.onVisibility);
 
     const unsub = subscribe((event) => {
+      if (event.type !== "chat") return;
       if (event.conversationId !== roomId || event.kind !== "call_declined") return;
       void fetchMessages(roomId, afterId).then((rows) => {
         if (rows.length) afterId = rows[rows.length - 1]!.id;
