@@ -7,7 +7,7 @@ export const MobileSection = () => (
     {/* Mobile layout */}
     <div className="flex flex-col px-6 pb-16 pt-28 md:hidden">
       <h2 className="mb-6 select-none font-black uppercase"
-        style={{ fontSize: "clamp(2.4rem, 11vw, 4rem)", lineHeight: 0.92, letterSpacing: "-0.03em", fontFamily: "var(--font-display)" }}>
+        style={{ fontSize: "clamp(1.6rem, 7vw, 2.4rem)", lineHeight: 0.92, letterSpacing: "-0.03em", fontFamily: "var(--font-display)" }}>
         <span className="block" style={{ color: "var(--olive)" }}>Утсан дээрх</span>
         <span className="block text-white">хувилбар</span>
       </h2>

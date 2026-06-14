@@ -69,7 +69,7 @@ export const FeaturesSection = () => {
                   <h3
                     className="font-black uppercase"
                     style={{
-                      fontSize: "clamp(1.4rem, 7vw, 2.2rem)",
+                      fontSize: "clamp(1rem, 5vw, 1.4rem)",
                       lineHeight: 0.92,
                       letterSpacing: "-0.02em",
                       color: isOpen ? "#fff" : "rgba(255,255,255,0.45)",
