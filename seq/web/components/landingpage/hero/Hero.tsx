@@ -34,7 +34,7 @@ export const Hero = () => {
   const panelClip = useTransform(rawInset, (v) => `inset(${Math.max(0, Math.min(100, v))}% 0 0 0)`);
 
   return (
-    <section id="hero" ref={ref} className="relative h-[380vh] bg-black">
+    <section id="hero" ref={ref} className="relative h-[240vh] bg-black">
       <div className="sticky top-0 h-screen overflow-hidden will-change-transform">
         <m.div style={{ clipPath: imgClip, opacity: imgOp }} className="absolute inset-0 z-0">
           <m.div style={{ scale: imgScale }} className="absolute inset-0 origin-center">
@@ -46,7 +46,7 @@ export const Hero = () => {
           <HeroText p={p} />
         </m.div>
         <m.div style={{ clipPath: panelClip }} className="absolute inset-0 z-20">
-          <HeroTeamPanel p={p} />
+          <HeroTeamPanel />
         </m.div>
         <HeroOpening show={showOpening} />
       </div>

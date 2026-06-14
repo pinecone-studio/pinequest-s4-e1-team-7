@@ -4,7 +4,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
-const TEX = "//unpkg.com/three-globe/example/img/earth-blue-marble.jpg";
+const TEX = "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg";
 
 function latLngToVec3(lat: number, lng: number, r = 2.05): [number, number, number] {
   const phi   = (90 - lat) * (Math.PI / 180);
@@ -79,7 +79,7 @@ interface GlobeR3FProps {
 
 const GlobeR3F = ({ spinning = true, onMarkerHover, onExpand, style, className }: GlobeR3FProps) => (
   <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 6], fov: 42 }}
-    gl={{ antialias: true, powerPreference: "high-performance" }}
+    gl={{ antialias: true, powerPreference: "high-performance", alpha: true }}
     style={style} className={className}>
     <Suspense fallback={null}>
       <Scene spinning={spinning} onHover={onMarkerHover} onExpand={onExpand} />

@@ -1,9 +1,8 @@
 "use client";
 import Image from "next/image";
-import { type MotionValue } from "framer-motion";
 import { TEAM } from "./heroData";
 
-export const HeroTeamPanel = ({ p: _ }: { p: MotionValue<number> }) => (
+export const HeroTeamPanel = () => (
   <div className="absolute inset-0 overflow-hidden bg-[#0a0a0a]">
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
       <p
@@ -23,14 +22,14 @@ export const HeroTeamPanel = ({ p: _ }: { p: MotionValue<number> }) => (
         Багийн танилцуулга
       </h2>
       <div className="mb-[4vh] h-px w-full max-w-[72vw]" style={{ background: "var(--olive)", opacity: 0.45 }} />
-      <div className="flex w-full items-center justify-center gap-[2vw]">
+      <div className="grid w-full grid-cols-2 gap-x-6 gap-y-7 md:flex md:items-center md:justify-center md:gap-[2vw]">
         {TEAM.map((member, i) => (
-          <div key={i} className="flex flex-col items-center gap-3 text-center">
+          <div key={i} className="flex flex-col items-center gap-2 text-center">
             <div
               className="relative overflow-hidden rounded-full ring-[3px] ring-[var(--olive)]"
-              style={{ width: "clamp(120px, 17vw, 260px)", height: "clamp(120px, 17vw, 260px)" }}
+              style={{ width: "clamp(90px, 36vw, 260px)", height: "clamp(90px, 36vw, 260px)" }}
             >
-              <Image src={member.src} alt={member.name} fill className="object-cover object-top" sizes="(max-width:640px) 50vw, 25vw" />
+              <Image src={member.src} alt={member.name} fill className="object-cover object-top" sizes="(max-width:640px) 45vw, 25vw" />
             </div>
             <div>
               <p className="font-bold leading-tight text-white" style={{ fontSize: "clamp(12px, 1.2vw, 18px)" }}>{member.name}</p>
