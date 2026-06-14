@@ -8,7 +8,7 @@ export const ThemeToggle = () => {
     <button
       onClick={toggle}
       aria-label="Загвар солих"
-      className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70"
+      className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
       style={{ border: "1px solid var(--border-c)", background: "var(--surface)", color: "var(--text)" }}
     >
       {theme === "dark"

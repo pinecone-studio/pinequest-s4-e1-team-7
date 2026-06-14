@@ -5,15 +5,16 @@ import type { Theme } from "@/lib/types";
 const KEY = "dohio-theme";
 const EVENT = "theme-change";
 
-function getInitial(): Theme {
-  if (typeof window === "undefined") return "dark";
-  const saved = localStorage.getItem(KEY) as Theme | null;
-  const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)").matches;
-  return saved ?? (prefersLight ? "light" : "dark");
-}
-
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(getInitial);
+  const [theme, setTheme] = useState<Theme>("dark");
+
+  useEffect(() => {
+    const saved = localStorage.getItem(KEY) as Theme | null;
+    const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)").matches;
+    const initial = saved ?? (prefersLight ? "light" : "dark");
+    setTheme(initial);
+    document.documentElement.setAttribute("data-theme", initial);
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);

@@ -70,7 +70,7 @@ export function TranslatorConversation({
       <div className="relative flex-1 overflow-y-auto">
         <button
           type="button" onClick={onReset} aria-label="Цэвэрлэх"
-          className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center rounded-full transition-all active:scale-90"
+          className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center rounded-full transition-all duration-150 hover:scale-105 hover:brightness-110 active:scale-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
           style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
         >
           <ArrowPathIcon className="h-[18px] w-[18px]" style={{ color: "var(--text-2)" }} />
@@ -99,7 +99,7 @@ export function TranslatorConversation({
         <div className="flex items-center gap-2">
           <button
             type="button" onClick={onSpeak} aria-label="Дуугаар унших"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all active:scale-90"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all duration-150 hover:scale-105 hover:brightness-110 active:scale-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             style={{
               background: speaking ? "var(--olive)" : "var(--surface-2)",
               border: "1px solid var(--border-c)",

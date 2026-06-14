@@ -77,7 +77,7 @@ export default function LoginPage() {
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-4" style={{ color: "var(--text-3)" }} />
                   <input id="login" type="text" value={loginId} onChange={e => setLoginId(e.target.value)}
                     placeholder="name@email.com эсвэл 99112233" autoComplete="username" required
-                    className="w-full rounded-xl border py-3.5 pl-11 pr-4 text-sm outline-none transition-all"
+                    className="w-full rounded-2xl border py-3.5 pl-11 pr-4 text-sm outline-none transition-all"
                     style={{ background: "var(--surface-2)", borderColor: "var(--border-c)", color: "var(--text)" }} />
                 </div>
               </div>
@@ -88,7 +88,7 @@ export default function LoginPage() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 size-4" style={{ color: "var(--text-3)" }} />
                   <input id="password" type={showPassword ? "text" : "password"} value={password}
                     onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" required
-                    className="w-full rounded-xl border py-3.5 pl-11 pr-12 text-sm outline-none transition-all"
+                    className="w-full rounded-2xl border py-3.5 pl-11 pr-12 text-sm outline-none transition-all"
                     style={{ background: "var(--surface-2)", borderColor: "var(--border-c)", color: "var(--text)" }} />
                   <button type="button" onClick={() => setShowPassword(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5" style={{ color: "var(--text-3)" }}>
@@ -97,24 +97,18 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {error && <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">{error}</div>}
+              {error && <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">{error}</div>}
 
               <button type="submit" disabled={loading}
-                className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition-all hover:brightness-105 active:scale-[0.99] disabled:opacity-50"
+                className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-bold transition-all hover:brightness-105 active:scale-[0.99] disabled:opacity-50"
                 style={{ background: "var(--olive)", color: "#0d1e35" }}>
-                {loading ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0d1e35] border-t-transparent" />Түр хүлээнэ үү...</>
-                         : <>Нэвтрэх<ArrowRight size={16} /></>}
+                {loading ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0d1e35] border-t-transparent" />Ачааллаж байна...</>
+                         : <>Эхлэх</>}
               </button>
             </form>
 
-            <Link href="/auth/login?next=/accessible/chat"
-              className="mt-4 flex w-full items-center justify-center rounded-2xl border-2 px-6 py-4 text-[15px] font-bold transition-all active:scale-[0.98]"
-              style={{ borderColor: "var(--olive)", color: "var(--text)" }}>
-              Харааны бэрхшээлтэй горим
-            </Link>
-
             <p className="mt-6 text-center text-sm" style={{ color: "var(--text-3)" }}>
-              Шинэ хэрэглэгч болох{" "}
+              Шинэ хэрэглэгчээр {" "}
               <Link href="/auth/register" className="font-bold hover:underline" style={{ color: "var(--olive)" }}>Бүртгүүлэх</Link>
             </p>
           </div>

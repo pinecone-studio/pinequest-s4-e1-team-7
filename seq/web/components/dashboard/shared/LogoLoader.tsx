@@ -1,27 +1,20 @@
 "use client";
-import { useEffect, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
 
 export function LogoLoader({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
 
   const img = size === "lg" ? "h-20 w-20" : size === "sm" ? "h-10 w-10" : "h-14 w-14";
   const text = size === "lg" ? 26 : size === "sm" ? 16 : 20;
+  const logoSrc = theme === "dark" ? "/images/logoShar.png" : "/images/logoBlue.png";
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {mounted ? (
-        <img
-          src={theme === "dark" ? "/images/logoShar.png" : "/images/logoBlue.png"}
-          alt="Sign Bridge"
-          className={`${img} rounded-xl object-contain`}
-        />
-      ) : (
-        <div className={`${img} animate-pulse rounded-xl`} style={{ background: "var(--surface-2)" }} />
-      )}
+      <img
+        src={logoSrc}
+        alt="Sign Bridge"
+        className={`${img} rounded-xl object-contain`}
+      />
       <div className="flex items-baseline gap-1">
         <span style={{ color: "var(--olive)", fontWeight: 900, fontSize: text }}>Sign</span>
         <span style={{ color: "var(--text)", fontWeight: 900, fontSize: text }}>Bridge</span>

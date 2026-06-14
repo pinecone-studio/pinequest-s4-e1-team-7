@@ -104,8 +104,9 @@ export const TopNav = () => {
                 href={`/dashboard/${id}`}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-all duration-200",
-                  !isActive && "hover:opacity-80",
+                  "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]",
+                  !isActive && "hover:bg-white/5 hover:-translate-y-px active:scale-95",
+                  isActive && "active:scale-[0.97]",
                 )}
                 style={
                   isActive

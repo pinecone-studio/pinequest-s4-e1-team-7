@@ -68,7 +68,7 @@ export function Translator() {
       type="button"
       onClick={() => setShowSettings((s) => !s)}
       aria-label="Тохиргоо"
-      className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70 lg:hidden"
+      className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 hover:scale-105 hover:brightness-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)] lg:hidden"
       style={{
         background: showSettings ? "var(--olive)" : "var(--surface)",
         border: `1px solid ${showSettings ? "var(--olive)" : "var(--border-c)"}`,
@@ -168,6 +168,26 @@ export function Translator() {
               >
                 {t.statusText}
               </p>
+              <button
+                type="button"
+                onClick={handleToggle}
+                disabled={t.running && t.modelLoading}
+                aria-label={t.running ? "Зогсоох" : "Эхлүүлэх"}
+                className="flex h-11 shrink-0 items-center gap-2 rounded-full px-5 text-[13px] font-bold transition-all duration-150 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:brightness-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
+                style={{
+                  background: t.running ? "var(--surface-2)" : "var(--olive)",
+                  color: t.running ? "var(--text)" : "#0d1e35",
+                  border: t.running ? "1px solid var(--border-c)" : "none",
+                }}
+              >
+                {t.running && t.modelLoading ? (
+                  <><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />Ачааллаж...</>
+                ) : t.running ? (
+                  <><StopIcon className="h-4 w-4" />Зогсоох</>
+                ) : (
+                  <><PlayIcon className="h-4 w-4" />Эхлүүлэх</>
+                )}
+              </button>
               {startStopButton}
             </div>
           </section>
