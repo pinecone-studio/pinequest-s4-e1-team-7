@@ -10,6 +10,7 @@ import { CallSubtitles } from "./CallSubtitles";
 import { CallTopBar } from "./CallTopBar";
 import { useCallCaptions } from "@/hooks/useCallCaptions";
 import { useCallPeer } from "@/hooks/useCallPeer";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { useIsDesktop } from "@/hooks/useBreakpoint";
 import { useSignDetection } from "@/hooks/useSignDetection";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
@@ -42,6 +43,8 @@ export function CallSession({ roomId }: { roomId: string }) {
   const [hostNotice, setHostNotice] = useState<string | null>(null);
   const callStartedAtRef = useRef(Date.now());
   const { connected: realtimeConnected, subscribe } = useChatRealtime();
+  const { speak: ttsSpeak } = useTextToSpeech();
+
   const {
     active,
     history,
@@ -51,13 +54,51 @@ export function CallSession({ roomId }: { roomId: string }) {
     onMyVoiceFinal,
     onTheirPhrase,
   } = useCallCaptions();
+
+  // Debounce refs for remote sign-language TTS
+  const theirCaptionPrevRef = useRef("");
+  const theirSignAccRef = useRef("");
+  const theirSignTsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [camMuted, setCamMuted] = useState(false);
   const [chatOpen, setChatOpen] = useState(true);
   const [elapsed, setElapsed] = useState(0);
+  const [ttsEnabled, setTtsEnabled] = useState(true);
   const connectedAtRef = useRef<number | null>(null);
   const elapsedRef = useRef(0);
   const leavingRef = useRef(false);
   const leaveSessionRef = useRef<(reportEnd?: boolean) => void>(() => {});
+
+  const ttsEnabledRef = useRef(ttsEnabled);
+  ttsEnabledRef.current = ttsEnabled;
+
+  const handleTheirCaption = useCallback(
+    (full: string) => {
+      const prev = theirCaptionPrevRef.current;
+      const delta = full.startsWith(prev) ? full.slice(prev.length).trim() : full.trim();
+      theirCaptionPrevRef.current = full;
+      onTheirCaption(full);
+      if (!delta) return;
+      theirSignAccRef.current = theirSignAccRef.current
+        ? `${theirSignAccRef.current} ${delta}`
+        : delta;
+      if (theirSignTsTimerRef.current) clearTimeout(theirSignTsTimerRef.current);
+      theirSignTsTimerRef.current = setTimeout(() => {
+        const text = theirSignAccRef.current;
+        theirSignAccRef.current = "";
+        if (ttsEnabledRef.current && text.trim()) void ttsSpeak(text, { rate: 1, gender: "female" });
+      }, 1000);
+    },
+    [onTheirCaption, ttsSpeak],
+  );
+
+  const handleTheirPhrase = useCallback(
+    (text: string) => {
+      onTheirPhrase(text);
+      if (ttsEnabledRef.current && text.trim()) void ttsSpeak(text, { rate: 1, gender: "female" });
+    },
+    [onTheirPhrase, ttsSpeak],
+  );
 
   const {
     status,
@@ -71,7 +112,7 @@ export function CallSession({ roomId }: { roomId: string }) {
     hangUp,
   } = useCallPeer(
     roomId,
-    { onCaption: onTheirCaption, onPhrase: onTheirPhrase },
+    { onCaption: handleTheirCaption, onPhrase: handleTheirPhrase },
     peerHint,
     () => leaveSessionRef.current(false),
     asRole,
@@ -79,6 +120,7 @@ export function CallSession({ roomId }: { roomId: string }) {
 
   const connected = status === "connected";
 
+  // Local sign words: send caption to remote only, no local TTS (remote hears via handleTheirCaption)
   const onWord = useCallback(
     (word: string) => {
       const next = onMyWord(word);
@@ -295,6 +337,8 @@ export function CallSession({ roomId }: { roomId: string }) {
         statusDot={statusDot}
         timer={connected ? fmtDur(elapsed) : undefined}
         onBack={() => void leaveSession(true)}
+        ttsEnabled={ttsEnabled}
+        onTtsToggle={() => setTtsEnabled((v) => !v)}
       />
 
       {(modelError || modelLoading) && connected && (

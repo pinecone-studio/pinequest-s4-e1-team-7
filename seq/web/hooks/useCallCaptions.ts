@@ -26,7 +26,9 @@ const SUBTITLE_IDLE_MS = 3200;
 let entrySeq = 0;
 const nextId = () => `cap-${++entrySeq}-${Date.now()}`;
 
-export function useCallCaptions() {
+export function useCallCaptions(
+  onCommit?: (speaker: CaptionSpeaker, text: string) => void,
+) {
   const [active, setActive] = useState<ActiveCaption | null>(null);
   const [history, setHistory] = useState<CaptionHistoryEntry[]>([]);
 
@@ -35,6 +37,8 @@ export function useCallCaptions() {
   const lastMyWordRef = useRef<{ word: string; at: number } | null>(null);
   const activeRef = useRef<ActiveCaption | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onCommitRef = useRef(onCommit);
+  onCommitRef.current = onCommit;
 
   const clearIdleTimer = useCallback(() => {
     if (idleTimerRef.current) {
@@ -51,6 +55,7 @@ export function useCallCaptions() {
         ...prev,
         { id: nextId(), speaker, text: trimmed, at: Date.now() },
       ]);
+      onCommitRef.current?.(speaker, trimmed);
     },
     []
   );
