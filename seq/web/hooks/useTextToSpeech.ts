@@ -13,7 +13,7 @@ export const useTextToSpeech = () => {
   const lastRef = useRef("");
   const [speaking, setSpeaking] = useState(false);
 
-  const speak = useCallback(async (text: string, { volume, gender }: SpeakOptions): Promise<boolean> => {
+  const speak = useCallback(async (text: string, { volume, gender, rate }: SpeakOptions): Promise<boolean> => {
     if (!text.trim()) return false;
     lastRef.current = text;
 
@@ -42,6 +42,7 @@ export const useTextToSpeech = () => {
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       audio.volume = volume ?? 1;
+      audio.playbackRate = rate ?? 1;
       audioRef.current = audio;
 
       setSpeaking(true);

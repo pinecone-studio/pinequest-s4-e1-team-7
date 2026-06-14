@@ -14,7 +14,6 @@ import { useEffect, useRef } from "react";
 
 type Props = {
   conversations: ConversationSummary[];
-  activeId: string | null;
   search: string;
   searchResults: ChatPeer[];
   searching: boolean;
@@ -28,7 +27,6 @@ type Props = {
 
 export function ConversationSidebar({
   conversations,
-  activeId,
   search,
   searchResults,
   searching,
@@ -179,7 +177,6 @@ export function ConversationSidebar({
         ) : (
           conversations.map((conv, idx) => {
             const isUnread = unreadIds.has(conv.id);
-            const isActive = activeId === conv.id;
             const a11yFocused = a11yNav?.preChatIndex === idx + 1;
             return (
               <button
@@ -187,24 +184,38 @@ export function ConversationSidebar({
                 type="button"
                 onClick={() => onSelectConversation(conv)}
                 className={cn(
-                  "mb-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3.5 text-left transition-all",
+                  "relative mb-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3.5 text-left transition-all overflow-hidden",
                   a11yFocused && "ring-2 ring-[var(--olive)]",
                 )}
                 style={
                   a11yFocused
                     ? { background: "color-mix(in srgb, var(--olive) 18%, var(--surface-2))", border: "2px solid var(--olive)" }
                     : isUnread
-                    ? { background: "rgba(245,197,24,0.13)", border: "1px solid rgba(245,197,24,0.3)" }
+                    ? { background: "rgba(245,197,24,0.18)", border: "1.5px solid rgba(245,197,24,0.5)" }
                     : { background: "var(--surface-2)", border: "1px solid var(--border-c)" }
                 }
               >
-                <UserAvatar
-                  name={conv.peer.name ?? conv.peer.email}
-                  avatarUrl={conv.peer.avatarUrl}
-                  size={44}
-                />
+                {/* left accent stripe for unread */}
+                {isUnread && (
+                  <span
+                    className="absolute left-0 top-0 h-full w-1 rounded-l-2xl"
+                    style={{ background: "var(--olive)" }}
+                  />
+                )}
+
+                <div className="relative shrink-0">
+                  <UserAvatar
+                    name={conv.peer.name ?? conv.peer.email}
+                    avatarUrl={conv.peer.avatarUrl}
+                    size={44}
+                  />
+                  <span
+                    className="absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-[var(--surface)]"
+                    style={{ background: conv.peer.isOnline ? "#22c55e" : "#ef4444" }}
+                  />
+                </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-2">
+                  <div className="flex items-center justify-between gap-2">
                     <p
                       className={cn("truncate text-[15px]", isUnread ? "font-bold" : "font-semibold")}
                       style={{ color: "var(--text)" }}
@@ -214,7 +225,7 @@ export function ConversationSidebar({
                     <div className="flex shrink-0 items-center gap-1.5">
                       {conv.lastAt && (
                         <span
-                          className="text-[11px]"
+                          className="text-[11px] font-medium"
                           style={{ color: isUnread ? "var(--olive)" : "var(--text-3)" }}
                         >
                           {formatTime(conv.lastAt)}
@@ -222,9 +233,11 @@ export function ConversationSidebar({
                       )}
                       {isUnread && (
                         <span
-                          className="h-2.5 w-2.5 rounded-full"
-                          style={{ background: "var(--olive)" }}
-                        />
+                          className="flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold"
+                          style={{ background: "var(--olive)", color: "#0d1e35" }}
+                        >
+                          •
+                        </span>
                       )}
                     </div>
                   </div>

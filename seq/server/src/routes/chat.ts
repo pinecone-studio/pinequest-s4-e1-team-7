@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { createDb, type Env } from "@/db";
 import {
   conversationIdFor,
+  conversationReads,
   conversations,
   messages,
   pairKey,
@@ -16,13 +17,21 @@ const MAX_MESSAGE_LIMIT = 100;
 
 const PUBLIC_URL_BASE = "https://pub-0b4b208083b74e5293a1ae3ed2fa6ba1.r2.dev";
 
+const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+
 type PeerSummary = {
   id: string;
   name: string | null;
   email: string;
   phone: string | null;
   avatarUrl: string | null;
+  isOnline: boolean;
 };
+
+function isUserOnline(lastSeenAt: Date | null): boolean {
+  if (!lastSeenAt) return false;
+  return Date.now() - lastSeenAt.getTime() < ONLINE_THRESHOLD_MS;
+}
 
 async function peerFor(
   db: ReturnType<typeof createDb>,
@@ -38,6 +47,7 @@ async function peerFor(
     email: peer.email,
     phone: peer.phone,
     avatarUrl: peer.avatarUrl,
+    isOnline: isUserOnline(peer.lastSeenAt),
   };
 }
 
@@ -157,6 +167,17 @@ function callPreview(
 export const chatRoute = new Hono<{ Bindings: Env }>()
   .use("*", requireAuth)
 
+  // POST /api/chat/presence — heartbeat to mark user online
+  .post("/presence", async (c) => {
+    const me = getAuthUser(c);
+    const db = createDb(c.env);
+    await db
+      .update(users)
+      .set({ lastSeenAt: new Date() })
+      .where(eq(users.id, me.id));
+    return c.json({ ok: true });
+  })
+
   // GET /api/chat/users/search?q=
   .get("/users/search", async (c) => {
     const me = getAuthUser(c);
@@ -181,12 +202,13 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
         email: users.email,
         phone: users.phone,
         avatarUrl: users.avatarUrl,
+        lastSeenAt: users.lastSeenAt,
       })
       .from(users)
       .where(and(sql`${users.id} != ${me.id}`, or(...conditions)))
       .limit(20);
 
-    return c.json(rows);
+    return c.json(rows.map((u) => ({ ...u, isOnline: isUserOnline(u.lastSeenAt) })));
   })
 
   // GET /api/chat/conversations
@@ -206,6 +228,13 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
       .orderBy(desc(conversations.updatedAt))
       .limit(50);
 
+    // Fetch all read receipts for current user in one query
+    const readReceipts = await db
+      .select()
+      .from(conversationReads)
+      .where(eq(conversationReads.userId, me.id));
+    const readMap = new Map(readReceipts.map((r) => [r.convId, r.readUntilMsgId]));
+
     const out = await Promise.all(
       rows.map(async (conv) => {
         const peer = await peerFor(db, conv, me.id);
@@ -216,9 +245,16 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
           .orderBy(desc(messages.id))
           .limit(1)
           .get();
+
+        const readUntil = readMap.get(conv.id);
+        const unread = !!lastMsg
+          && lastMsg.senderId !== me.id
+          && (readUntil === undefined || readUntil < lastMsg.id);
+
         return {
           id: conv.id,
           peer,
+          unread,
           lastPreview: conv.lastPreview,
           lastAt: conv.lastAt?.toISOString() ?? null,
           updatedAt: conv.updatedAt.toISOString(),
@@ -237,6 +273,33 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
     );
 
     return c.json(out.filter((x) => x.peer));
+  })
+
+  // POST /api/chat/conversations/:id/read — mark conversation as read
+  .post("/conversations/:id/read", async (c) => {
+    const me = getAuthUser(c);
+    const convId = c.req.param("id");
+    const db = createDb(c.env);
+
+    const lastMsg = await db
+      .select({ id: messages.id })
+      .from(messages)
+      .where(eq(messages.conversationId, convId))
+      .orderBy(desc(messages.id))
+      .limit(1)
+      .get();
+
+    if (!lastMsg) return c.json({ ok: true });
+
+    await db
+      .insert(conversationReads)
+      .values({ userId: me.id, convId, readUntilMsgId: lastMsg.id })
+      .onConflictDoUpdate({
+        target: [conversationReads.userId, conversationReads.convId],
+        set: { readUntilMsgId: lastMsg.id },
+      });
+
+    return c.json({ ok: true });
   })
 
   // POST /api/chat/conversations  { peerId }

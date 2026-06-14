@@ -6,15 +6,34 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/context/AuthContext";
 import { useAppMode } from "@/context/AppModeContext";
 import { useTheme } from "@/hooks/useTheme";
-import { useEffect, useState } from "react";
-import { m, useScroll, useTransform } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { m, useScroll, useTransform, AnimatePresence } from "framer-motion";
+
+const MODE_OPTIONS = [
+  {
+    mode: "standard" as const,
+    title: "Энгийн горим",
+    desc: "Дохио, дуудлага, толь, бүх функц",
+    path: "/dashboard/translator",
+  },
+  {
+    mode: "accessible" as const,
+    title: "Харааны бэрхшээлтэй",
+    desc: "Чат, брайль, яриа бичих",
+    path: "/accessible/chat",
+  },
+];
 
 export const Header = ({ landing }: { landing?: boolean } = {}) => {
   const { user } = useAuth();
-  const { homePath } = useAppMode();
+  const { setMode } = useAppMode();
   const { theme } = useTheme();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [thresh, setThresh] = useState(300);
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { scrollY } = useScroll();
   const wmarkOp = useTransform(scrollY, [thresh * 0.6, thresh], [0, 1]);
@@ -24,10 +43,30 @@ export const Header = ({ landing }: { landing?: boolean } = {}) => {
     setThresh(window.innerHeight * 0.55);
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
+
   if (!mounted) return null;
 
   const isDark = theme === "dark";
   const logoSrc = isDark ? "/images/logoShar.png" : "/images/logoBlue.png";
+
+  const pick = (opt: (typeof MODE_OPTIONS)[number]) => {
+    setOpen(false);
+    setMode(opt.mode);
+    router.push(opt.path);
+  };
 
   return (
     <nav className="lnav overflow-visible">
@@ -76,9 +115,57 @@ export const Header = ({ landing }: { landing?: boolean } = {}) => {
             </Link>
           </>
         ) : (
-          <Link href="/mode" className="db-pillbtn green">
-            Эхлэх
-          </Link>
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              className="db-pillbtn green"
+            >
+              Эхлэх
+            </button>
+            <AnimatePresence>
+              {open && (
+                <m.div
+                  initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  className="absolute right-0 top-full mt-2 z-50 min-w-[260px] rounded-2xl overflow-hidden shadow-xl"
+                  style={{
+                    background: "var(--surface, #fff)",
+                    border: "1px solid var(--border-c, #e5e7eb)",
+                  }}
+                >
+                  {MODE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.mode}
+                      type="button"
+                      onClick={() => pick(opt)}
+                      className="w-full text-left px-5 py-4 transition-colors hover:bg-black/5 active:bg-black/10"
+                    >
+                      <span
+                        className="block text-[15px] font-bold"
+                        style={{
+                          color:
+                            opt.mode === "accessible"
+                              ? "#ffbf00"
+                              : "var(--text)",
+                        }}
+                      >
+                        {opt.title}
+                      </span>
+                      <span
+                        className="mt-1 block text-[13px]"
+                        style={{ color: "var(--text-3)" }}
+                      >
+                        {opt.desc}
+                      </span>
+                    </button>
+                  ))}
+                </m.div>
+              )}
+            </AnimatePresence>
+          </div>
         )}
       </div>
     </nav>

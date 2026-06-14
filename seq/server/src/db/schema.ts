@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable(
   "users",
@@ -9,6 +9,7 @@ export const users = sqliteTable(
     name: text("name"),
     avatarUrl: text("avatar_url"),
     passwordHash: text("password_hash"),
+    lastSeenAt: integer("last_seen_at", { mode: "timestamp" }),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .$defaultFn(() => new Date()),
@@ -77,6 +78,20 @@ export const messages = sqliteTable("messages", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+export const conversationReads = sqliteTable(
+  "conversation_reads",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    convId: text("conv_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    readUntilMsgId: integer("read_until_msg_id").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.convId] })],
+);
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

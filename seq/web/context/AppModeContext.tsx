@@ -35,7 +35,7 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
     setModeState(next);
   }, []);
 
-  const homePath = mode ? homePathForMode(mode) : "/mode";
+  const homePath = mode ? homePathForMode(mode) : "/dashboard/translator";
 
   return (
     <AppModeContext.Provider value={{ mode, setMode, homePath }}>

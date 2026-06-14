@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 type Props = {
   text: string;
   sending: boolean;
-  recording: boolean;
+  listening: boolean;
   editingId: number | null;
   editText: string;
   savingEdit: boolean;
@@ -19,8 +19,7 @@ type Props = {
   editInputRef: RefObject<HTMLTextAreaElement>;
   onTextChange: (text: string) => void;
   onSend: () => void;
-  onStartRecording: () => void;
-  onStopRecording: () => void;
+  onToggleStt: () => void;
   onCancelEdit: () => void;
   onEditTextChange: (text: string) => void;
   onSaveEdit: () => void;
@@ -29,7 +28,7 @@ type Props = {
 export function ChatInputFooter({
   text,
   sending,
-  recording,
+  listening,
   editingId,
   editText,
   savingEdit,
@@ -37,8 +36,7 @@ export function ChatInputFooter({
   editInputRef,
   onTextChange,
   onSend,
-  onStartRecording,
-  onStopRecording,
+  onToggleStt,
   onCancelEdit,
   onEditTextChange,
   onSaveEdit,
@@ -108,17 +106,15 @@ export function ChatInputFooter({
         <div className="flex items-end gap-2">
           <button
             type="button"
-            aria-label={recording ? "Зогсоох" : "Яриа бичих"}
-            onPointerDown={onStartRecording}
-            onPointerUp={onStopRecording}
-            onPointerLeave={onStopRecording}
+            aria-label={listening ? "Зогсоох" : "Яриа бичих"}
+            onClick={onToggleStt}
             className={cn(
               "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all",
-              recording && "scale-110 ring-4 ring-red-400/40",
+              listening && "scale-110 ring-4 ring-yellow-400/40",
             )}
             style={{
-              background: recording ? "hsl(var(--destructive))" : "var(--surface-2)",
-              color: recording ? "#fff" : "var(--text)",
+              background: listening ? "var(--olive)" : "var(--surface-2)",
+              color: listening ? "#0d1e35" : "var(--text)",
             }}
           >
             <MicrophoneIcon className="h-5 w-5" />
