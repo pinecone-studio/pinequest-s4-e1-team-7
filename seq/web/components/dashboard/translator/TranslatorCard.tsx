@@ -38,7 +38,7 @@ export function TranslatorCard({
 
   return (
     <section
-      className="flex flex-1 flex-col overflow-hidden rounded-[22px] p-5 md:rounded-[24px] md:p-6"
+      className="flex flex-col overflow-hidden rounded-[22px] p-5 md:rounded-[24px] md:p-6 lg:flex-1 lg:min-h-0"
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border-c)",
@@ -57,7 +57,7 @@ export function TranslatorCard({
         )}
       </div>
 
-      <div className="min-h-[140px] flex-1 overflow-y-auto">
+      <div className="min-h-[120px] overflow-y-auto lg:min-h-[140px] lg:flex-1">
         {detected ? (
           <p className="w-full break-words font-bold leading-snug" style={{ fontSize: `${fontSize}px`, color: "var(--text)" }}>
             {detected}

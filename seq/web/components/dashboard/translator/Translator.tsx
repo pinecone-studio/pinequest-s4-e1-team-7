@@ -54,11 +54,14 @@ export function Translator() {
   );
 
   return (
-    <div className="flex h-full flex-col" style={{ background: "var(--bg)" }}>
-      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pb-[max(calc(env(safe-area-inset-bottom)+4rem),5.5rem)] md:pb-0 lg:max-w-none lg:px-10 lg:pb-4 xl:px-16">
+    <div
+      className="h-full overflow-y-auto overscroll-y-contain lg:flex lg:flex-col lg:overflow-hidden"
+      style={{ background: "var(--bg)" }}
+    >
+      <div className="mx-auto flex w-full max-w-lg flex-col px-4 pb-[max(calc(env(safe-area-inset-bottom)+5.5rem),6.5rem)] lg:h-full lg:max-h-full lg:max-w-none lg:overflow-hidden lg:px-10 lg:pb-4 xl:px-16">
         <PageHeader title="Дохионы хэл" right={settingsBtn} />
 
-        <div className="flex flex-1 min-h-0 flex-col gap-4 lg:grid lg:grid-cols-2 lg:grid-rows-[1fr_auto] lg:gap-5">
+        <div className="flex flex-col gap-4 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-2 lg:grid-rows-[1fr_auto] lg:gap-5">
           <section
             className="overflow-hidden rounded-[22px] lg:col-start-1 lg:flex lg:min-h-[440px] lg:flex-col lg:row-start-1"
             style={{
@@ -67,7 +70,7 @@ export function Translator() {
               boxShadow: "var(--shadow-sm)",
             }}
           >
-            <div className="relative h-[320px] w-full bg-black sm:h-[400px] lg:h-auto lg:min-h-0 lg:flex-1">
+            <div className="relative h-[280px] w-full bg-black sm:h-[320px] lg:h-auto lg:min-h-0 lg:flex-1">
               <CameraView
                 key={cameraKey}
                 width={640}
@@ -179,7 +182,7 @@ export function Translator() {
               />
             </div>
           )}
-          <div className="flex flex-1 flex-col lg:hidden">
+          <div className="lg:hidden">
             <TranslatorCard
               detected={t.detected}
               running={t.running}

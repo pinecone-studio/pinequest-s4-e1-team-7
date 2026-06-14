@@ -50,7 +50,7 @@ export function TranscriptPanel({
 
   return (
     <div
-      className="mb-3 flex flex-1 flex-col overflow-hidden rounded-[24px] p-5 md:p-6"
+      className="mb-3 flex flex-col rounded-[22px] p-4 md:rounded-[24px] md:p-6 lg:min-h-0 lg:flex-1 lg:overflow-hidden"
       style={{ background: "var(--surface)", border: "1px solid var(--border-c)" }}
     >
       <div className="mb-3 flex items-center gap-2">
@@ -60,7 +60,7 @@ export function TranscriptPanel({
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="min-h-[72px] overflow-y-auto lg:min-h-0 lg:flex-1">
         {hasContent ? (
           <div className="space-y-4">
             {sentences.slice(0, -1).map((s, i) => (
@@ -104,7 +104,7 @@ export function TranscriptPanel({
           </button>
           {confirmClear ? (
             <div
-              className="flex items-center gap-2 rounded-full px-3 py-2"
+              className="flex max-w-full flex-wrap items-center gap-2 rounded-2xl px-3 py-2 sm:rounded-full"
               style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
             >
               <ExclamationTriangleIcon className="h-4 w-4 shrink-0" style={{ color: "hsl(var(--destructive))" }} />

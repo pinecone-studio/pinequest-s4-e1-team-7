@@ -9,7 +9,7 @@ import {
   users,
 } from "@/db/schema";
 import { getAuthUser, requireAuth } from "@/middleware/auth";
-import { pushToPeer, pushToUser } from "@/lib/push-notify";
+import { pushToPeer } from "@/lib/push-notify";
 import { and, desc, eq, gt, inArray, isNotNull, lt, or, sql } from "drizzle-orm";
 
 const DEFAULT_MESSAGE_LIMIT = 30;
@@ -175,23 +175,6 @@ export const chatRoute = new Hono<{ Bindings: Env }>()
       .update(users)
       .set({ lastSeenAt: new Date() })
       .where(eq(users.id, me.id));
-
-    const convRows = await db
-      .select({ userAId: conversations.userAId, userBId: conversations.userBId })
-      .from(conversations)
-      .where(or(eq(conversations.userAId, me.id), eq(conversations.userBId, me.id)))
-      .limit(50);
-
-    const peerIds = new Set<string>();
-    for (const conv of convRows) {
-      peerIds.add(conv.userAId === me.id ? conv.userBId : conv.userAId);
-    }
-
-    const event = { type: "presence" as const, userId: me.id, isOnline: true };
-    for (const peerId of peerIds) {
-      void pushToUser(c.env, peerId, event);
-    }
-
     return c.json({ ok: true });
   })
 

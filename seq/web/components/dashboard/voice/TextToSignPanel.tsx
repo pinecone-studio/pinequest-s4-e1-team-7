@@ -10,7 +10,7 @@ export function TextToSignPanel({ text, signMap }: Props) {
 
   return (
     <div
-      className="mb-3 shrink-0 rounded-[24px] p-5 md:p-6"
+      className="mb-1 shrink-0 rounded-[22px] p-4 md:rounded-[24px] md:p-6 lg:mb-3"
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border-c)",
