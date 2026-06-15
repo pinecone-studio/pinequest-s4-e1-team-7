@@ -54,7 +54,14 @@ export function MobileNav() {
 
           const iconWrap = (
             <span
-              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200"
+              className={[
+                "flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200",
+                !disabled && "active:scale-90",
+                !disabled &&
+                  (active ? "hover:brightness-110" : "hover:bg-white/[0.07] hover:scale-105"),
+              ]
+                .filter(Boolean)
+                .join(" ")}
               style={active ? { background: "var(--olive)" } : {}}
             >
               <Icon
@@ -90,7 +97,7 @@ export function MobileNav() {
                   href={resolvedHref}
                   aria-current={active ? "page" : undefined}
                   aria-label={label}
-                  className="flex flex-col items-center gap-1 py-1"
+                  className="flex flex-col items-center gap-1 py-1 transition-all duration-150 active:opacity-70"
                 >
                   {iconWrap}
                   {labelEl}

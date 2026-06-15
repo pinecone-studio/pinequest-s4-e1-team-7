@@ -7,11 +7,15 @@ import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/hooks/useTheme";
 import { UserAvatar } from "../shared/UserAvatar";
 import { updateProfile, uploadAvatar } from "@/lib/auth-api";
+import { AVATAR_PRESET_KEY } from "../shared/ProfileAvatarButton";
 import { CameraIcon, MoonIcon, SunIcon, SpeakerWaveIcon, ArrowRightEndOnRectangleIcon, EyeIcon } from "@heroicons/react/24/outline";
+import { CheckIcon } from "@heroicons/react/24/solid";
 import { PageHeader } from "@/components/ui/PageHeader";
 
 const SPEEDS = [{ label: "Удаан", value: 0.7 }, { label: "Хэвийн", value: 1.0 }, { label: "Хурдан", value: 1.5 }] as const;
 const GENDERS = [{ label: "Эмэгтэй", value: "female" }, { label: "Эрэгтэй", value: "male" }] as const;
+
+const PRESETS = Array.from({ length: 9 }, (_, i) => `/avatar/avatar${i + 1}.png`);
 
 const inputStyle = {
   background: "var(--surface-2)",
@@ -42,6 +46,7 @@ export function Settings() {
   const [editPhone, setEditPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [presetAvatar, setPresetAvatar] = useState<string | null>(null);
 
   const displayName = user?.name ?? user?.email ?? "Хэрэглэгч";
   const email = user?.email ?? "";
@@ -50,6 +55,22 @@ export function Settings() {
     setEditName(user?.name ?? "");
     setEditPhone(user?.phone ?? "");
   }, [user?.name, user?.phone]);
+
+  useEffect(() => {
+    setPresetAvatar(localStorage.getItem(AVATAR_PRESET_KEY));
+  }, []);
+
+  const selectPreset = (path: string) => {
+    const next = presetAvatar === path ? null : path;
+    if (next) {
+      localStorage.setItem(AVATAR_PRESET_KEY, next);
+    } else {
+      localStorage.removeItem(AVATAR_PRESET_KEY);
+    }
+    setPresetAvatar(next);
+    // notify ProfileAvatarButton in the same tab
+    window.dispatchEvent(new CustomEvent("sb-preset-avatar", { detail: next }));
+  };
 
   const handleAvatarPick = async (file: File | null) => {
     if (!file) return;
@@ -83,6 +104,8 @@ export function Settings() {
     editName.trim() !== (user?.name ?? "").trim() ||
     editPhone.trim() !== (user?.phone ?? "").trim();
 
+  const effectiveAvatar = presetAvatar ?? user?.avatarUrl;
+
   const activeBtn = { background: "var(--olive)", color: "#0d1e35" };
   const inactiveBtn = { background: "var(--surface-2)", color: "var(--text-2)", border: "1px solid var(--border-c)" };
   const card = { background: "var(--surface)", border: "1px solid var(--border-c)" };
@@ -92,6 +115,7 @@ export function Settings() {
     <div className="mx-auto max-w-lg px-4 md:px-6 pb-[max(calc(env(safe-area-inset-bottom)+1rem),1.5rem)] lg:max-w-2xl lg:px-10 xl:px-16">
       <PageHeader title="Тохиргоо" />
 
+      {/* ── Profile card ── */}
       <div className="mb-4 rounded-[22px] p-5" style={card}>
         <p className="mb-4 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
           Профайл
@@ -104,7 +128,7 @@ export function Settings() {
             className="relative shrink-0 transition-all duration-150 hover:scale-105 active:scale-95 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             aria-label="Профайл зураг солих"
           >
-            <UserAvatar name={displayName} avatarUrl={user?.avatarUrl} size={72} />
+            <UserAvatar name={displayName} avatarUrl={effectiveAvatar} size={72} />
             <span
               className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full"
               style={{ background: "var(--olive)", color: "#0d1e35", border: "2px solid var(--surface)" }}
@@ -162,7 +186,7 @@ export function Settings() {
               type="button"
               disabled={!profileDirty || !editName.trim() || savingProfile}
               onClick={() => void handleSaveProfile()}
-              className="rounded-xl px-4 py-2 text-[13px] font-bold transition-all duration-150 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:brightness-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
+              className="rounded-xl px-4 py-2.5 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:hover:brightness-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={{ background: "var(--olive)", color: "#0d1e35" }}
             >
               {savingProfile ? "Хадгалж байна…" : "Хадгалах"}
@@ -177,6 +201,60 @@ export function Settings() {
         </div>
       </div>
 
+      {/* ── Avatar preset picker ── */}
+      <div className="mb-4 rounded-[22px] p-5" style={card}>
+        <p className="mb-3 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
+          Аватар сонгох
+        </p>
+        <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {PRESETS.map((src) => {
+            const selected = presetAvatar === src;
+            return (
+              <button
+                key={src}
+                type="button"
+                onClick={() => selectPreset(src)}
+                aria-label={`Аватар сонгох: ${src}`}
+                aria-pressed={selected}
+                className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full transition-all duration-150 hover:scale-110 hover:brightness-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
+                style={{
+                  border: selected
+                    ? "2.5px solid var(--olive)"
+                    : "2px solid var(--border-c)",
+                  boxShadow: selected
+                    ? "0 0 0 2px var(--olive)"
+                    : "none",
+                }}
+              >
+                <img
+                  src={src}
+                  alt=""
+                  aria-hidden
+                  className="h-full w-full object-cover"
+                />
+                {selected && (
+                  <span className="absolute inset-0 flex items-center justify-center rounded-full"
+                    style={{ background: "rgba(246,201,69,0.28)" }}>
+                    <CheckIcon className="h-4 w-4" style={{ color: "var(--olive)" }} />
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        {presetAvatar && (
+          <button
+            type="button"
+            onClick={() => selectPreset(presetAvatar)}
+            className="mt-3 w-full rounded-xl py-2.5 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
+            style={inactiveBtn}
+          >
+            Аватар арилгах
+          </button>
+        )}
+      </div>
+
+      {/* ── Dark / light mode ── */}
       <div className="mb-4 rounded-[22px] p-5" style={card}>
         <p className="mb-4 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>Харагдац</p>
         <div className="flex items-center justify-between">
@@ -193,6 +271,7 @@ export function Settings() {
         </div>
       </div>
 
+      {/* ── Accessibility ── */}
       <div className="mb-4 rounded-[22px] p-5" style={card}>
         <p className="mb-4 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
           Хүртээмж
@@ -238,6 +317,7 @@ export function Settings() {
         )}
       </div>
 
+      {/* ── Voice ── */}
       <div className="mb-4 rounded-[22px] p-5" style={card}>
         <p className="mb-4 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>Дуу хоолой</p>
         <div className="mb-4 flex items-center justify-between">
@@ -250,21 +330,22 @@ export function Settings() {
         <p className="mb-2 text-[12px] font-semibold" style={{ color: "var(--text-3)" }}>Хоолойн төрөл</p>
         <div className="mb-4 flex gap-2">
           {GENDERS.map(({ label, value }) => (
-            <button key={value} onClick={() => updateSettings({ gender: value })} className="flex-1 rounded-full py-2 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
+            <button key={value} onClick={() => updateSettings({ gender: value })} className="flex-1 rounded-xl py-2.5 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={settings.gender === value ? activeBtn : inactiveBtn}>{label}</button>
           ))}
         </div>
         <p className="mb-2 text-[12px] font-semibold" style={{ color: "var(--text-3)" }}>Унших хурд</p>
         <div className="flex gap-2">
           {SPEEDS.map(({ label, value }) => (
-            <button key={value} onClick={() => updateSettings({ rate: value })} className="flex-1 rounded-full py-2 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
+            <button key={value} onClick={() => updateSettings({ rate: value })} className="flex-1 rounded-xl py-2.5 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={settings.rate === value ? activeBtn : inactiveBtn}>{label}</button>
           ))}
         </div>
       </div>
 
+      {/* ── Logout ── */}
       <button onClick={() => { logout(); router.push("/"); }}
-        className="flex w-full items-center justify-center gap-2 rounded-[22px] px-5 py-4 text-[15px] font-semibold transition-all duration-150 hover:bg-[hsl(var(--destructive)/0.08)] hover:-translate-y-0.5 active:scale-[0.98] active:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--destructive))]"
+        className="flex w-full items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-semibold transition-all duration-150 hover:bg-[hsl(var(--destructive)/0.08)] hover:brightness-110 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--destructive))]"
         style={{ ...card, color: "hsl(var(--destructive))" }}>
         <ArrowRightEndOnRectangleIcon className="h-5 w-5" />
         Гарах

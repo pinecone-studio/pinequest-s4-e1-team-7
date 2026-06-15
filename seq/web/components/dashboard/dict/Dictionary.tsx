@@ -279,7 +279,7 @@ export function Dictionary({
   };
 
   const navBtnClass =
-    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm transition-all hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-30 md:h-11 md:w-11";
+    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm transition-all duration-150 hover:scale-105 hover:brightness-110 active:scale-90 disabled:pointer-events-none disabled:opacity-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)] md:h-11 md:w-11";
 
   const desktopNavBtnClass = `${navBtnClass} absolute top-1/2 z-30 -translate-y-1/2`;
 
@@ -443,7 +443,7 @@ export function Dictionary({
           <button
             onClick={() => router.back()}
             aria-label="Буцах"
-            className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity active:opacity-70"
+            className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 hover:scale-105 hover:brightness-110 active:scale-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             style={{
               background: "var(--surface)",
               border: "1px solid var(--border-c)",
@@ -468,7 +468,7 @@ export function Dictionary({
             <Link
               key={cat.id}
               href={`/dashboard/dict?cat=${cat.id}`}
-              className="rounded-full px-4 py-2 text-[13px] font-semibold transition-all active:scale-95"
+              className="rounded-full px-4 py-2 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={{
                 background:
                   category === cat.id ? "var(--olive)" : "var(--surface-2)",
