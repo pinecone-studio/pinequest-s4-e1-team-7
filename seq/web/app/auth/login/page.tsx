@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Eye, EyeClosed, X, ArrowRight, Mail, Lock } from "lucide-react";
+import { Eye, EyeClosed, X, Mail, Lock } from "lucide-react";
 import { AuthLeftPanel } from "../_components/AuthLeftPanel";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { DashboardSkeleton } from "@/components/dashboard/shared/DashboardSkeleton";
@@ -12,8 +12,8 @@ import { DashboardSkeleton } from "@/components/dashboard/shared/DashboardSkelet
 export default function LoginPage() {
   const { login, user } = useAuth();
   const router = useRouter();
-  const [loginId, setLoginId]           = useState("e.norvoo@gmail.com");
-  const [password, setPassword]         = useState("12345678");
+  const [loginId, setLoginId]           = useState("");
+  const [password, setPassword]         = useState("");
   const [error, setError]               = useState("");
   const [loading, setLoading]           = useState(false);
   const [showPassword, setShowPassword] = useState(false);

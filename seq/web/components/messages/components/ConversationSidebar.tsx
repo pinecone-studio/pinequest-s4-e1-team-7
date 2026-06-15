@@ -218,7 +218,6 @@ export function ConversationSidebar({
                     : { background: "var(--surface-2)", border: "1px solid var(--border-c)" }
                 }
               >
-                {/* left accent stripe for unread */}
                 {isUnread && (
                   <span
                     className="absolute left-0 top-0 h-full w-1 rounded-l-2xl"

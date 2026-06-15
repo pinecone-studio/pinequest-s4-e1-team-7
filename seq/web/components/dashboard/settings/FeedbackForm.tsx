@@ -13,7 +13,6 @@ import {
 } from "@heroicons/react/24/solid";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { getStoredToken } from "@/context/AuthContext";
-import { div } from "@tensorflow/tfjs";
 
 const STORAGE_KEY = "sb_feedback_submitted";
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
@@ -51,7 +50,6 @@ const DEFAULT_CONFIG: FeedbackConfig = {
     "Та доорх хэсэгт нэмэлтээр сайжруулах зүйлсийн санал хүсэлт болон сэтгэгдлээ хуваалцана уу?",
 };
 
-// ── Inline editable text ─────────────────────────────────────────────────────
 function EditableText({
   value,
   onChange,
@@ -121,7 +119,6 @@ function EditableText({
   );
 }
 
-// ── Star ratings ─────────────────────────────────────────────────────────────
 function StarRating({
   value,
   onChange,
@@ -202,7 +199,6 @@ function SmallStarRating({
   );
 }
 
-// ── Success ───────────────────────────────────────────────────────────────────
 function SuccessCard() {
   const router = useRouter();
   return (
@@ -240,7 +236,6 @@ function SuccessCard() {
   );
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
 export function FeedbackForm() {
   const searchParams = useSearchParams();
   const isPreview = searchParams.get("preview") === "1";
@@ -262,23 +257,19 @@ export function FeedbackForm() {
   const [comment, setComment] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Config-ийг API-аас ачаалах
   useEffect(() => {
     fetch(`${BASE}/api/feedback/config`)
       .then((r) =>
         r.ok ? (r.json() as Promise<FeedbackConfig>) : Promise.reject(),
       )
       .then((data) => setCfg(data))
-      .catch(() => {
-        /* default хэрэглэнэ */
-      });
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
     if (!isPreview && localStorage.getItem(STORAGE_KEY)) setSubmitted(true);
   }, [isPreview]);
 
-  // Config хадгалах (admin preview горим)
   const saveConfig = useCallback(async (next: FeedbackConfig) => {
     setCfgSaving(true);
     setCfgError(null);
@@ -366,7 +357,7 @@ export function FeedbackForm() {
   return (
     <div
       className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      style={{ background: "var(--bg)" }}
+      style={{ background: "var(--bg)", fontFamily: "var(--font-sans)" }}
     >
       <div className="mx-auto max-w-lg px-4 pb-[max(calc(env(safe-area-inset-bottom)+1rem),1.5rem)] md:px-6 lg:max-w-2xl lg:px-10 xl:px-16">
         <PageHeader
@@ -409,7 +400,6 @@ export function FeedbackForm() {
               </p>
             )}
 
-            {/* ── Q1: Нийт үнэлгээ ── */}
             <div className="rounded-[22px] p-5" style={card}>
               <p
                 className="mb-1 text-[11px] font-bold uppercase tracking-widest"
@@ -441,7 +431,6 @@ export function FeedbackForm() {
               <StarRating value={overallRating} onChange={setOverallRating} />
             </div>
 
-            {/* ── Q2: Функцуудын үнэлгээ ── */}
             <div className="rounded-[22px] p-5" style={card}>
               <p
                 className="mb-1 text-[11px] font-bold uppercase tracking-widest"
@@ -544,7 +533,6 @@ export function FeedbackForm() {
               </div>
             </div>
 
-            {/* ── Q3: Сайжруулах зүйлс ── */}
             <div className="rounded-[22px] p-5" style={card}>
               <p
                 className="mb-1 text-[11px] font-bold uppercase tracking-widest"
@@ -658,7 +646,6 @@ export function FeedbackForm() {
               </div>
             </div>
 
-            {/* ── Q4: Санал болгох эсэх ── */}
             <div className="rounded-[22px] p-5" style={card}>
               <p
                 className="mb-1 text-[11px] font-bold uppercase tracking-widest"
@@ -708,7 +695,6 @@ export function FeedbackForm() {
               </div>
             </div>
 
-            {/* ── Q5: Нэмэлт сэтгэгдэл ── */}
             <div className="rounded-[22px] p-5" style={card}>
               <p
                 className="mb-1 text-[11px] font-bold uppercase tracking-widest"
@@ -759,7 +745,6 @@ export function FeedbackForm() {
               </p>
             </div>
 
-            {/* ── Error & Submit ── */}
             {error && (
               <p className="text-center text-[13px] font-medium text-[hsl(var(--destructive))]">
                 {error}
