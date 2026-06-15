@@ -43,7 +43,7 @@ const VOICE_MAP: Record<string, string | VoiceFile> = {
   "дуудлага хийсэн": "дуудлага хийсэн",
   залгасан: "залгасан",
   илгээлээ: "илгээлээ",
-  зай: "зай",
+  зай: "заи\u0306",
   хасах: "хасах",
   нэг: "нэг",
   хоёр: "хоёр",
@@ -74,11 +74,18 @@ export function stopVoice() {
 
 /** Loop тоглолтыг зогсооно */
 export function stopVoiceLoop() {
-  if (loopAudio) {
-    loopAudio.pause();
-    loopAudio.loop = false;
-    loopAudio = null;
+  if (!loopAudio) return;
+  const audio = loopAudio;
+  loopAudio = null;
+  audio.loop = false;
+  audio.pause();
+  try {
+    audio.currentTime = 0;
+  } catch {
+    /* ignore */
   }
+  audio.removeAttribute("src");
+  audio.load();
 }
 
 export function stopAllVoice() {

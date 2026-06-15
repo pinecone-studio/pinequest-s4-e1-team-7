@@ -27,7 +27,7 @@ const SWIPE_THRESHOLD = 50;
  *
  * Chorded multi-touch: олон бүс зэрэг дарна → бүгд хуруугаа авах үед decode.
  *
- * Swipe (дэлгэцийн координат — 1 хуруу):
+ * Swipe (landscape координат — 1 хуруу):
  *   дээш  → зай
  *   доош  → backspace
  *   баруун → илгээх (хоосон бол буцах)
@@ -50,6 +50,25 @@ export function BrailleInput({
 
   const touchedDots = useRef<Set<BrailleDots>>(new Set());
   const touchStarts = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const valueRef = useRef(value);
+  const onChangeRef = useRef(onChange);
+  const onSendRef = useRef(onSend);
+  const onBackRef = useRef(onBack);
+  const isLandscapeRef = useRef(isLandscape);
+
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+    onSendRef.current = onSend;
+    onBackRef.current = onBack;
+  }, [onChange, onSend, onBack]);
+
+  useEffect(() => {
+    isLandscapeRef.current = isLandscape;
+  }, [isLandscape]);
 
   useEffect(() => {
     if (!enterVoice) return;
@@ -120,19 +139,16 @@ export function BrailleInput({
     [isLandscape],
   );
 
-  const commitDots = useCallback(
-    (dots: Set<BrailleDots>) => {
-      if (dots.size === 0) return;
-      const ch = charFromMask(maskFromSet(dots));
-      if (ch === null) {
-        // Танигдаагүй хослол — дуугүй өнгөрнө
-      } else {
-        onChange(value + ch);
-        playVoice(ch);
-      }
-    },
-    [onChange, value],
-  );
+  const commitDots = useCallback((dots: Set<BrailleDots>) => {
+    if (dots.size === 0) return;
+    const ch = charFromMask(maskFromSet(dots));
+    if (ch === null) {
+      // Танигдаагүй хослол — дуугүй өнгөрнө
+    } else {
+      onChangeRef.current(valueRef.current + ch.toLowerCase());
+      playVoice(ch);
+    }
+  }, []);
 
   // Native touch events (prevent scroll)
   useEffect(() => {
@@ -182,44 +198,54 @@ export function BrailleInput({
       touchedDots.current.clear();
       setVisualDots(new Set());
 
-      if (maxMove >= SWIPE_THRESHOLD && fingerCount === 1) {
-        const adx = Math.abs(swipeDx);
-        const ady = Math.abs(swipeDy);
+      if (maxMove >= SWIPE_THRESHOLD) {
+        if (fingerCount === 1) {
+          const landscape = isLandscapeRef.current;
+          // CSS -90deg: landscape X (баруун/зүүн) = portrait Y, landscape Y = portrait X
+          const effH = landscape ? swipeDx : -swipeDy;
+          const effV = landscape ? swipeDy : swipeDx;
+          const effAH = Math.abs(effH);
+          const effAV = Math.abs(effV);
+          const text = valueRef.current;
 
-        if (ady > adx) {
-          if (swipeDy < 0) {
-            onChange(`${value} `);
-            playVoice("зай");
-          } else if (value.length > 0) {
-            onChange(value.slice(0, -1));
-            playVoice("хасах");
-          }
-        } else if (swipeDx > 0) {
-          if (value.trim() && onSend) {
-            onSend();
+          if (effAH > effAV) {
+            // Хэвтээ swipe (утасны дээш/доош): зай, хасах
+            if (effH > 0) {
+              onChangeRef.current(`${text} `);
+              playVoice("зай");
+            } else if (text.length > 0) {
+              onChangeRef.current(text.slice(0, -1));
+              playVoice("хасах");
+            }
+          } else if (effV > 0) {
+            // Босоо swipe (утасны баруун): илгээх
+            if (text.trim() && onSendRef.current) {
+              onSendRef.current();
+            } else {
+              onBackRef.current();
+              playVoice("Буцлаа");
+            }
           } else {
-            onBack();
+            // Босоо swipe (утасны зүүн): гарах
+            onBackRef.current();
             playVoice("Буцлаа");
           }
-        } else {
-          onBack();
-          playVoice("Буцлаа");
         }
         return;
       }
-
-      if (maxMove >= SWIPE_THRESHOLD) return;
 
       commitDots(snap);
     }
 
     el.addEventListener("touchstart", onStart, { passive: false });
     el.addEventListener("touchend", onEnd, { passive: false });
+    el.addEventListener("touchcancel", onEnd, { passive: false });
     return () => {
       el.removeEventListener("touchstart", onStart);
       el.removeEventListener("touchend", onEnd);
+      el.removeEventListener("touchcancel", onEnd);
     };
-  }, [commitDots, getDotFromPoint, onBack, onChange, onSend, value]);
+  }, [commitDots, getDotFromPoint]);
 
   // OS rotation succeeded → normal full-screen; otherwise → CSS rotation trick
   const containerStyle: React.CSSProperties = isLandscape

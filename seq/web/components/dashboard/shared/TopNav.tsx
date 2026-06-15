@@ -31,7 +31,9 @@ const NAV = [
 ] as const;
 
 export const TopNav = () => {
-  const active = usePathname().split("/")[2] ?? "overview";
+  const pathname = usePathname();
+  const chatOnly = pathname.startsWith("/accessible");
+  const active = chatOnly ? "call" : (pathname.split("/")[2] ?? "overview");
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -56,7 +58,7 @@ export const TopNav = () => {
       {/* Left: logo + nav tabs */}
       <div className="flex min-w-0 flex-1 items-center gap-4">
         <Link
-          href="/dashboard/overview"
+          href={chatOnly ? "/accessible/chat" : "/dashboard/overview"}
           className="flex shrink-0 items-center"
           aria-label="Нүүр хуудас"
         >
@@ -97,11 +99,35 @@ export const TopNav = () => {
         >
           {NAV.map(({ id, label, O, S }) => {
             const isActive = active === id;
+            const disabled = chatOnly && id !== "call";
+            const href = id === "call" && chatOnly ? "/accessible/chat" : `/dashboard/${id}`;
             const Icon = isActive ? S : O;
+
+            const inner = (
+              <>
+                <Icon className="size-3.5" />
+                {label}
+              </>
+            );
+
+            if (disabled) {
+              return (
+                <span
+                  key={id}
+                  aria-disabled="true"
+                  aria-label={`${label} — харааны бэрхшээлтэй горимд идэвхгүй`}
+                  className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold opacity-35 pointer-events-none select-none"
+                  style={{ color: "var(--text-3)" }}
+                >
+                  {inner}
+                </span>
+              );
+            }
+
             return (
               <Link
                 key={id}
-                href={`/dashboard/${id}`}
+                href={href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]",
@@ -114,8 +140,7 @@ export const TopNav = () => {
                     : { color: "var(--text-3)" }
                 }
               >
-                <Icon className="size-3.5" />
-                {label}
+                {inner}
               </Link>
             );
           })}
