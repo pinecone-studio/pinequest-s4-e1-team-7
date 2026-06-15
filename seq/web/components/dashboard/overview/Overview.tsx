@@ -2,7 +2,12 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { Hand, AudioLines, Smile, BookOpen } from "lucide-react";
+import {
+  HandRaisedIcon,
+  SpeakerWaveIcon,
+  FaceSmileIcon,
+  BookOpenIcon,
+} from "@heroicons/react/24/solid";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ProfileAvatarButton } from "../shared/ProfileAvatarButton";
 import { NotificationBell } from "../shared/NotificationBell";
@@ -23,7 +28,7 @@ type CardDef = {
 
 const CHIPS_TRANSLATOR: ChipDef[] = [
   {
-    Icon: Hand,
+    Icon: HandRaisedIcon,
     bg: "#e8b830",
     iconColor: "#0d1b2a",
     cx: 88, cy: 10,
@@ -42,7 +47,7 @@ const CHIPS_TRANSLATOR: ChipDef[] = [
 
 const CHIPS_VOICE: ChipDef[] = [
   {
-    Icon: AudioLines,
+    Icon: SpeakerWaveIcon,
     bg: "#bf4d6e",
     iconColor: "#fff",
     cx: 88, cy: 10,
@@ -61,7 +66,7 @@ const CHIPS_VOICE: ChipDef[] = [
 
 const CHIPS_DICT: ChipDef[] = [
   {
-    Icon: BookOpen,
+    Icon: BookOpenIcon,
     bg: "#e8b830",
     iconColor: "#0d1b2a",
     cx: 88, cy: 10,
@@ -69,7 +74,7 @@ const CHIPS_DICT: ChipDef[] = [
     drift: { x: 1.5, y: -2.5, dur: 4.7, delay: 0 },
   },
   {
-    Icon: Smile,
+    Icon: FaceSmileIcon,
     bg: "rgba(0,0,0,0.09)",
     iconColor: "rgba(40,70,110,0.72)",
     cx: 14, cy: 82,

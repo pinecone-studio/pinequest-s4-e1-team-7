@@ -1,9 +1,9 @@
 "use client";
 import { motion, useReducedMotion } from "framer-motion";
-import type { LucideIcon } from "lucide-react";
+import React from "react";
 
 export type ChipDef = {
-  Icon?: LucideIcon;
+  Icon?: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   special?: "waveform" | "dots";
   bg: string;
   iconColor: string;
@@ -53,7 +53,7 @@ export function AvatarOrbit({ avatarSrc, chips }: Props) {
   return (
     <motion.div className="relative h-full w-full" initial="idle" whileHover="hovered">
 
-      {/* Outer ring — thin circle border just outside the avatar disc, matches reference */}
+    
       <div
         aria-hidden="true"
         className="pointer-events-none absolute rounded-full"
@@ -67,7 +67,7 @@ export function AvatarOrbit({ avatarSrc, chips }: Props) {
         }}
       />
 
-      {/* Avatar disc — clean hard circle clip, no blur/mask */}
+    
       <div
         className="absolute overflow-hidden rounded-full"
         style={{
@@ -82,7 +82,7 @@ export function AvatarOrbit({ avatarSrc, chips }: Props) {
         <img src={avatarSrc} alt="" aria-hidden className="h-full w-full object-cover object-top" />
       </div>
 
-      {/* Connector lines on hover — desktop only */}
+    
       <svg
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 hidden h-full w-full md:block"
