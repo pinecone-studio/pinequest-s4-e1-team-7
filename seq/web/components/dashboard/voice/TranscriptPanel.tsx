@@ -36,11 +36,12 @@ export function TranscriptPanel({
   onClear,
 }: Props) {
   const [confirmClear, setConfirmClear] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
   const hasContent = sentences.length > 0 || !!interim;
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = textRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [sentences, interim]);
 
   const handleClear = () => {
@@ -50,7 +51,7 @@ export function TranscriptPanel({
 
   return (
     <div
-      className="mb-3 flex flex-col rounded-[22px] p-4 md:rounded-[24px] md:p-6 lg:min-h-0 lg:flex-1 lg:overflow-hidden"
+      className="mb-3 flex flex-1 flex-col rounded-[22px] p-4 md:rounded-[24px] md:p-6 lg:min-h-0"
       style={{ background: "var(--surface)", border: "1px solid var(--border-c)" }}
     >
       <div className="mb-3 flex items-center gap-2">
@@ -60,7 +61,7 @@ export function TranscriptPanel({
         </p>
       </div>
 
-      <div className="min-h-[72px] overflow-y-auto lg:min-h-0 lg:flex-1">
+      <div ref={textRef} className="flex-1 min-h-0 overflow-y-auto">
         {hasContent ? (
           <div className="space-y-4">
             {sentences.slice(0, -1).map((s, i) => (
@@ -86,7 +87,6 @@ export function TranscriptPanel({
             Бичвэр энд харагдана...
           </p>
         )}
-        <div ref={bottomRef} />
       </div>
 
       <div className="mt-3 space-y-2 border-t pt-3" style={{ borderColor: "var(--border-c)" }}>

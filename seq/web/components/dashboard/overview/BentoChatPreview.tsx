@@ -59,7 +59,7 @@ export function BentoChatPreview() {
   const [visible, setVisible] = useState(0);
   const [typing,  setTyping]  = useState(false);
   const [cycle,   setCycle]   = useState(0);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (reduce) { setVisible(MSGS.length); return; }
@@ -88,7 +88,8 @@ export function BentoChatPreview() {
   }, [cycle, reduce]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = threadRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [visible, typing]);
 
   const shown = MSGS.slice(0, visible);
@@ -107,8 +108,11 @@ export function BentoChatPreview() {
       </div>
 
       {/* Thread */}
-      <div className="flex flex-1 flex-col justify-end gap-1.5 overflow-y-auto px-2.5 py-2
-                      [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div
+        ref={threadRef}
+        className="flex flex-1 flex-col justify-end gap-1.5 overflow-y-auto px-2.5 py-2
+                   [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         <AnimatePresence mode="popLayout">
           {shown.map((msg) => <Bubble key={msg.id} msg={msg} />)}
         </AnimatePresence>
@@ -128,7 +132,6 @@ export function BentoChatPreview() {
             </motion.div>
           )}
         </AnimatePresence>
-        <div ref={bottomRef} />
       </div>
 
       {/* Input bar */}
