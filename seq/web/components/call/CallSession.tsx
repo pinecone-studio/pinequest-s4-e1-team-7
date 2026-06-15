@@ -72,6 +72,7 @@ export function CallSession({ roomId }: { roomId: string }) {
   const connectedAtRef = useRef<number | null>(null);
   const elapsedRef = useRef(0);
   const leavingRef = useRef(false);
+  const callAnsweredRef = useRef(false);
   const leaveSessionRef = useRef<(reportEnd?: boolean) => void>(() => {});
 
   const ttsEnabledRef = useRef(ttsEnabled);
@@ -249,9 +250,16 @@ export function CallSession({ roomId }: { roomId: string }) {
 
   // Host: хариулт ирэх хүртэл calling.mp3 loop
   useEffect(() => {
+    const stopRinging = () => {
+      callAnsweredRef.current = true;
+      stopVoiceLoop();
+    };
+
     const ringing =
       asRole === "host" &&
+      !callAnsweredRef.current &&
       !connected &&
+      !hasRemoteStream &&
       !hostNotice &&
       !leavingRef.current &&
       (status === "idle" || status === "connecting");
@@ -262,8 +270,17 @@ export function CallSession({ roomId }: { roomId: string }) {
       stopVoiceLoop();
     }
 
-    return () => stopVoiceLoop();
-  }, [asRole, connected, hostNotice, status]);
+    const unsub = subscribe((event) => {
+      if (event.type !== "chat") return;
+      if (event.conversationId !== roomId || event.kind !== "call_answered") return;
+      stopRinging();
+    });
+
+    return () => {
+      unsub();
+      stopVoiceLoop();
+    };
+  }, [asRole, connected, hasRemoteStream, hostNotice, roomId, status, subscribe]);
 
   // Host: exit waiting room when callee declines (incremental poll only)
   useEffect(() => {
@@ -273,6 +290,16 @@ export function CallSession({ roomId }: { roomId: string }) {
 
     const handleDecline = (rows: Awaited<ReturnType<typeof fetchMessages>>) => {
       const since = callStartedAtRef.current - 3000;
+      const answered = rows.find(
+        (m) =>
+          m.kind === "call_answered" &&
+          !m.mine &&
+          new Date(m.createdAt).getTime() >= since,
+      );
+      if (answered) {
+        callAnsweredRef.current = true;
+        stopVoiceLoop();
+      }
       const declined = rows.find(
         (m) =>
           m.kind === "call_declined" &&
@@ -303,7 +330,13 @@ export function CallSession({ roomId }: { roomId: string }) {
 
     const unsub = subscribe((event) => {
       if (event.type !== "chat") return;
-      if (event.conversationId !== roomId || event.kind !== "call_declined") return;
+      if (event.conversationId !== roomId) return;
+      if (event.kind === "call_answered") {
+        callAnsweredRef.current = true;
+        stopVoiceLoop();
+        return;
+      }
+      if (event.kind !== "call_declined") return;
       void fetchMessages(roomId, afterId).then((rows) => {
         if (rows.length) afterId = rows[rows.length - 1]!.id;
         handleDecline(rows);
