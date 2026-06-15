@@ -108,7 +108,7 @@ export function OnboardingSheet({ onDismiss, onComplete }: { onDismiss: () => vo
           </div>
           <button
             onClick={onDismiss}
-            className="rounded-full px-3 py-1 text-[12px] font-semibold transition-opacity active:opacity-60"
+            className="rounded-full px-3 py-1 text-[12px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-95 active:opacity-60"
             style={{ background: "var(--surface-2)", color: "var(--text-3)" }}
           >
             Алгасах
@@ -181,7 +181,7 @@ export function OnboardingSheet({ onDismiss, onComplete }: { onDismiss: () => vo
             <button
               onClick={goPrev}
               aria-label="Өмнөх"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all active:scale-90"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all duration-150 hover:scale-105 hover:brightness-110 active:scale-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={{
                 background: "var(--surface-2)",
                 border: "1px solid var(--border-c)",

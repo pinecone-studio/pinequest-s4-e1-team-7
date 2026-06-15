@@ -33,7 +33,7 @@ function SpeedLine({ rate, onChange }: { rate: number; onChange: (v: number) => 
             key={value}
             type="button"
             onClick={() => onChange(value)}
-            className="relative z-10 h-4 w-4 rounded-full border-2 transition-all duration-200"
+            className="relative z-10 h-4 w-4 rounded-full border-2 transition-all duration-200 hover:scale-125 active:scale-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             style={{
               background: rate === value ? "var(--olive)" : "var(--surface)",
               borderColor: rate === value ? "var(--olive)" : "var(--border-c)",
@@ -83,8 +83,14 @@ export function TranslatorSettings({ settings, onUpdate, onClose }: Props) {
         <p className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
           Тохиргоо
         </p>
-        <button type="button" onClick={onClose} aria-label="Хаах">
-          <XMarkIcon className="h-5 w-5" style={{ color: "var(--text-3)" }} />
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Хаах"
+          className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-150 hover:scale-110 hover:brightness-110 active:scale-90"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
+        >
+          <XMarkIcon className="h-4 w-4" style={{ color: "var(--text-3)" }} />
         </button>
       </div>
 
@@ -98,7 +104,7 @@ export function TranslatorSettings({ settings, onUpdate, onClose }: Props) {
               key={g}
               type="button"
               onClick={() => onUpdate({ gender: g })}
-              className="flex-1 rounded-full py-3 text-[14px] font-semibold transition-all"
+              className="flex-1 rounded-full py-3 text-[14px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={settings.gender === g ? activeStyle : inactiveStyle}
             >
               {g === "female" ? "Эмэгтэй" : "Эрэгтэй"}
@@ -124,7 +130,7 @@ export function TranslatorSettings({ settings, onUpdate, onClose }: Props) {
               key={value}
               type="button"
               onClick={() => onUpdate({ textScale: value })}
-              className="rounded-full py-2.5 text-[13px] font-semibold transition-all"
+              className="rounded-full py-2.5 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={settings.textScale === value ? activeStyle : inactiveStyle}
             >
               {label}
