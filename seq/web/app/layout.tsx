@@ -25,6 +25,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Sign Bridge — Realtime",
   description: "Монгол дохионы хэлнээс шууд хөрвүүлэгч",
+  icons: {
+    icon: "/images/metalogo.png",
+    shortcut: "/images/metalogo.png",
+    apple: "/images/metalogo.png",
+  },
 };
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
