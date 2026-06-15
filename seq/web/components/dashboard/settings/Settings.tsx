@@ -15,7 +15,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 const SPEEDS = [{ label: "Удаан", value: 0.7 }, { label: "Хэвийн", value: 1.0 }, { label: "Хурдан", value: 1.5 }] as const;
 const GENDERS = [{ label: "Эмэгтэй", value: "female" }, { label: "Эрэгтэй", value: "male" }] as const;
 
-const PRESETS = Array.from({ length: 9 }, (_, i) => `/avatar/avatar${i + 1}.png`);
+const PRESETS = Array.from({ length: 14 }, (_, i) => `/avatar/avatar${i + 1}.png`);
 
 const inputStyle = {
   background: "var(--surface-2)",

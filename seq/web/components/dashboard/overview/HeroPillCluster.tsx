@@ -1,152 +1,138 @@
 "use client";
 import { motion, useReducedMotion } from "framer-motion";
-import Link from "next/link";
-import { ChatBubbleLeftRightIcon, VideoCameraIcon } from "@heroicons/react/24/solid";
-import type { FC, SVGProps, CSSProperties } from "react";
+import React, { type CSSProperties } from "react";
 
-type FloatP = { y: number; wobble?: number; dur: number; delay: number };
-type PillDef = {
-  text: string;
-  sent: boolean;
-  rot: number;
-  pos: CSSProperties;
-  mobileHide?: boolean;
-  fp: FloatP;
+// ── Types ────────────────────────────────────────────────────────────────────
+type Pos = { top: string; left?: string; right?: string };
+type FloatCfg = { dur: number; delay: number; amp: number };
+type PillCfg = {
+  id: string; label: string; variant: "yellow" | "ghost";
+  pos: Pos; mobileHide?: boolean; float: FloatCfg;
 };
-type CircleDef = {
-  href: string;
-  label: string;
-  Icon: FC<SVGProps<SVGSVGElement>>;
-  pos: CSSProperties;
-  fp: FloatP;
+type AvatarCfg = {
+  src: string; pos: Pos; float: FloatCfg; size: string;
 };
 
-const PILLS: PillDef[] = [
-  { text: "Дохионоос яриа руу",     sent: true,  rot: -12, pos: { top: "4%",  right: "5%" },  fp: { y: 4, wobble: 1.6, dur: 4.4, delay: 0.0 } },
-  { text: "Яриаг бичвэр болгох",    sent: false, rot:  -6, pos: { top: "13%", left:  "8%" },  fp: { y: 5, wobble: 1.2, dur: 5.1, delay: 0.5 } },
-  { text: "Монгол дохионы хэл",     sent: true,  rot: -14, pos: { top: "22%", right: "8%" },  fp: { y: 3, wobble: 1.8, dur: 4.6, delay: 1.0 }, mobileHide: true },
-  { text: "Бодит цагийн орчуулга",  sent: false, rot:   6, pos: { top: "31%", left:  "6%" },  fp: { y: 5, wobble: 1.4, dur: 5.4, delay: 0.3 }, mobileHide: true },
-  { text: "Гарын үсгийн толь",      sent: true,  rot: -10, pos: { top: "50%", right: "5%" },  fp: { y: 4, wobble: 1.6, dur: 4.8, delay: 0.7 } },
-  { text: "Хэл хоорондын холбоо",   sent: false, rot:  11, pos: { top: "60%", left:  "7%" },  fp: { y: 5, wobble: 1.2, dur: 5.6, delay: 1.3 }, mobileHide: true },
-  { text: "Дохионы илэрхийлэл",     sent: true,  rot:  -7, pos: { top: "70%", right: "6%" },  fp: { y: 3, wobble: 1.8, dur: 4.2, delay: 0.2 } },
-  { text: "Толь бичгийн хэсэг",     sent: false, rot:  -3, pos: { top: "79%", left: "10%" },  fp: { y: 4, wobble: 1.4, dur: 5.0, delay: 0.9 }, mobileHide: true },
+// ── Config ───────────────────────────────────────────────────────────────────
+const PILLS: PillCfg[] = [
+  { id:"p1", label:"Дохионоос яриа руу",    variant:"yellow", pos:{ top:"5%",  right:"4%"  }, float:{ dur:4.4, delay:0.0, amp:5 } },
+  { id:"p2", label:"Яриаг бичвэр болгох",   variant:"ghost",  pos:{ top:"15%", left:"3%"   }, float:{ dur:5.1, delay:0.6, amp:4 } },
+  { id:"p3", label:"Монгол дохионы хэл",    variant:"yellow", pos:{ top:"24%", right:"6%"  }, mobileHide:true, float:{ dur:4.8, delay:1.1, amp:5 } },
+  { id:"p4", label:"Бодит цагийн орчуулга", variant:"ghost",  pos:{ top:"34%", left:"3%"   }, mobileHide:true, float:{ dur:5.4, delay:0.3, amp:4 } },
+  { id:"p5", label:"Гарын үсгийн толь",     variant:"yellow", pos:{ top:"62%", right:"5%"  }, float:{ dur:4.8, delay:0.7, amp:5 } },
+  { id:"p6", label:"Хэл хоорондын холбоо",  variant:"ghost",  pos:{ top:"65%", left:"3%"   }, mobileHide:true, float:{ dur:5.6, delay:1.4, amp:4 } },
+  { id:"p7", label:"Дохионы илэрхийлэл",    variant:"yellow", pos:{ top:"74%", right:"5%"  }, float:{ dur:4.2, delay:0.2, amp:5 } },
+  { id:"p8", label:"Толь бичгийн хэсэг",    variant:"ghost",  pos:{ top:"83%", left:"8%"   }, mobileHide:true, float:{ dur:5.0, delay:0.9, amp:4 } },
 ];
 
-const CIRCLES: CircleDef[] = [
-  { href: "/dashboard/call", label: "Чат эхлэх",    Icon: ChatBubbleLeftRightIcon, pos: { top: "37%", left:  "5%" }, fp: { y: 6, dur: 5.2, delay: 0.0 } },
-  { href: "/dashboard/call", label: "Видео дуудлага", Icon: VideoCameraIcon,        pos: { top: "42%", right: "7%" }, fp: { y: 5, dur: 6.8, delay: 2.8 } },
+const AVATARS: AvatarCfg[] = [
+  { src:"/avatar/avatar1.png", pos:{ top:"36%", left:"24%"  }, float:{ dur:5.2, delay:0.0, amp:6 }, size:"clamp(64px,18%,108px)" },
+  { src:"/avatar/avatar2.png", pos:{ top:"42%", right:"18%" }, float:{ dur:6.0, delay:1.4, amp:5 }, size:"clamp(64px,18%,108px)" },
 ];
 
-const PILL_BASE: CSSProperties = {
-  display: "block",
-  fontFamily: "var(--font-sans)",
-  fontSize: "13px",
-  fontWeight: 600,
-  lineHeight: 1.3,
-  borderRadius: "10px",
-  padding: "6px 13px",
-  whiteSpace: "nowrap",
-  userSelect: "none",
-};
-const SENT: CSSProperties = { background: "#f6c945", color: "#0d1b2a" };
-const RECV: CSSProperties = { background: "var(--surface-2)", color: "var(--text)", border: "1px solid var(--border-c)" };
-
-export const HeroPillCluster = () => {
+// ── Motion primitives ────────────────────────────────────────────────────────
+function DropIn({ i, style, className, children }: {
+  i: number; style?: CSSProperties; className?: string; children: React.ReactNode;
+}) {
   const reduce = useReducedMotion();
-
   return (
-    <div
-      className="relative h-[300px] w-full overflow-hidden rounded-3xl md:h-full"
-      style={{ border: "1px solid var(--border-c)" }}
+    <motion.div
+      className={className} style={style}
+      initial={reduce ? false : { opacity: 0, y: -36 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={reduce ? { duration: 0 } : {
+        opacity: { duration: 0.28, ease: "easeOut",       delay: i * 0.08 },
+        y:       { duration: 0.52, ease: [0.22,1,0.36,1], delay: i * 0.08 },
+      }}
     >
-      {PILLS.map((p, i) => (
-        <motion.div
-          key={p.text}
-          aria-hidden="true"
-          className={`absolute z-[2] ${p.mobileHide ? "hidden md:block" : ""}`}
-          style={p.pos}
-          initial={{ opacity: 0, y: -160, rotate: 0 }}
-          animate={{ opacity: 1, y: 0, rotate: p.rot }}
-          transition={
-            reduce
-              ? { duration: 0 }
-              : {
-                  y:       { type: "spring", damping: 13, stiffness: 68, delay: i * 0.06 },
-                  rotate:  { type: "spring", damping: 17, stiffness: 80, delay: i * 0.06 },
-                  opacity: { duration: 0.26, ease: "easeOut",            delay: i * 0.06 },
-                }
-          }
-        >
-          <motion.span
-            style={{ ...PILL_BASE, ...(p.sent ? SENT : RECV) }}
-            animate={
-              reduce
-                ? undefined
-                : {
-                    y:      [0, -p.fp.y, 0, p.fp.y * 0.5, 0],
-                    rotate: [0, p.fp.wobble ?? 0, 0, -(p.fp.wobble ?? 0) * 0.4, 0],
-                  }
-            }
-            transition={
-              reduce
-                ? undefined
-                : { duration: p.fp.dur, repeat: Infinity, ease: "easeInOut", delay: p.fp.delay }
-            }
-          >
-            {p.text}
-          </motion.span>
-        </motion.div>
-      ))}
-
-      {CIRCLES.map((c, i) => {
-        const CircleIcon = c.Icon;
-        return (
-          <motion.div
-            key={c.label}
-            className="absolute z-[10]"
-            style={c.pos}
-            initial={{ opacity: 0, y: -160 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={
-              reduce
-                ? { duration: 0 }
-                : {
-                    y:       { type: "spring", damping: 15, stiffness: 60, delay: i * 0.22 + 0.18 },
-                    opacity: { duration: 0.28, ease: "easeOut",            delay: i * 0.22 + 0.18 },
-                  }
-            }
-          >
-            <motion.div
-              animate={reduce ? undefined : { y: [0, -c.fp.y, 0, c.fp.y * 0.5, 0] }}
-              transition={
-                reduce
-                  ? undefined
-                  : { duration: c.fp.dur, repeat: Infinity, ease: "easeInOut", delay: c.fp.delay }
-              }
-            >
-              <Link
-                href={c.href}
-                aria-label={c.label}
-                className="flex items-center justify-center rounded-full
-                           transition-all duration-150
-                           hover:scale-105 hover:brightness-110 active:scale-95
-                           focus-visible:outline focus-visible:outline-2
-                           focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
-                style={{
-                  width:      "clamp(48px, 9vw, 110px)",
-                  height:     "clamp(48px, 9vw, 110px)",
-                  background: "linear-gradient(135deg, #0a2038 0%, #1a3d5c 100%)",
-                  border:     "1px solid rgba(150,200,255,0.16)",
-                  boxShadow:  "0 8px 28px rgba(0,0,0,0.28)",
-                  color:      "var(--olive)",
-                }}
-              >
-                <CircleIcon className="h-5 w-5 md:h-7 md:w-7" aria-hidden />
-              </Link>
-            </motion.div>
-          </motion.div>
-        );
-      })}
-    </div>
+      {children}
+    </motion.div>
   );
+}
+
+function YFloat({ dur, delay, amp, children }: FloatCfg & { children: React.ReactNode }) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      animate={reduce ? undefined : { y: [0, -amp, 0] }}
+      transition={reduce ? undefined : {
+        duration: dur, repeat: Infinity, ease: "easeInOut",
+        delay, repeatType: "mirror",
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ── Pill styles ──────────────────────────────────────────────────────────────
+const PILL_S: CSSProperties = {
+  fontFamily: "var(--font-sans)", fontSize: "13px", fontWeight: 600,
+  lineHeight: 1.3, borderRadius: "10px", padding: "6px 13px 7px",
+  whiteSpace: "nowrap", display: "inline-block",
 };
+const YELLOW: CSSProperties = { background: "#f6c945", color: "#0d1b2a" };
+const GHOST: CSSProperties  = {
+  background: "var(--surface-2)", color: "var(--text)",
+  border: "1px solid var(--border-c)",
+};
+
+// ── Component ─────────────────────────────────────────────────────────────────
+export const HeroPillCluster = () => (
+  <div
+    className="relative h-[300px] w-full overflow-hidden rounded-3xl md:h-full"
+    style={{ border: "1px solid var(--border-c)" }}
+  >
+    {/* Decorative curved connector — left avatar → right avatar */}
+    <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full"
+      viewBox="0 0 100 100" preserveAspectRatio="none">
+      {/* avatar1 (left ~33,45) → avatar2 (right ~78,51) */}
+      <path d="M33 45 Q55 30 78 51"
+        fill="none" stroke="var(--border-2)" strokeWidth="0.5"
+        strokeLinecap="round" strokeDasharray="2 2" opacity="0.5" />
+      {/* avatar1 → p2 pill area */}
+      <path d="M33 45 Q18 28 12 22"
+        fill="none" stroke="var(--border-2)" strokeWidth="0.4"
+        strokeLinecap="round" opacity="0.35" />
+      {/* avatar2 → p1 pill area */}
+      <path d="M78 51 Q84 30 84 12"
+        fill="none" stroke="var(--border-2)" strokeWidth="0.4"
+        strokeLinecap="round" opacity="0.35" />
+    </svg>
+
+    {/* Two floating avatar circles */}
+    {AVATARS.map((av, i) => (
+      <DropIn key={av.src} i={i}
+        className="absolute z-[4]"
+        style={av.pos}
+      >
+        <YFloat {...av.float}>
+          <div style={{
+            width: av.size, height: av.size,
+            borderRadius: "50%", overflow: "hidden",
+            background: "rgba(100,175,165,0.18)",
+            boxShadow: "0 6px 24px rgba(0,0,0,0.14)",
+            border: "2px solid rgba(100,175,165,0.30)",
+          }}>
+            <img src={av.src} alt="" aria-hidden
+              className="h-full w-full object-cover object-top" />
+          </div>
+        </YFloat>
+      </DropIn>
+    ))}
+
+    {/* Floating text pills */}
+    {PILLS.map((p, i) => (
+      <DropIn key={p.id} i={AVATARS.length + i}
+        className={`absolute z-[3]${p.mobileHide ? " hidden md:block" : ""}`}
+        style={p.pos}
+      >
+        <YFloat {...p.float}>
+          <span aria-hidden style={{ ...PILL_S, ...(p.variant === "yellow" ? YELLOW : GHOST) }}>
+            {p.label}
+          </span>
+        </YFloat>
+      </DropIn>
+    ))}
+  </div>
+);
