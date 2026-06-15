@@ -23,7 +23,7 @@ export const HeroTeamPanel = ({ p: _ }: { p: MotionValue<number> }) => (
         Багийн танилцуулга
       </h2>
       <div className="mb-[4vh] h-px w-full max-w-[72vw]" style={{ background: "var(--olive)", opacity: 0.45 }} />
-      <div className="grid w-full grid-cols-2 gap-x-6 gap-y-7 md:flex md:items-center md:justify-center md:gap-[2vw]">
+      <div className="grid w-full grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-3 md:flex md:items-center md:justify-center md:gap-[2vw]">
         {TEAM.map((member, i) => (
           <div key={i} className="flex flex-col items-center gap-2 text-center">
             <div
