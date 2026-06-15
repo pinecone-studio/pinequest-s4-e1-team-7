@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getStoredToken } from "@/context/AuthContext";
@@ -323,6 +323,8 @@ export function AdminFeedback() {
     }
   }, []);
 
+  useEffect(() => { void load(); }, [load]);
+
   const card = {
     background: "var(--surface)",
     border: "1px solid var(--border-c)",
@@ -331,7 +333,7 @@ export function AdminFeedback() {
   return (
     <div
       className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      style={{ background: "var(--bg)" }}
+      style={{ background: "var(--bg)", fontFamily: "var(--font-sans)" }}
     >
       <div className="mx-auto max-w-lg px-4 pb-[max(calc(env(safe-area-inset-bottom)+1rem),1.5rem)] md:px-6 lg:max-w-2xl lg:px-10 xl:px-16">
         <PageHeader
@@ -413,7 +415,6 @@ export function AdminFeedback() {
 
         {data && (
           <div className="flex flex-col gap-4">
-            {/* ── Үндсэн статистик ── */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <StatCard label="Нийт санал өгсөн" value={data.stats.total} />
               <StatCard
@@ -428,7 +429,6 @@ export function AdminFeedback() {
               />
             </div>
 
-            {/* ── Функцуудын дундаж ── */}
             <div className="rounded-[22px] p-5" style={card}>
               <p
                 className="mb-4 text-[11px] font-bold uppercase tracking-widest"
@@ -472,7 +472,6 @@ export function AdminFeedback() {
               </div>
             </div>
 
-            {/* ── Санал болгох тоо ── */}
             <div className="rounded-[22px] p-5" style={card}>
               <p
                 className="mb-4 text-[11px] font-bold uppercase tracking-widest"
@@ -487,7 +486,6 @@ export function AdminFeedback() {
               />
             </div>
 
-            {/* ── Хувь хүний санал ── */}
             <div className="flex flex-col gap-2">
               <p
                 className="px-1 text-[11px] font-bold uppercase tracking-widest"
