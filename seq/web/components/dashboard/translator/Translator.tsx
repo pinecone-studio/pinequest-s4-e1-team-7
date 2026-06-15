@@ -83,15 +83,15 @@ export function Translator() {
 
   return (
     <div
-      className="h-full overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:flex lg:flex-col lg:overflow-hidden"
+      className="flex h-full flex-col [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:overflow-hidden"
       style={{ background: "var(--bg)" }}
     >
-      <div className="mx-auto flex w-full max-w-lg flex-col px-4 pb-[max(calc(env(safe-area-inset-bottom)+5.5rem),6.5rem)] lg:h-full lg:max-h-full lg:max-w-none lg:overflow-hidden lg:px-10 lg:pb-4 xl:px-16">
+      <div className="mx-auto flex w-full flex-1 min-h-0 flex-col px-4 pb-3 lg:max-h-full lg:max-w-none lg:overflow-hidden lg:px-10 lg:pb-4 xl:px-16">
         <PageHeader title="Дохионы хэл" right={settingsBtn} />
 
-        <div className="flex flex-col gap-4 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-2 lg:grid-rows-[1fr_auto] lg:gap-5">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto lg:grid lg:min-h-0 lg:overflow-hidden lg:grid-cols-2 lg:grid-rows-[1fr_auto] lg:gap-5">
           <section
-            className="overflow-hidden rounded-[22px] lg:col-start-1 lg:flex lg:min-h-[440px] lg:flex-col lg:row-start-1"
+            className="shrink-0 overflow-hidden rounded-[22px] lg:col-start-1 lg:flex lg:min-h-[440px] lg:flex-col lg:row-start-1"
             style={{
               background: "var(--surface)",
               border: "1px solid var(--border-c)",
@@ -215,7 +215,7 @@ export function Translator() {
           </div>
 
           {showSettings && (
-            <div className="lg:hidden">
+            <div className="shrink-0 lg:hidden">
               <TranslatorSettings
                 settings={t.settings}
                 onUpdate={t.updateSettings}
@@ -223,7 +223,7 @@ export function Translator() {
               />
             </div>
           )}
-          <div className="lg:hidden">
+          <div className="flex min-h-0 flex-1 flex-col lg:hidden">
             <TranslatorCard
               detected={t.detected}
               running={t.running}

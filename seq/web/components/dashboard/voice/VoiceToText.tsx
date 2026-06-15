@@ -53,10 +53,10 @@ export function VoiceToText() {
 
   return (
     <div
-      className="h-full overflow-y-auto overscroll-y-contain lg:flex lg:flex-col lg:overflow-hidden"
+      className="flex h-full flex-col lg:overflow-hidden"
       style={{ background: "var(--bg)" }}
     >
-      <div className="mx-auto flex w-full max-w-2xl flex-col px-4 pb-[max(calc(env(safe-area-inset-bottom)+5.5rem),6.5rem)] md:px-6 lg:flex lg:h-full lg:max-h-full lg:min-h-0 lg:flex-1 lg:max-w-none lg:overflow-hidden lg:px-10 lg:pb-4 xl:px-16">
+      <div className="mx-auto flex w-full flex-1 min-h-0 flex-col px-4 pb-3 md:px-6 lg:max-h-full lg:max-w-none lg:overflow-hidden lg:px-10 lg:pb-4 xl:px-16">
         <PageHeader title="Ярианаас бичвэр" />
 
         <div className="flex items-end justify-center py-2 md:py-4">

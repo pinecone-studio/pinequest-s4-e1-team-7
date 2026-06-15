@@ -1,8 +1,7 @@
 "use client";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { m, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { MicrophoneIcon } from "@heroicons/react/24/outline";
-const MicIcon = MicrophoneIcon;
 
 type Msg = { id: string; sender: "me" | "partner"; text: string };
 
@@ -22,7 +21,7 @@ function Dots() {
   return (
     <span className="flex items-center gap-[3px] px-3.5 py-3">
       {[0, 1, 2].map((i) => (
-        <motion.span key={i} className="block rounded-full"
+        <m.span key={i} className="block rounded-full"
           style={{ width: 6, height: 6, background: "rgba(255,255,255,0.5)" }}
           animate={{ opacity: [0.25, 1, 0.25] }}
           transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.27, ease: "easeInOut" }}
@@ -35,7 +34,7 @@ function Dots() {
 function Bubble({ msg }: { msg: Msg }) {
   const isMe = msg.sender === "me";
   return (
-    <motion.div className={`flex items-center gap-2${isMe ? " flex-row-reverse" : ""}`}
+    <m.div className={`flex items-center gap-2${isMe ? " flex-row-reverse" : ""}`}
       initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}>
   
@@ -54,7 +53,7 @@ function Bubble({ msg }: { msg: Msg }) {
       }}>
         {msg.text}
       </p>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -63,7 +62,7 @@ export function HeroChat({ active }: { active: boolean }) {
   const [visible, setVisible] = useState(0);
   const [typing, setTyping]   = useState(false);
   const started   = useRef(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!active || started.current) return;
@@ -86,7 +85,8 @@ export function HeroChat({ active }: { active: boolean }) {
   }, [active, reduce]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = threadRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [visible, typing]);
 
   const shown = MSGS.slice(0, visible);
@@ -120,12 +120,12 @@ export function HeroChat({ active }: { active: boolean }) {
         </div>
 
         {/* Thread */}
-        <div className="flex flex-1 flex-col justify-end gap-1.5 overflow-y-auto px-3 py-3
+        <div ref={threadRef} className="flex flex-1 flex-col justify-end gap-1.5 overflow-y-auto px-3 py-3
                         [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {shown.map((msg) => <Bubble key={msg.id} msg={msg} />)}
           <AnimatePresence>
             {typing && (
-              <motion.div key="typing" className="flex items-end gap-2"
+              <m.div key="typing" className="flex items-end gap-2"
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 4 }} transition={{ duration: 0.22 }}>
                 <div style={{ width: 32, height: 32, flexShrink: 0 }}>
@@ -136,16 +136,15 @@ export function HeroChat({ active }: { active: boolean }) {
                 <div style={{ borderRadius: "18px 18px 18px 4px", background: "#1c2733" }}>
                   <Dots />
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
-          <div ref={bottomRef} />
         </div>
 
         {/* Input bar */}
         <div className="flex shrink-0 items-center gap-2.5 px-3 py-2.5"
           style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-          <MicIcon style={{ width: 22, height: 22, color: "rgba(255,255,255,0.38)", flexShrink: 0 }} />
+          <MicrophoneIcon style={{ width: 22, height: 22, color: "rgba(255,255,255,0.38)", flexShrink: 0 }} />
           <div className="flex-1 rounded-full px-3.5 py-2"
             style={{ background: "rgba(255,255,255,0.07)", fontSize: 13, color: "rgba(255,255,255,0.28)" }}>
             Мессеж…
