@@ -33,24 +33,24 @@ export default function WelcomePage() {
         className="flex flex-1 flex-col items-center justify-center gap-5 px-6"
         style={{ minHeight: "50dvh" }}
       >
-        <h1 className="text-3xl font-black" style={{ color: "var(--text)" }}>
+        <h1 className="text-3xl font-black" style={{ color: "var(--text)", fontFamily: "var(--font-display)" }}>
           Sign Bridge
         </h1>
-        <p className="max-w-xs text-center text-sm" style={{ color: "var(--text-3)" }}>
-          Монгол дохионы хэл ↔ текст бодит цагийн орчуулга
+        <p className="max-w-xs text-center text-sm" style={{ color: "var(--text-3)", fontFamily: "var(--font-display)" }}>
+          Дохионы хэлийг шууд видео болон дуудлага хийх платформ
         </p>
         <div className="flex w-full max-w-xs flex-col gap-3">
           <Link
             href="/auth/login"
             className="rounded-2xl px-6 py-4 text-center text-lg font-bold"
-            style={{ background: "var(--surface-2)", color: "var(--text)" }}
+            style={{ background: "var(--surface-2)", color: "var(--text)", fontFamily: "var(--font-display)" }}
           >
             Нэвтрэх
           </Link>
           <Link
             href="/auth/register"
             className="rounded-2xl px-6 py-4 text-center text-lg font-bold"
-            style={{ background: "var(--olive)", color: "#0d1e35" }}
+            style={{ background: "var(--olive)", color: "#0d1e35", fontFamily: "var(--font-display)" }}
           >
             Бүртгүүлэх
           </Link>
@@ -63,7 +63,7 @@ export default function WelcomePage() {
         style={{ borderTop: "2px dashed var(--border-c)" }}
       >
         <span className="flex-1 text-[11px] uppercase tracking-widest" style={{ color: "var(--text-3)" }}>
-          Доод тал — Харааны бэрхшээлтэй горим
+          Доод тал - Харааны бэрхшээлтэй горим
         </span>
       </div>
 
@@ -84,10 +84,10 @@ export default function WelcomePage() {
         >
           👆
         </span>
-        <p className="text-center text-xl font-black" style={{ color: "#ffbf00" }}>
+        <p className="text-center text-xl font-black" style={{ color: "#ffbf00", fontFamily: "var(--font-display)" }}>
           Харааны бэрхшээлтэй горим
         </p>
-        <p className="max-w-xs text-center text-sm" style={{ color: "var(--text-3)" }}>
+        <p className="max-w-xs text-center text-sm" style={{ color: "var(--text-3)", fontFamily: "var(--font-display)" }}>
           Swipe, брайль бичих, дуу уншуулах
         </p>
       </button>

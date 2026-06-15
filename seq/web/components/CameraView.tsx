@@ -416,7 +416,7 @@ export function CameraView({
               onClick={() => void startCamera()}
               className="rounded-xl bg-[var(--olive)] px-6 py-3 text-sm font-medium text-white opacity-90"
             >
-              📷 Камер асаах
+              Камер асаах
             </button>
             <p className="text-xs text-zinc-500">
               macOS: System Settings → Privacy &amp; Security → Camera → Chrome ON

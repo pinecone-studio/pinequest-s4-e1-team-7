@@ -10,20 +10,20 @@ export const HeroText = ({ p }: { p: MotionValue<number> }) => (
       className="w-full select-none font-black uppercase"
     >
       <span className="block">
-        <span style={{ color: "var(--olive)" }}>Дохионы хэлийг</span>
-        <span className="text-white"> бодит цагт</span>
+        <span style={{ color: "var(--olive)" }}>Дохионы хэлийг{" "}</span>
+        <span className="text-white">хөрвүүлж</span>
       </span>
       <span className="block text-white">
         <Zoom p={p} at={AT[0]} src={HERO_IMGS[0].src} round />{" "}
-        хөрвүүлж{" "}
+        шууд{" "}
         <Zoom p={p} at={AT[1]} src={HERO_IMGS[1].src} round />{" "}
-        мессеж бичин
+        дуудлага
       </span>
       <span className="block text-white">
         <Zoom p={p} at={AT[2]} src={HERO_IMGS[2].src} />{" "}
-        видео дуудлага{" "}
+       хийх
         <Zoom p={p} at={AT[3]} src={HERO_IMGS[3].src} round />{" "}
-        хийх платформ
+        платформ
       </span>
     </h1>
   </div>

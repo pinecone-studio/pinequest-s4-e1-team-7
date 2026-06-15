@@ -43,7 +43,7 @@ export const FeaturesSection = () => {
                     className="px-6 py-6"
                     style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}
                   >
-                    <p className="mb-6 text-[15px] leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
+                    <p className="mb-6 text-[15px] leading-relaxed" style={{ color: "rgba(255,255,255,0.65)", fontFamily: "var(--font-display)" }}>
                       {step.desc}
                     </p>
                     <ul className="flex flex-col gap-4">
@@ -51,7 +51,7 @@ export const FeaturesSection = () => {
                         <li key={j} className="flex items-start gap-3">
                           <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full"
                             style={{ background: "#facc15" }} />
-                          <span className="text-[16px] leading-snug" style={{ color: "rgba(255,255,255,0.8)" }}>{b}</span>
+                          <span className="text-[16px] leading-snug" style={{ color: "rgba(255,255,255,0.8)", fontFamily: "var(--font-display)" }}>{b}</span>
                         </li>
                       ))}
                     </ul>
@@ -63,7 +63,7 @@ export const FeaturesSection = () => {
                 className="flex w-full items-center justify-between px-6 py-5 text-left"
               >
                 <div>
-                  <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.35em]" style={{ color: "var(--olive)" }}>
+                  <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.35em]" style={{ color: "var(--olive)", fontFamily: "var(--font-display)" }}>
                     Онцлог {step.tag}
                   </p>
                   <h3
@@ -112,7 +112,7 @@ export const FeaturesSection = () => {
               key={i}
               className="flex h-screen flex-col justify-center px-[6vw]"
             >
-              <p className="mb-4 text-[13px] font-bold uppercase tracking-[0.35em]" style={{ color: "var(--olive)" }}>
+              <p className="mb-4 text-[13px] font-bold uppercase tracking-[0.35em]" style={{ color: "var(--olive)", fontFamily: "var(--font-display)" }}>
                 Онцлог {step.tag}
               </p>
               <h3
@@ -127,7 +127,7 @@ export const FeaturesSection = () => {
               >
                 {step.title}
               </h3>
-              <p className="mb-9 leading-relaxed" style={{ fontSize: "clamp(16px,1.5vw,20px)", maxWidth: "42ch", color: "rgba(255,255,255,0.65)", fontFamily: "var(--font-inter)" }}>
+              <p className="mb-9 leading-relaxed" style={{ fontSize: "clamp(16px,1.5vw,20px)", maxWidth: "42ch", color: "rgba(255,255,255,0.65)", fontFamily: "var(--font-display)" }}>
                 {step.desc}
               </p>
               <ul className="flex flex-col gap-5">
@@ -135,7 +135,7 @@ export const FeaturesSection = () => {
                   <li key={j} className="flex items-start gap-4">
                     <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full"
                       style={{ background: "#facc15" }} />
-                    <span style={{ fontSize: "clamp(15px,1.4vw,19px)", lineHeight: 1.5, color: "rgba(255,255,255,0.8)" }}>{b}</span>
+                    <span style={{ fontSize: "clamp(15px,1.4vw,19px)", lineHeight: 1.5, color: "rgba(255,255,255,0.8)", fontFamily: "var(--font-display)" }}>{b}</span>
                   </li>
                 ))}
               </ul>

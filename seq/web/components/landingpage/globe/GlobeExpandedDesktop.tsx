@@ -83,29 +83,23 @@ export const GlobeExpandedDesktop = ({ filter, onFilter, onBack }: Props) => {
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
             <ArrowLeftIcon className="h-4 w-4 text-white" />
           </button>
-          <button onClick={onBack}
-            className="rounded-full px-4 py-1.5 text-[13px] font-medium transition-colors"
-            style={{ border: "1px solid rgba(255,255,255,0.22)", color: "rgba(255,255,255,0.65)" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.07)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-            Буцах
-          </button>
+      
         </div>
 
         <AnimatePresence mode="wait">
           <m.div key={filter} className="flex flex-col"
             initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -14 }}
             transition={{ duration: 0.28, ease: EASE }}>
-            <p className="mb-7 max-w-[88%] text-[20px] leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>{stat.title}</p>
+            <p className="mb-7 max-w-[88%] text-[20px] leading-relaxed" style={{ color: "rgba(255,255,255,0.75)", fontFamily: "var(--font-display)" }}>{stat.title}</p>
             <div className="mb-7 h-px" style={{ background: "rgba(255,255,255,0.22)" }} />
-            <p className="mb-3 text-[16px] uppercase tracking-[0.18em]" style={{ color: "rgba(255,255,255,0.6)" }}>{stat.bigLabel}</p>
-            <p className="mb-9 font-black leading-[0.88]" style={{ color: "#f5c518", fontSize: "clamp(56px,6.5vw,88px)", letterSpacing: "-3px" }}>{stat.big}</p>
+            <p className="mb-3 text-[16px] uppercase tracking-[0.18em]" style={{ color: "rgba(255,255,255,0.6)", fontFamily: "var(--font-display)" }}>{stat.bigLabel}</p>
+            <p className="mb-9 font-black leading-[0.88]" style={{ color: "#f5c518", fontSize: "clamp(56px,6.5vw,88px)", letterSpacing: "-3px", fontFamily: "var(--font-display)" }}>{stat.big}</p>
             <div className="mb-7 h-px" style={{ background: "rgba(255,255,255,0.22)" }} />
             <div className="grid grid-cols-2 gap-x-8 gap-y-7">
               {stat.rows.map(({ label, value }) => (
                 <div key={label}>
-                  <p className="mb-2 text-[13px] leading-snug" style={{ color: "rgba(255,255,255,0.6)" }}>{label}</p>
-                  <p className="font-black" style={{ color: "#f5c518", fontSize: "clamp(36px,4vw,60px)", letterSpacing: "-1px" }}>{value}</p>
+                  <p className="mb-2 text-[13px] leading-snug" style={{ color: "rgba(255,255,255,0.6)", fontFamily: "var(--font-display)" }}>{label}</p>
+                  <p className="font-black" style={{ color: "#f5c518", fontSize: "clamp(36px,4vw,60px)", letterSpacing: "-1px", fontFamily: "var(--font-display)" }}>{value}</p>
                 </div>
               ))}
             </div>
@@ -113,15 +107,15 @@ export const GlobeExpandedDesktop = ({ filter, onFilter, onBack }: Props) => {
         </AnimatePresence>
 
         <div className="pointer-events-none select-none font-black leading-none text-white"
-          style={{ fontSize: "clamp(48px,7vw,96px)", opacity: 0.07, letterSpacing: "-4px" }}>2026</div>
+          style={{ fontSize: "clamp(48px,7vw,96px)", opacity: 0.07, letterSpacing: "-4px", fontFamily: "var(--font-display)" }}>2026</div>
       </div>
 
       <AnimatePresence>
         {hovered && (
           <m.div className="pointer-events-none absolute bottom-12" style={{ left: `${LEFT + 8}%` }}
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}>
-            <div className="rounded-full px-4 py-2 text-[12px] font-bold" style={{ background: "#f5c518", color: "#0d1e35" }}>
-              Монгол Улс — 25,000+
+            <div className="rounded-full px-4 py-2 text-[12px] font-bold" style={{ background: "#f5c518", color: "#0d1e35", fontFamily: "var(--font-display)" }}>
+              Монгол Улс - 16,000+
             </div>
           </m.div>
         )}

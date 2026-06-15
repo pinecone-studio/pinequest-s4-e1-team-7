@@ -1,10 +1,8 @@
 "use client";
 import Image from "next/image";
-import { m, useTransform, useMotionValueEvent, type MotionValue } from "framer-motion";
-import { useState } from "react";
+import { m, useTransform, type MotionValue } from "framer-motion";
 import { CameraIcon, MicrophoneIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/solid";
 import { STEPS, T1S, T1E, T2S, T2E } from "./featuresData";
-import { HeroChat } from "./HeroChat";
 import type { ComponentType, SVGProps } from "react";
 
 const GRADIENT = "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 28%), linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 28%)";
@@ -21,11 +19,8 @@ const ImgFrame = ({ src }: { src: string }) => (
 );
 
 export const FeaturesLeftPanel = ({ p }: { p: MotionValue<number> }) => {
-  const [chatActive, setChatActive] = useState(false);
   const rawInset2 = useTransform(p, [T1S, T1E], [100, 0]);
   const rawInset3 = useTransform(p, [T2S, T2E], [100, 0]);
-  const step3p    = useTransform(p, [T2S, T2E], [0, 1]);
-  useMotionValueEvent(step3p, "change", (v) => { if (v > 0.5) setChatActive(true); });
   const clip2 = useTransform(rawInset2, (v) => `inset(${Math.max(0, Math.min(100, v))}% 0 0 0)`);
   const clip3 = useTransform(rawInset3, (v) => `inset(${Math.max(0, Math.min(100, v))}% 0 0 0)`);
 
@@ -41,7 +36,7 @@ export const FeaturesLeftPanel = ({ p }: { p: MotionValue<number> }) => {
     <>
       <div className="absolute inset-0 z-[1]"><ImgFrame src={STEPS[0].img} /></div>
       <m.div style={{ clipPath: clip2, zIndex: 2 }} className="absolute inset-0"><ImgFrame src={STEPS[1].img} /></m.div>
-      <m.div style={{ clipPath: clip3, zIndex: 3 }} className="absolute inset-0"><HeroChat active={chatActive} /></m.div>
+      <m.div style={{ clipPath: clip3, zIndex: 3 }} className="absolute inset-0"><ImgFrame src={STEPS[2].img} /></m.div>
 
       <div className="absolute left-10 top-[22%] z-20">
         <div className="relative flex flex-col gap-7">

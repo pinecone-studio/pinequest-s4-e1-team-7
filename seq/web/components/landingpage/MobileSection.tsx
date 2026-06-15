@@ -12,7 +12,7 @@ export const MobileSection = () => (
         <span className="block text-white">хувилбар</span>
       </h2>
 
-      <p className="mb-10 text-[15px] leading-relaxed" style={{ color: "rgba(255,255,255,0.52)" }}>
+      <p className="mb-10 text-[15px] leading-relaxed" style={{ color: "rgba(255,255,255,0.52)", fontFamily: "var(--font-display)" }}>
         SignBridge-г удахгүй iOS ба Android утсан дээр татаж улам хялбар болно.
       </p>
 
@@ -22,9 +22,9 @@ export const MobileSection = () => (
           <Image src="/images/qr.png" alt="Download QR" width={280} height={280} className="rounded-lg" />
         </div>
         <div className="px-6 py-5" style={{ background: "#111" }}>
-          <p className="mb-1 font-black text-white" style={{ fontSize: 17 }}>SignBridge Mobile version</p>
+          <p className="mb-1 font-black text-white" style={{ fontSize: 17, fontFamily: "var(--font-display)" }}>SignBridge Mobile version</p>
           <div className="my-4 h-px" style={{ background: "rgba(255,255,255,0.1)" }} />
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "var(--font-display)" }}>
             QR уншуулж Мобайл хувилбарыг Browser дээр үзэх
           </span>
         </div>
@@ -39,7 +39,7 @@ export const MobileSection = () => (
           <span className="block" style={{ color: "var(--olive)" }}>Утсан дээрх</span>
           <span className="block text-white">хувилбар</span>
         </h2>
-        <p className="max-w-[38ch] text-[15px] leading-relaxed" style={{ color: "rgba(255,255,255,0.52)" }}>
+        <p className="max-w-[38ch] text-[15px] leading-relaxed" style={{ color: "rgba(255,255,255,0.52)", fontFamily: "var(--font-display)" }}>
           SignBridge-г удахгүй iOS ба Android утсан дээр татаж улам хялбар болно.
         </p>
       </div>
@@ -51,12 +51,12 @@ export const MobileSection = () => (
             <Image src="/images/qr.png" alt="Download QR" width={320} height={320} className="rounded-lg" />
           </div>
           <div className="px-6 py-5" style={{ background: "#111" }}>
-            <p className="mb-1 font-black text-white" style={{ fontSize: "clamp(17px,1.8vw,22px)" }}>
+            <p className="mb-1 font-black text-white" style={{ fontSize: "clamp(17px,1.8vw,22px)", fontFamily: "var(--font-display)" }}>
               SignBridge Mobile version
             </p>
             <div className="my-4 h-px" style={{ background: "rgba(255,255,255,0.1)" }} />
             <div className="flex items-center justify-between">
-              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "var(--font-display)" }}>
                 QR уншуулж Мобайл хувилбарыг Browser дээр үзэх
               </span>
             </div>

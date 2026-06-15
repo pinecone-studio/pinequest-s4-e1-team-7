@@ -39,7 +39,7 @@ export const GlobeExpandedMobile = ({ filter, onFilter, onBack }: Props) => {
         </div>
         <button onClick={cycleFilter}
           className="flex w-full items-center rounded-full transition-all active:scale-[0.97]"
-          style={{ background: "#f5c518", color: "#0d1e35", padding: "10px 20px 10px 10px", minHeight: "68px" }}>
+          style={{ background: "#f5c518", color: "#0d1e35", padding: "10px 20px 10px 10px", minHeight: "68px", fontFamily: "var(--font-display)" }}>
           <div className="mr-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-full" style={{ background: "rgba(0,0,0,0.18)" }}>
             <GlobeAltIcon className="h-6 w-6" />
           </div>
@@ -55,8 +55,8 @@ export const GlobeExpandedMobile = ({ filter, onFilter, onBack }: Props) => {
               transition={{ duration: 0.22, ease: EASE }}
               className="flex items-center gap-4 px-5"
               style={{ background: "rgba(5,5,5,0.9)", backdropFilter: "blur(16px)", paddingTop: "20px", paddingBottom: "max(env(safe-area-inset-bottom), 24px)" }}>
-              <span className="shrink-0 font-black leading-none" style={{ color: "#f5c518", fontSize: "clamp(2.2rem, 9vw, 3rem)", letterSpacing: "-0.03em" }}>{stat.big}</span>
-              <span className="flex-1 text-[14px] leading-snug" style={{ color: "rgba(255,255,255,0.65)" }}>{stat.bigLabel}</span>
+              <span className="shrink-0 font-black leading-none" style={{ color: "#f5c518", fontSize: "clamp(2.2rem, 9vw, 3rem)", letterSpacing: "-0.03em", fontFamily: "var(--font-display)" }}>{stat.big}</span>
+              <span className="flex-1 text-[14px] leading-snug" style={{ color: "rgba(255,255,255,0.65)", fontFamily: "var(--font-display)" }}>{stat.bigLabel}</span>
               <button onClick={() => setPanelOpen(true)}
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all active:scale-95"
                 style={{ border: "1.5px solid rgba(255,255,255,0.28)", background: "rgba(255,255,255,0.07)" }}>
@@ -70,8 +70,8 @@ export const GlobeExpandedMobile = ({ filter, onFilter, onBack }: Props) => {
               className="px-5 pt-6"
               style={{ background: "rgba(5,5,5,0.94)", backdropFilter: "blur(20px)", borderRadius: "28px 28px 0 0", paddingBottom: "max(env(safe-area-inset-bottom), 28px)" }}>
               <div className="mb-5 flex items-center gap-4">
-                <span className="shrink-0 font-black leading-none" style={{ color: "#f5c518", fontSize: "clamp(2.2rem, 9vw, 3rem)", letterSpacing: "-0.03em" }}>{stat.big}</span>
-                <span className="flex-1 text-[14px] leading-snug" style={{ color: "rgba(255,255,255,0.65)" }}>{stat.bigLabel}</span>
+                <span className="shrink-0 font-black leading-none" style={{ color: "#f5c518", fontSize: "clamp(2.2rem, 9vw, 3rem)", letterSpacing: "-0.03em", fontFamily: "var(--font-display)" }}>{stat.big}</span>
+                <span className="flex-1 text-[14px] leading-snug" style={{ color: "rgba(255,255,255,0.65)", fontFamily: "var(--font-display)" }}>{stat.bigLabel}</span>
                 <button onClick={() => setPanelOpen(false)}
                   className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all active:scale-95"
                   style={{ border: "1.5px solid rgba(255,255,255,0.28)", background: "rgba(255,255,255,0.07)" }}>
@@ -82,13 +82,13 @@ export const GlobeExpandedMobile = ({ filter, onFilter, onBack }: Props) => {
                 <div key={label}>
                   <div className="h-px" style={{ background: "rgba(255,255,255,0.1)" }} />
                   <div className="flex items-baseline gap-4 py-4">
-                    <span className="shrink-0 font-black leading-none" style={{ color: "#f5c518", fontSize: "clamp(1.6rem, 7vw, 2.2rem)", letterSpacing: "-0.02em", minWidth: "max-content" }}>{value}</span>
-                    <span className="text-[14px] leading-snug" style={{ color: "rgba(255,255,255,0.6)" }}>{label}</span>
+                    <span className="shrink-0 font-black leading-none" style={{ color: "#f5c518", fontSize: "clamp(1.6rem, 7vw, 2.2rem)", letterSpacing: "-0.02em", minWidth: "max-content", fontFamily: "var(--font-display)" }}>{value}</span>
+                    <span className="text-[14px] leading-snug" style={{ color: "rgba(255,255,255,0.6)", fontFamily: "var(--font-display)" }}>{label}</span>
                   </div>
                 </div>
               ))}
               <div className="h-px" style={{ background: "rgba(255,255,255,0.1)" }} />
-              <p className="mt-4 text-[13px] leading-relaxed" style={{ color: "rgba(255,255,255,0.42)" }}>{stat.title}</p>
+              <p className="mt-4 text-[13px] leading-relaxed" style={{ color: "rgba(255,255,255,0.42)", fontFamily: "var(--font-display)" }}>{stat.title}</p>
             </m.div>
           )}
         </AnimatePresence>

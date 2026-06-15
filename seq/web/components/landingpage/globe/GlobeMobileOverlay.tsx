@@ -35,14 +35,14 @@ export const GlobeMobileOverlay = ({ compare, setCompare, setExpanded }: Props) 
         <AnimatePresence mode="wait">
           <m.div key={compare} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.28, ease: EASE }} className="mb-5">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: activeItem.accent }}>{activeItem.tag}</p>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: activeItem.accent, fontFamily: "var(--font-display)" }}>{activeItem.tag}</p>
             <div className="mb-4 h-px" style={{ background: `${activeItem.accent}44` }} />
             <div className="grid grid-cols-2 gap-x-5 gap-y-4">
               {activeItem.stats.map(({ label, value }) => (
                 <div key={label}>
-                  <p className="mb-0.5 text-[10px] uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.38)" }}>{label}</p>
+                  <p className="mb-0.5 text-[10px] uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.38)", fontFamily: "var(--font-display)" }}>{label}</p>
                   <p className="font-black leading-tight"
-                    style={{ color: activeItem.accent, fontSize: "clamp(1.3rem, 5.5vw, 1.9rem)", letterSpacing: "-0.02em" }}>{value}</p>
+                    style={{ color: activeItem.accent, fontSize: "clamp(1.3rem, 5.5vw, 1.9rem)", letterSpacing: "-0.02em", fontFamily: "var(--font-display)" }}>{value}</p>
                 </div>
               ))}
             </div>
