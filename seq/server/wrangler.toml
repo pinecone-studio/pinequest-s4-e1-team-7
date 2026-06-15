@@ -24,4 +24,5 @@ new_sqlite_classes = ["UserNotify"]
 
 [vars]
 JWT_SECRET = "dev-sign-bridge-secret-change-me"
+ADMIN_EMAIL = "e.norvoo@gmail.com, munkhbatt.ariunzul@gmail.com"
 

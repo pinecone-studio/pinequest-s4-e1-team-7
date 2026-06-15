@@ -12,8 +12,8 @@ import { DashboardSkeleton } from "@/components/dashboard/shared/DashboardSkelet
 export default function LoginPage() {
   const { login, user } = useAuth();
   const router = useRouter();
-  const [loginId, setLoginId]           = useState("");
-  const [password, setPassword]         = useState("");
+  const [loginId, setLoginId]           = useState("e.norvoo@gmail.com");
+  const [password, setPassword]         = useState("12345678");
   const [error, setError]               = useState("");
   const [loading, setLoading]           = useState(false);
   const [showPassword, setShowPassword] = useState(false);

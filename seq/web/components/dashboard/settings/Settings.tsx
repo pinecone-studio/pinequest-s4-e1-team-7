@@ -8,7 +8,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { UserAvatar } from "../shared/UserAvatar";
 import { updateProfile, uploadAvatar } from "@/lib/auth-api";
 import { AVATAR_PRESET_KEY } from "../shared/ProfileAvatarButton";
-import { CameraIcon, MoonIcon, SunIcon, SpeakerWaveIcon, ArrowRightEndOnRectangleIcon, EyeIcon } from "@heroicons/react/24/outline";
+import { CameraIcon, MoonIcon, SunIcon, SpeakerWaveIcon, ArrowRightEndOnRectangleIcon, EyeIcon, ChatBubbleLeftRightIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { CheckIcon } from "@heroicons/react/24/solid";
 import { PageHeader } from "@/components/ui/PageHeader";
 
@@ -342,6 +342,30 @@ export function Settings() {
           ))}
         </div>
       </div>
+
+      {/* ── Admin (зөвхөн admin email-д харагдана) ── */}
+      {(process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "").split(",").map((s) => s.trim()).includes(user?.email ?? "") && (
+        <button
+          type="button"
+          onClick={() => router.push("/dashboard/admin")}
+          className="flex w-full items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)] mb-3"
+          style={card}
+        >
+          <ShieldCheckIcon className="h-5 w-5" style={{ color: "var(--olive)" }} />
+          <span style={{ color: "var(--text)" }}>Санал хүсэлтийн үр дүн</span>
+        </button>
+      )}
+
+      {/* ── Feedback ── */}
+      <button
+        type="button"
+        onClick={() => router.push("/dashboard/feedback")}
+        className="flex w-full items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)] mb-3"
+        style={card}
+      >
+        <ChatBubbleLeftRightIcon className="h-5 w-5" style={{ color: "var(--olive)" }} />
+        <span style={{ color: "var(--text)" }}>Санал хүсэлт өгөх</span>
+      </button>
 
       {/* ── Logout ── */}
       <button onClick={() => { logout(); router.push("/"); }}

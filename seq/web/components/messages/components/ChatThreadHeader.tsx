@@ -30,7 +30,10 @@ export function ChatThreadHeader({
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-opacity active:opacity-70 md:hidden"
         onClick={onClose}
         aria-label="Буцах"
-        style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
+        style={{
+          background: "var(--surface-2)",
+          border: "1px solid var(--border-c)",
+        }}
       >
         <ChevronLeftIcon className="h-5 w-5" style={{ color: "var(--text)" }} />
       </button>
@@ -54,8 +57,7 @@ export function ChatThreadHeader({
           {activePeer.name ?? "Хэрэглэгч"}
         </p>
         <p className="truncate text-[12px]" style={{ color: "var(--text-3)" }}>
-          {activePeer.isOnline ? "Онлайн" : "Офлайн"}
-          {activePeer.phone ? ` · ${activePeer.phone}` : activePeer.email ? ` · ${activePeer.email}` : ""}
+          {activePeer.isOnline ? "Онлайн" : "Оффлайн"}
         </p>
       </div>
       {!hideCall && (

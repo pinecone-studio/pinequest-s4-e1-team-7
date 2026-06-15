@@ -7,6 +7,7 @@ export type Env = {
   USER_NOTIFY?: DurableObjectNamespace;
   CLERK_WEBHOOK_SECRET?: string;
   JWT_SECRET?: string;
+  ADMIN_EMAIL?: string;
 };
 
 export const createDb = (env: Env) => drizzle(env.DB, { schema });
