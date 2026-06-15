@@ -93,6 +93,27 @@ export const conversationReads = sqliteTable(
   (t) => [primaryKey({ columns: [t.userId, t.convId] })],
 );
 
+export const feedback = sqliteTable("feedback", {
+  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  overallRating: integer("overall_rating").notNull(),
+  ratingTranslator: integer("rating_translator"),
+  ratingCall: integer("rating_call"),
+  ratingVoice: integer("rating_voice"),
+  ratingDict: integer("rating_dict"),
+  improveSelected: text("improve_selected").notNull().default("[]"),
+  recommend: text("recommend", { enum: ["yes", "maybe", "no"] }).notNull(),
+  comment: text("comment"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export type Feedback = typeof feedback.$inferSelect;
+export type NewFeedback = typeof feedback.$inferInsert;
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Translation = typeof translations.$inferSelect;

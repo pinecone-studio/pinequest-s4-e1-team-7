@@ -8,6 +8,7 @@ import { dictionaryRoute } from "./routes/dictionary";
 import { webhooksRoute } from "./routes/webhooks";
 import { authRoute } from "./routes/auth";
 import { chatRoute } from "./routes/chat";
+import { feedbackRoute } from "./routes/feedback";
 import type { Env } from "./db";
 import { handleChatWebSocket } from "./lib/chat-ws";
 import { UserNotify } from "./durable-objects/UserNotify";
@@ -33,7 +34,8 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>()
   .route("/api/translations", translationsRoute)
   .route("/api/signs", signsRoute)
   .route("/api/dictionary", dictionaryRoute)
-  .route("/api/webhooks", webhooksRoute);
+  .route("/api/webhooks", webhooksRoute)
+  .route("/api/feedback", feedbackRoute);
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
