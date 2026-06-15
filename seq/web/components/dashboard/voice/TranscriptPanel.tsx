@@ -97,7 +97,7 @@ export function TranscriptPanel({
             onClick={onCopy}
             disabled={!hasContent}
             aria-label="Бүгдийг хуулах"
-            className="flex h-11 w-11 items-center justify-center rounded-full transition-all duration-150 active:scale-90 active:opacity-70 disabled:opacity-30"
+            className="flex h-11 w-11 items-center justify-center rounded-full transition-all duration-150 hover:scale-105 hover:brightness-110 active:scale-90 active:opacity-70 disabled:opacity-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
           >
             <ClipboardDocumentIcon className="h-5 w-5" style={{ color: "var(--text-2)" }} />
@@ -113,14 +113,14 @@ export function TranscriptPanel({
               </span>
               <button
                 onClick={handleClear}
-                className="rounded-full px-3 py-1 text-[12px] font-bold transition-opacity active:opacity-70"
+                className="rounded-full px-3 py-1 text-[12px] font-bold transition-all duration-150 hover:brightness-110 active:scale-95 active:opacity-70"
                 style={{ background: "hsl(var(--destructive))", color: "#fff" }}
               >
                 Тийм
               </button>
               <button
                 onClick={() => setConfirmClear(false)}
-                className="rounded-full px-3 py-1 text-[12px] font-semibold transition-opacity active:opacity-70"
+                className="rounded-full px-3 py-1 text-[12px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-95 active:opacity-70"
                 style={{ background: "var(--surface)", border: "1px solid var(--border-c)", color: "var(--text-2)" }}
               >
                 Үгүй
@@ -131,7 +131,7 @@ export function TranscriptPanel({
               onClick={() => hasContent && setConfirmClear(true)}
               disabled={!hasContent}
               aria-label="Бичвэр устгах"
-              className="flex h-11 w-11 items-center justify-center rounded-full transition-all duration-150 active:scale-90 active:opacity-70 disabled:opacity-30"
+              className="flex h-11 w-11 items-center justify-center rounded-full transition-all duration-150 hover:scale-105 hover:brightness-110 active:scale-90 active:opacity-70 disabled:opacity-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
               style={{ background: "var(--surface-2)", border: "1px solid var(--border-c)" }}
             >
               <TrashIcon className="h-5 w-5" style={{ color: "var(--text-2)" }} />

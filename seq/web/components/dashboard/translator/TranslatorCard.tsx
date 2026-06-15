@@ -78,7 +78,7 @@ export function TranslatorCard({
             onClick={onSpeak}
             disabled={!detected}
             aria-label="Дуугаар унших"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all active:scale-90 disabled:opacity-30"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all duration-150 hover:scale-105 hover:brightness-110 active:scale-90 disabled:opacity-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
             style={speaking ? { background: "var(--olive)", border: "none" } : btnStyle}
           >
             <SpeakerWaveIcon className="h-5 w-5" style={{ color: speaking ? "#0d1e35" : "var(--text-2)" }} />

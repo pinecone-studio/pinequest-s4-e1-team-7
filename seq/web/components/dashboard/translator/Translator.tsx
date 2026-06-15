@@ -83,7 +83,7 @@ export function Translator() {
 
   return (
     <div
-      className="h-full overflow-y-auto overscroll-y-contain lg:flex lg:flex-col lg:overflow-hidden"
+      className="h-full overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:flex lg:flex-col lg:overflow-hidden"
       style={{ background: "var(--bg)" }}
     >
       <div className="mx-auto flex w-full max-w-lg flex-col px-4 pb-[max(calc(env(safe-area-inset-bottom)+5.5rem),6.5rem)] lg:h-full lg:max-h-full lg:max-w-none lg:overflow-hidden lg:px-10 lg:pb-4 xl:px-16">
