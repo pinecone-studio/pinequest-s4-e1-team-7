@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { useSignDetection } from "@/hooks/useSignDetection";
+import { speakMixedText } from "@/lib/speak-mixed";
 import { appendDetectedWord, shouldAcceptWord } from "@/lib/caption-utils";
 
 export function useTranslator() {
@@ -31,9 +32,12 @@ export function useTranslator() {
       setDetected((prev) => appendDetectedWord(prev, word));
       pushHistory("sign", word);
       if (settings.autoSpeak) {
-        speak(word, { ...settings, volume }).then((ok) => {
-          if (!ok) toast("warn", "Дуу тоглуулахад алдаа гарлаа", "speaker-wave");
-        });
+        void speakMixedText(word, (part) =>
+          speak(part, { ...settings, volume }).then((ok) => {
+            if (!ok) toast("warn", "Дуу тоглуулахад алдаа гарлаа", "speaker-wave");
+            return ok;
+          }),
+        );
       }
     },
     [speak, settings, volume, pushHistory, toast],
@@ -70,7 +74,7 @@ export function useTranslator() {
   useEffect(() => () => setRunning(false), []);
 
   const handleSpeak = useCallback(() => {
-    if (detected) speak(detected, { ...settings, volume });
+    if (detected) void speakMixedText(detected, (part) => speak(part, { ...settings, volume }));
   }, [detected, speak, settings, volume]);
 
   return {
