@@ -12,8 +12,8 @@ export const ARC_ITEMS = [
 export const STATS: Record<string, { title: string; big: string; bigLabel: string; rows: { label: string; value: string }[] }> = {
   overview: {
     title: "Нийгэмд нөлөөлөх нь",
-    big: "25,000+", bigLabel: "Дохионы хэлээр ярьдаг иргэд",
-    rows: [{ label: "Сонголгүй иргэд", value: "7,800+" }, { label: "Улсын хэмжээнд хэлмэрч", value: "<20" }],
+    big: "16,000+", bigLabel: "Дохионы хэлээр ярьдаг иргэд",
+    rows: [{ label: "Сонсголын бэрхшээлтэй иргэд", value: "7,800+" }, { label: "Улсын хэмжээнд хэлмэрч", value: "<20" }],
   },
   people: {
     title: "Сонсголын бэрхшээлтэй иргэд",

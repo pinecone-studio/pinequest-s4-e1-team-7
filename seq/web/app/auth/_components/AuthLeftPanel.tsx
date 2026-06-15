@@ -43,9 +43,9 @@ export const AuthLeftPanel = ({ mode }: { mode: "login" | "register" }) => (
 
     <div className="relative z-10 max-w-lg w-full mx-auto my-auto py-12">
       <h1 className="text-white text-2xl xl:text-3xl font-black leading-[1.2] tracking-tight mb-6">
-        Дохионы хэлийг бодит цагт хөрвүүлж{" "}
-        <span style={{ color: "var(--olive)" }}>мессеж бичин видео дуудлага хийх платформ</span>
-      </h1>
+        Дохионы хэлийг хөрвүүлж{" "}
+        <span style={{ color: "var(--olive)" }}> шууд видео болон дуудлага хийх платформ</span>
+    </h1>
 
       <div className="space-y-3">
         {STEPS.map(({ title }, i) => {

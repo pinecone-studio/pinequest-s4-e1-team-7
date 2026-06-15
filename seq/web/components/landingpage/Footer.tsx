@@ -13,13 +13,13 @@ export const Footer = () => (
       />
       <span
         className="select-none font-black"
-        style={{ fontSize: "clamp(1.4rem, 3vw, 2.8rem)", letterSpacing: "-0.03em" }}
+        style={{ fontSize: "clamp(1.4rem, 3vw, 2.8rem)", letterSpacing: "-0.03em", fontFamily: "var(--font-display)" }}
       >
         <span style={{ color: "var(--olive)" }}>Sign</span>
         <span style={{ color: "#fff" }}>Bridge</span>
       </span>
     </div>
-    <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+    <p className="text-[12px] font-bold" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "var(--font-display)" }}>
       © 2026 Sign Bridge
     </p>
   </footer>
