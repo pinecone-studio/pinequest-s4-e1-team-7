@@ -49,8 +49,8 @@ export const FeaturesSection = () => {
                     <ul className="flex flex-col gap-4">
                       {step.bullets.map((b, j) => (
                         <li key={j} className="flex items-start gap-3">
-                          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-black"
-                            style={{ background: "var(--olive)", color: "#0d1e35" }}>✓</span>
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full"
+                            style={{ background: "#facc15" }} />
                           <span className="text-[16px] leading-snug" style={{ color: "rgba(255,255,255,0.8)" }}>{b}</span>
                         </li>
                       ))}
@@ -127,14 +127,14 @@ export const FeaturesSection = () => {
               >
                 {step.title}
               </h3>
-              <p className="mb-9 leading-relaxed" style={{ fontSize: "clamp(16px,1.5vw,20px)", maxWidth: "42ch", color: "rgba(255,255,255,0.65)" }}>
+              <p className="mb-9 leading-relaxed" style={{ fontSize: "clamp(16px,1.5vw,20px)", maxWidth: "42ch", color: "rgba(255,255,255,0.65)", fontFamily: "var(--font-inter)" }}>
                 {step.desc}
               </p>
               <ul className="flex flex-col gap-5">
                 {step.bullets.map((b, j) => (
                   <li key={j} className="flex items-start gap-4">
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-black"
-                      style={{ background: "var(--olive)", color: "#0d1e35" }}>✓</span>
+                    <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full"
+                      style={{ background: "#facc15" }} />
                     <span style={{ fontSize: "clamp(15px,1.4vw,19px)", lineHeight: 1.5, color: "rgba(255,255,255,0.8)" }}>{b}</span>
                   </li>
                 ))}

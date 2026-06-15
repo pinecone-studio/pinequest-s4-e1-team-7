@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Geist, Montserrat } from "next/font/google";
+import { Geist, Montserrat, Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
 import { IncomingCallProvider } from "@/context/IncomingCallContext";
@@ -14,6 +14,11 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-display",
+  display: "swap",
+});
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -31,7 +36,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
         }}
       />
     </head>
-    <body className={cn(geist.variable, montserrat.variable)}>
+    <body className={cn(geist.variable, montserrat.variable, inter.variable)}>
       <AuthProvider>
         <ChatRealtimeProvider>
           <IncomingCallProvider>
