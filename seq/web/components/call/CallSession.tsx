@@ -441,7 +441,7 @@ export function CallSession({ roomId }: { roomId: string }) {
 
       {/* ── Mobile: caption history (video call only) ── */}
       {!audioOnly && (
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 md:hidden">
         <CallCaptionHistory
           entries={history}
           variant="mobile"
@@ -495,7 +495,7 @@ export function CallSession({ roomId }: { roomId: string }) {
       )}
 
       {/* ── Controls ── */}
-      <div className="shrink-0 z-40 px-3 pb-[max(env(safe-area-inset-bottom),16px)] pt-3 [background:var(--surface)] [border-top:1px_solid_var(--border-c)] md:absolute md:inset-x-0 md:bottom-0 md:px-6 md:pt-4 md:[background:transparent] md:[border-top:none]">
+      <div className="shrink-0 z-40 mb-6 px-3 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 [background:var(--surface)] [border-top:1px_solid_var(--border-c)] md:absolute md:inset-x-0 md:bottom-0 md:px-6 md:pt-8 md:pb-[max(env(safe-area-inset-bottom),16px)] md:[background:transparent] md:[border-top:none]">
         <CallControls onEnd={() => void leaveSession(true)} />
       </div>
     </div>

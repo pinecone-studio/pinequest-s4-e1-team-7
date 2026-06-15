@@ -100,7 +100,10 @@ export const TopNav = () => {
           {NAV.map(({ id, label, O, S }) => {
             const isActive = active === id;
             const disabled = chatOnly && id !== "call";
-            const href = id === "call" && chatOnly ? "/accessible/chat" : `/dashboard/${id}`;
+            const href =
+              id === "call" && chatOnly
+                ? "/accessible/chat"
+                : `/dashboard/${id}`;
             const Icon = isActive ? S : O;
 
             const inner = (
@@ -130,8 +133,9 @@ export const TopNav = () => {
                 href={href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]",
-                  !isActive && "hover:bg-[var(--glass-btn)] hover:-translate-y-px active:scale-95",
+                  "flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)] lg:px-3.5",
+                  !isActive &&
+                    "hover:bg-[var(--glass-btn)] hover:-translate-y-px active:scale-95",
                   isActive && "active:scale-[0.97]",
                 )}
                 style={
@@ -140,7 +144,8 @@ export const TopNav = () => {
                     : { color: "var(--text-3)" }
                 }
               >
-                {inner}
+                <Icon className="size-3.5" />
+                <span>{label}</span>
               </Link>
             );
           })}

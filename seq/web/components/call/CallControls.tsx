@@ -17,16 +17,15 @@ export function CallControls({ onEnd }: Props) {
             type="button"
             onClick={onEnd}
             aria-label="Дуудлага таслах"
-            className="flex h-14 w-14 items-center justify-center rounded-full transition-all duration-150 active:scale-95"
+            className="flex h-11 w-11 items-center justify-center rounded-full transition-all duration-150 active:scale-95 md:h-14 md:w-14"
             style={{
               background: "hsl(var(--destructive))",
               border: "1.5px solid hsl(var(--destructive)/0.7)",
               boxShadow: "0 4px 24px hsl(var(--destructive)/0.45)",
             }}
           >
-            <PhoneXMarkIcon className="h-6 w-6 text-white" />
+            <PhoneXMarkIcon className="h-5 w-5 text-white md:h-6 md:w-6" />
           </button>
-          <span className="text-[11px] text-white/60">Таслах</span>
         </div>
 
       </div>
