@@ -196,7 +196,6 @@ export function Translator() {
                   </>
                 )}
               </button>
-              {startStopButton}
             </div>
           </section>
 

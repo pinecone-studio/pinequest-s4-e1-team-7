@@ -136,20 +136,21 @@ export const Overview = () => {
       </div>
 
       <div
-        className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto
                    [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
-                   px-4 pt-3 pb-[max(calc(env(safe-area-inset-bottom)+4.5rem),5.5rem)]
-                   md:flex-row md:overflow-hidden md:gap-5 md:px-6 md:pb-5
+                   px-4 pb-[max(calc(env(safe-area-inset-bottom)+4.5rem),5.5rem)]
+                   md:overflow-hidden md:px-6 md:pb-5
                    lg:px-10 xl:px-14"
       >
-        <div className="order-2 flex flex-col gap-3 md:order-1 md:h-full md:w-1/2">
-          <div className="shrink-0">
-            <p className="text-[13px]" style={{ color: "var(--text-3)" }}>Сайн байна уу?</p>
-            <p className="mt-0.5 text-[20px] font-bold" style={{ color: "var(--text)" }}>
-              {displayName}
-            </p>
-          </div>
+        <div className="shrink-0 pt-3">
+          <p className="text-[13px]" style={{ color: "var(--text-3)" }}>Сайн байна уу?</p>
+          <p className="mt-0.5 text-[20px] font-bold" style={{ color: "var(--text)" }}>
+            {displayName}
+          </p>
+        </div>
 
+        <div className="flex min-h-0 flex-1 flex-col gap-3 pt-3 md:flex-row md:overflow-hidden md:gap-5">
+          <div className="order-2 flex flex-col gap-3 md:order-1 md:h-full md:w-1/2">
           {CARDS.map((card, i) => (
             <motion.div
               key={card.id}
@@ -210,10 +211,11 @@ export const Overview = () => {
               </Link>
             </motion.div>
           ))}
-        </div>
+          </div>
 
-        <div className="order-1 md:order-2 md:h-full md:w-1/2">
-          <HeroPillCluster />
+          <div className="order-1 md:order-2 md:h-full md:w-1/2 md:self-stretch">
+            <HeroPillCluster />
+          </div>
         </div>
       </div>
     </div>
