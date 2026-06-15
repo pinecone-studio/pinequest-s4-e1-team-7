@@ -10,7 +10,6 @@ export default async function DictPage({ searchParams }: Props) {
   const { cat } = await searchParams;
   const category = (cat as DictCategory | undefined) ?? "alphabet";
 
-  // "numbers" → "number" (server schema)
   const serverCategory = category === "numbers" ? "number" : "alphabet";
   const signs = await getSigns(serverCategory);
 

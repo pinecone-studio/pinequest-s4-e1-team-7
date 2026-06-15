@@ -5,7 +5,7 @@ import { useRef, useState, useEffect, useLayoutEffect, useCallback } from "react
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "@/context/AppContext";
-import { Upload, Trash2 } from "lucide-react";
+import { Upload } from "lucide-react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -14,7 +14,7 @@ import {
 import { DICT_CATEGORIES } from "@/lib/constants";
 import type { DictCategory } from "@/lib/constants";
 import type { SignEntry } from "@/lib/api";
-import { uploadSign, deleteSign } from "@/lib/api";
+import { uploadSign } from "@/lib/api";
 
 const ALPHABET = "АБВГДЕЁЖЗИЙКЛМНОӨПРСТУҮФХЦЧШЩЪЫЬЭЮЯ".split("");
 const NUMBERS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
@@ -267,16 +267,6 @@ export function Dictionary({
     }
   };
 
-  const handleDelete = async (sign: SignEntry) => {
-    try {
-      await deleteSign(sign.id);
-      setSigns((prev) => prev.filter((s) => s.id !== sign.id));
-      toast("info", `${sign.label} зураг устгалаа`, "trash");
-      router.refresh();
-    } catch {
-      toast("warn", "Устгахад алдаа гарлаа", "alert-triangle");
-    }
-  };
 
   const navBtnClass =
     "flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm transition-all duration-150 hover:scale-105 hover:brightness-110 active:scale-90 disabled:pointer-events-none disabled:opacity-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)] md:h-11 md:w-11";
@@ -337,33 +327,6 @@ export function Dictionary({
               : "var(--surface-2)",
           }}
         >
-          <div className="flex justify-end gap-1.5">
-            {sign && (
-              <>
-                <button
-                  title="Зураг солих"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    inputRefs.current[item]?.click();
-                  }}
-                  className="flex size-8 items-center justify-center rounded-xl bg-black/50 text-white hover:bg-black/70"
-                >
-                  <Upload className="size-3.5" />
-                </button>
-                <button
-                  title="Зураг устгах"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(sign);
-                  }}
-                  className="flex size-8 items-center justify-center rounded-xl bg-red-500/70 text-white hover:bg-red-600"
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
-              </>
-            )}
-          </div>
-
           <div className="flex items-end justify-between">
             <p
               className="text-[22px] font-bold leading-none md:text-[28px]"
@@ -439,7 +402,7 @@ export function Dictionary({
     >
       {/* Header + tabs — constrained width */}
       <div className="mx-auto w-full shrink-0 px-3 md:px-6 lg:px-10 xl:px-16">
-        <div className="flex items-center pb-1 pt-3 md:pb-2 md:pt-5">
+        <div className="flex items-center pb-4 pt-3 md:pb-6 md:pt-5">
           <button
             onClick={() => router.back()}
             aria-label="Буцах"
@@ -463,55 +426,59 @@ export function Dictionary({
           <div className="h-10 w-10" />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 pb-2 md:pb-3">
-          {DICT_CATEGORIES.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/dashboard/dict?cat=${cat.id}`}
-              className="rounded-full px-4 py-2 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)]"
+        <div className="flex flex-col gap-2 pb-2 min-[375px]:flex-row min-[375px]:items-center md:pb-3">
+          <div className="flex shrink-0 items-center gap-2">
+            {DICT_CATEGORIES.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/dashboard/dict?cat=${cat.id}`}
+                className="rounded-full px-3 py-2 text-[13px] font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--olive)] md:px-4"
+                style={{
+                  background:
+                    category === cat.id ? "var(--olive)" : "var(--surface-2)",
+                  color: category === cat.id ? "#0d1e35" : "var(--text-2)",
+                  border: `1px solid ${category === cat.id ? "var(--olive)" : "var(--border-c)"}`,
+                }}
+              >
+                {cat.label}
+              </Link>
+            ))}
+          </div>
+          <div className="flex min-w-0 items-center gap-2 min-[375px]:ml-auto">
+            <div
+              className="flex min-w-0 flex-1 items-center gap-2 rounded-full px-3 py-1.5"
               style={{
-                background:
-                  category === cat.id ? "var(--olive)" : "var(--surface-2)",
-                color: category === cat.id ? "#0d1e35" : "var(--text-2)",
-                border: `1px solid ${category === cat.id ? "var(--olive)" : "var(--border-c)"}`,
+                background: "var(--surface-2)",
+                border: "1px solid var(--border-c)",
               }}
             >
-              {cat.label}
-            </Link>
-          ))}
-          <div
-            className="ml-auto flex items-center gap-2 rounded-full px-3 py-1.5"
-            style={{
-              background: "var(--surface-2)",
-              border: "1px solid var(--border-c)",
-            }}
-          >
-            <MagnifyingGlassIcon
-              className="h-3.5 w-3.5 shrink-0"
+              <MagnifyingGlassIcon
+                className="h-3.5 w-3.5 shrink-0"
+                style={{ color: "var(--text-3)" }}
+              />
+              <input
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setActiveItem(0);
+                }}
+                placeholder="Хайх…"
+                className="min-w-0 flex-1 bg-transparent text-[12px] outline-none placeholder:opacity-50 min-[375px]:w-16 md:w-28"
+                style={{ color: "var(--text)" }}
+              />
+            </div>
+            <span
+              className="shrink-0 text-[12px]"
               style={{ color: "var(--text-3)" }}
-            />
-            <input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setActiveItem(0);
-              }}
-              placeholder="Хайх…"
-              className="w-20 bg-transparent text-[12px] outline-none placeholder:opacity-50 md:w-28"
-              style={{ color: "var(--text)" }}
-            />
+            >
+              {signs.length}/{items.length}
+            </span>
           </div>
-          <span
-            className="self-center text-[12px]"
-            style={{ color: "var(--text-3)" }}
-          >
-            {signs.length}/{items.length}
-          </span>
         </div>
       </div>
 
       {/* Card strip */}
-      <div className="flex min-h-0 flex-1 flex-col justify-start pt-1 pb-[max(calc(env(safe-area-inset-bottom)+4.25rem),5rem)] md:justify-center md:pb-4 md:pt-0">
+      <div className="flex min-h-0 flex-1 flex-col justify-center pt-6 pb-[max(calc(env(safe-area-inset-bottom)+4.25rem),5rem)] md:justify-center md:pb-4 md:pt-0">
         {isMobile ? (
           <div
             className="relative mx-auto touch-pan-y"

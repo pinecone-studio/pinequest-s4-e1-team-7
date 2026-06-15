@@ -209,7 +209,6 @@ export function MessagesApp({
     }
   }, [conversations, user?.id, routeConvId, pathname, router]);
 
-  // Mark open conversation as read on server when new messages arrive while viewing.
   useEffect(() => {
     if (!routeConvId) return;
 
@@ -267,9 +266,7 @@ export function MessagesApp({
   const applyPeerPresence = useCallback((userId: string, isOnline: boolean) => {
     setConversations((prev) =>
       prev.map((c) =>
-        c.peer.id === userId
-          ? { ...c, peer: { ...c.peer, isOnline } }
-          : c,
+        c.peer.id === userId ? { ...c, peer: { ...c.peer, isOnline } } : c,
       ),
     );
     setActivePeer((prev) =>
@@ -360,8 +357,7 @@ export function MessagesApp({
     void refreshConversations(!hasServerConversations);
     const poller = createAdaptivePoller(
       () => refreshConversations(true),
-      () =>
-        realtimeConnected ? CHAT_CONV_BACKUP_POLL_MS : CHAT_CONV_POLL_MS,
+      () => (realtimeConnected ? CHAT_CONV_BACKUP_POLL_MS : CHAT_CONV_POLL_MS),
     );
     poller.start();
     document.addEventListener("visibilitychange", poller.onVisibility);
@@ -575,32 +571,42 @@ export function MessagesApp({
     openChat(conv.id, conv.peer);
   };
 
-  const startWithPeer = useCallback(async (peer: ChatPeer) => {
-    const conv = await openConversation(peer.id);
-    setSearch("");
-    setSearchResults([]);
-    openChat(conv.id, conv.peer);
-  }, [openChat]);
+  const startWithPeer = useCallback(
+    async (peer: ChatPeer) => {
+      const conv = await openConversation(peer.id);
+      setSearch("");
+      setSearchResults([]);
+      openChat(conv.id, conv.peer);
+    },
+    [openChat],
+  );
 
-  const sendMessage = useCallback(async (body: string) => {
-    if (!activeId || !body.trim()) return;
-    setSending(true);
-    try {
-      const msg = await sendTextMessage(activeId, body.trim(), activePeer?.id);
-      shouldScrollToBottomRef.current = true;
-      setMessages((p) => {
-        const merged = mergeMessages(p, [msg]);
-        lastMessageIdRef.current =
-          merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
-        return merged;
-      });
-      setText("");
-      if (a11yMode) playVoice("илгээлээ");
-      void refreshConversations(true);
-    } finally {
-      setSending(false);
-    }
-  }, [activeId, activePeer?.id, a11yMode, refreshConversations]);
+  const sendMessage = useCallback(
+    async (body: string) => {
+      if (!activeId || !body.trim()) return;
+      setSending(true);
+      try {
+        const msg = await sendTextMessage(
+          activeId,
+          body.trim(),
+          activePeer?.id,
+        );
+        shouldScrollToBottomRef.current = true;
+        setMessages((p) => {
+          const merged = mergeMessages(p, [msg]);
+          lastMessageIdRef.current =
+            merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
+          return merged;
+        });
+        setText("");
+        if (a11yMode) playVoice("илгээлээ");
+        void refreshConversations(true);
+      } finally {
+        setSending(false);
+      }
+    },
+    [activeId, activePeer?.id, a11yMode, refreshConversations],
+  );
 
   const handleSend = useCallback(async () => {
     if (!text.trim() || sending) return;
@@ -655,32 +661,42 @@ export function MessagesApp({
     }
   };
 
-  const startCall = useCallback(async (opts?: { audioOnly?: boolean }) => {
-    if (!activeId || !activePeer) return;
-    markInCall();
-    const roomBody = encodeCallRoom(activeId, opts?.audioOnly);
-    try {
-      const msg = await sendCallInvite(activeId, roomBody, activePeer?.id);
-      shouldScrollToBottomRef.current = true;
-      setMessages((p) => {
-        const merged = mergeMessages(p, [msg]);
-        lastMessageIdRef.current =
-          merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
-        return merged;
-      });
-      void refreshConversations(true);
-    } catch {
-      /* still open call screen */
-    }
-    router.push(
-      buildCallPath({
-        roomId: activeId,
-        as: "host",
-        returnTo: buildChatPath(chatBasePath, activeId),
-        audioOnly: opts?.audioOnly,
-      }),
-    );
-  }, [activeId, activePeer, chatBasePath, markInCall, refreshConversations, router]);
+  const startCall = useCallback(
+    async (opts?: { audioOnly?: boolean }) => {
+      if (!activeId || !activePeer) return;
+      markInCall();
+      const roomBody = encodeCallRoom(activeId, opts?.audioOnly);
+      try {
+        const msg = await sendCallInvite(activeId, roomBody, activePeer?.id);
+        shouldScrollToBottomRef.current = true;
+        setMessages((p) => {
+          const merged = mergeMessages(p, [msg]);
+          lastMessageIdRef.current =
+            merged[merged.length - 1]?.id ?? lastMessageIdRef.current;
+          return merged;
+        });
+        void refreshConversations(true);
+      } catch {
+        /* still open call screen */
+      }
+      router.push(
+        buildCallPath({
+          roomId: activeId,
+          as: "host",
+          returnTo: buildChatPath(chatBasePath, activeId),
+          audioOnly: opts?.audioOnly,
+        }),
+      );
+    },
+    [
+      activeId,
+      activePeer,
+      chatBasePath,
+      markInCall,
+      refreshConversations,
+      router,
+    ],
+  );
 
   const startRecording = async () => {
     if (!activeId || recording) return;
@@ -726,16 +742,24 @@ export function MessagesApp({
     recorderRef.current?.stop();
     recorderRef.current = null;
   };
-
-  // STT: mic button → speech recognized → message sent directly
-  const handleSttResult = useCallback((t: string, final: boolean) => {
-    if (final && t.trim()) {
-      void sendMessage(t.trim());
-    }
-  }, [sendMessage]);
-  const { listening, start: startStt, stop: stopStt } = useSpeechRecognition(handleSttResult);
+  const handleSttResult = useCallback(
+    (t: string, final: boolean) => {
+      if (final && t.trim()) {
+        void sendMessage(t.trim());
+      }
+    },
+    [sendMessage],
+  );
+  const {
+    listening,
+    start: startStt,
+    stop: stopStt,
+  } = useSpeechRecognition(handleSttResult);
   const toggleStt = useCallback(async () => {
-    if (listening) { stopStt(); return; }
+    if (listening) {
+      stopStt();
+      return;
+    }
     await startStt();
   }, [listening, startStt, stopStt]);
 
@@ -771,7 +795,6 @@ export function MessagesApp({
       className="flex h-full min-h-0 flex-col"
       style={{ background: "var(--bg)" }}
     >
-      {/* Mobile page header — outside all cards, identical pattern to Translator */}
       {!showMobileChat && (
         <div className="shrink-0 px-4 md:hidden">
           <PageHeader
@@ -894,22 +917,22 @@ export function MessagesApp({
               />
               {a11yMode && <A11yThreadToolbar />}
               {!hideInputFooter && (
-              <ChatInputFooter
-                text={text}
-                sending={sending}
-                listening={listening}
-                editingId={editingId}
-                editText={editText}
-                savingEdit={savingEdit}
-                editError={editError}
-                editInputRef={editInputRef}
-                onTextChange={setText}
-                onSend={() => void handleSend()}
-                onToggleStt={() => void toggleStt()}
-                onCancelEdit={cancelEdit}
-                onEditTextChange={setEditText}
-                onSaveEdit={() => void handleSaveEdit()}
-              />
+                <ChatInputFooter
+                  text={text}
+                  sending={sending}
+                  listening={listening}
+                  editingId={editingId}
+                  editText={editText}
+                  savingEdit={savingEdit}
+                  editError={editError}
+                  editInputRef={editInputRef}
+                  onTextChange={setText}
+                  onSend={() => void handleSend()}
+                  onToggleStt={() => void toggleStt()}
+                  onCancelEdit={cancelEdit}
+                  onEditTextChange={setEditText}
+                  onSaveEdit={() => void handleSaveEdit()}
+                />
               )}
             </>
           )}

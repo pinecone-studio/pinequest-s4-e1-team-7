@@ -59,28 +59,24 @@ export function ChatThreadHeader({
         </p>
       </div>
       {!hideCall && (
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-5">
           <button
             type="button"
             onClick={onAudioCall}
             aria-label="Аудио дуудлага"
-            className="flex h-11 w-11 items-center justify-center rounded-full transition-transform active:scale-95"
-            style={{
-              background: "var(--surface-2)",
-              border: "1.5px solid var(--olive)",
-              color: "var(--olive)",
-            }}
+            className="flex items-center justify-center transition-transform active:scale-95"
+            style={{ color: "var(--olive)" }}
           >
-            <PhoneIcon className="h-5 w-5" />
+            <PhoneIcon className="h-6 w-6" />
           </button>
           <button
             type="button"
             onClick={onVideoCall}
             aria-label="Видео дуудлага"
-            className="flex h-11 w-11 items-center justify-center rounded-full transition-transform active:scale-95"
-            style={{ background: "var(--olive)", color: "#0d1e35" }}
+            className="flex items-center justify-center transition-transform active:scale-95"
+            style={{ color: "var(--olive)" }}
           >
-            <VideoCameraIcon className="h-5 w-5" />
+            <VideoCameraIcon className="h-6 w-6" />
           </button>
         </div>
       )}
