@@ -143,9 +143,12 @@ function callPreview(
   callDurationMs: number | null,
   textBody?: string,
 ): string {
+  const audioCall = !!textBody?.endsWith("::audio");
   switch (kind) {
     case "call_invite":
-      return `📞 ${senderLabel} дуудлага хийлээ`;
+      return audioCall
+        ? `📞 ${senderLabel} аудио дуудлага хийлээ`
+        : `📹 ${senderLabel} видео дуудлага хийлээ`;
     case "call_answered":
       return `✅ ${senderLabel} хариуллаа`;
     case "call_declined":

@@ -1,6 +1,6 @@
 "use client";
 
-import { VideoCameraIcon } from "@heroicons/react/24/solid";
+import { PhoneIcon, VideoCameraIcon } from "@heroicons/react/24/solid";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { UserAvatar } from "@/components/dashboard/shared/UserAvatar";
 import type { ChatPeer } from "@/lib/chat-api";
@@ -8,11 +8,18 @@ import type { ChatPeer } from "@/lib/chat-api";
 type Props = {
   activePeer: ChatPeer;
   onClose: () => void;
-  onCall: () => void;
+  onVideoCall: () => void;
+  onAudioCall: () => void;
   hideCall?: boolean;
 };
 
-export function ChatThreadHeader({ activePeer, onClose, onCall, hideCall }: Props) {
+export function ChatThreadHeader({
+  activePeer,
+  onClose,
+  onVideoCall,
+  onAudioCall,
+  hideCall,
+}: Props) {
   return (
     <header
       className="flex shrink-0 items-center gap-3 border-b px-4 py-3"
@@ -52,15 +59,30 @@ export function ChatThreadHeader({ activePeer, onClose, onCall, hideCall }: Prop
         </p>
       </div>
       {!hideCall && (
-      <button
-        type="button"
-        onClick={onCall}
-        aria-label="Дуудлага"
-        className="flex h-11 w-11 items-center justify-center rounded-full transition-transform active:scale-95"
-        style={{ background: "var(--olive)", color: "#0d1e35" }}
-      >
-        <VideoCameraIcon className="h-5 w-5" />
-      </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={onAudioCall}
+            aria-label="Аудио дуудлага"
+            className="flex h-11 w-11 items-center justify-center rounded-full transition-transform active:scale-95"
+            style={{
+              background: "var(--surface-2)",
+              border: "1.5px solid var(--olive)",
+              color: "var(--olive)",
+            }}
+          >
+            <PhoneIcon className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={onVideoCall}
+            aria-label="Видео дуудлага"
+            className="flex h-11 w-11 items-center justify-center rounded-full transition-transform active:scale-95"
+            style={{ background: "var(--olive)", color: "#0d1e35" }}
+          >
+            <VideoCameraIcon className="h-5 w-5" />
+          </button>
+        </div>
       )}
     </header>
   );

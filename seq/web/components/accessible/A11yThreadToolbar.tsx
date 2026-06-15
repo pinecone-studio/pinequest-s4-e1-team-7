@@ -4,6 +4,7 @@ import {
   PhoneIcon,
   MicrophoneIcon,
   PencilSquareIcon,
+  ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { useA11yNav, type ThreadAction } from "@/lib/a11y-nav-context";
@@ -13,6 +14,7 @@ const ACTIONS: { id: ThreadAction; label: string; Icon: typeof PhoneIcon }[] = [
   { id: "call", label: "Дуудлага", Icon: PhoneIcon },
   { id: "voice", label: "Дуу", Icon: MicrophoneIcon },
   { id: "typing", label: "Бичих", Icon: PencilSquareIcon },
+  { id: "history", label: "Түүх", Icon: ChatBubbleLeftRightIcon },
 ];
 
 /** Чат дотор — идэвхтэй үйлдлийг харуулна */

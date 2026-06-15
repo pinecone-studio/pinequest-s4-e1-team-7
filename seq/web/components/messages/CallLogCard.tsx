@@ -3,13 +3,14 @@
 import {
   ArrowDownLeftIcon,
   ArrowUpRightIcon,
+  PhoneIcon,
   TrashIcon,
   VideoCameraIcon,
   VideoCameraSlashIcon,
 } from "@heroicons/react/24/solid";
 import { useIncomingCall } from "@/context/IncomingCallContext";
 import type { CallLogEntry } from "@/lib/call-log";
-import { formatCallDurationShort } from "@/lib/call-log";
+import { callLogTitle, formatCallDurationShort } from "@/lib/call-log";
 import type { ChatMessage, ChatPeer } from "@/lib/chat-api";
 import { cn } from "@/lib/utils";
 
@@ -46,14 +47,21 @@ export function CallLogCard({
 }: {
   entry: CallLogEntry;
   peer: ChatPeer;
-  onCallAgain: () => void;
+  onCallAgain: (audioOnly: boolean) => void;
   onDelete: () => void;
 }) {
   const { joinCall } = useIncomingCall();
   const peerName = peer.name ?? peer.email ?? "Хэрэглэгч";
   const subtitle = statusLabel(entry);
   const isBad = entry.status === "missed" || entry.status === "declined";
-  const Icon = isBad ? VideoCameraSlashIcon : VideoCameraIcon;
+  const title = callLogTitle(entry);
+  const Icon = isBad
+    ? entry.audioOnly
+      ? PhoneIcon
+      : VideoCameraSlashIcon
+    : entry.audioOnly
+      ? PhoneIcon
+      : VideoCameraIcon;
   const showOutgoingBadge = entry.outgoing && !isBad;
   const showIncomingBadge = !entry.outgoing && !isBad;
 
@@ -61,7 +69,7 @@ export function CallLogCard({
     const msg = entry.inviteMsg;
     joinCall({
       conversationId: entry.conversationId,
-      roomId: entry.roomId,
+      roomId: msg.body ?? entry.roomId,
       messageId: msg.id,
       createdAt: msg.createdAt,
       peer: {
@@ -106,7 +114,7 @@ export function CallLogCard({
             <div className="flex items-start justify-between gap-1">
               <div className="flex min-w-0 items-center gap-1">
                 <p className="truncate text-[13px] font-bold leading-none" style={{ color: "var(--text)" }}>
-                  Видео дуудлага
+                  {title}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-0.5">
@@ -148,7 +156,7 @@ export function CallLogCard({
         ) : (
           <button
             type="button"
-            onClick={onCallAgain}
+            onClick={() => onCallAgain(entry.audioOnly)}
             className="w-full border-t py-1.5 text-[12px] font-semibold transition-colors hover:bg-[var(--surface-2)]"
             style={{ borderColor: "var(--border-c)", color: "var(--text)" }}
           >

@@ -10,6 +10,8 @@ type Props = {
   onSend?: () => void;
   onBack: () => void;
   label?: string;
+  /** Нээгдэх үед тоглуулах заавар (preload дуусаагүй байсан ч ажиллана) */
+  enterVoice?: string;
 };
 
 const SWIPE_THRESHOLD = 50;
@@ -25,11 +27,11 @@ const SWIPE_THRESHOLD = 50;
  *
  * Chorded multi-touch: олон бүс зэрэг дарна → бүгд хуруугаа авах үед decode.
  *
- * Swipe (landscape-д):
- *   1 хуруу баруун → зай
- *   1 хуруу зүүн  → backspace
- *   2 хуруу давхар товш → илгээх
- *   2 хуруу зүүн  → буцах
+ * Swipe (дэлгэцийн координат — 1 хуруу):
+ *   дээш  → зай
+ *   доош  → backspace
+ *   баруун → илгээх (хоосон бол буцах)
+ *   зүүн  → буцах
  */
 export function BrailleInput({
   value,
@@ -37,6 +39,7 @@ export function BrailleInput({
   onSend,
   onBack,
   label = "Брайль",
+  enterVoice,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [visualDots, setVisualDots] = useState<Set<BrailleDots>>(new Set());
@@ -47,7 +50,12 @@ export function BrailleInput({
 
   const touchedDots = useRef<Set<BrailleDots>>(new Set());
   const touchStarts = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const twoFingerLastTap = useRef(0);
+
+  useEffect(() => {
+    if (!enterVoice) return;
+    const t = window.setTimeout(() => playVoice(enterVoice), 80);
+    return () => clearTimeout(t);
+  }, [enterVoice]);
 
   // Orientation lock + fallback CSS rotation
   useEffect(() => {
@@ -69,10 +77,6 @@ export function BrailleInput({
       stopVoice();
     };
   }, []);
-
-  useEffect(() => {
-    playVoice("Бичих");
-  }, [label]);
 
   /**
    * Touch цэгийг брайль бүс (dot) рүү хөрвүүлнэ.
@@ -178,43 +182,33 @@ export function BrailleInput({
       touchedDots.current.clear();
       setVisualDots(new Set());
 
-      if (maxMove >= SWIPE_THRESHOLD) {
+      if (maxMove >= SWIPE_THRESHOLD && fingerCount === 1) {
         const adx = Math.abs(swipeDx);
         const ady = Math.abs(swipeDy);
-        // CSS -90deg: landscape X (баруун/зүүн) = portrait Y (дээш/доош)
-        // isLandscape: шууд portrait/landscape X ашиглана
-        const effH = isLandscape ? swipeDx : -swipeDy; // +→ landscape баруун
-        const effAH = Math.abs(effH);
-        const effV = isLandscape ? swipeDy : swipeDx;
-        const effAV = Math.abs(effV);
 
-        if (fingerCount === 1 && effAH > effAV) {
-          if (effH > 0) {
+        if (ady > adx) {
+          if (swipeDy < 0) {
             onChange(`${value} `);
-          } else {
-            if (value.length > 0) {
-              onChange(value.slice(0, -1));
-            }
+            playVoice("зай");
+          } else if (value.length > 0) {
+            onChange(value.slice(0, -1));
+            playVoice("хасах");
           }
-        } else if (fingerCount === 2 && effAH > effAV && effH < 0) {
+        } else if (swipeDx > 0) {
+          if (value.trim() && onSend) {
+            onSend();
+          } else {
+            onBack();
+            playVoice("Буцлаа");
+          }
+        } else {
           onBack();
           playVoice("Буцлаа");
         }
         return;
       }
 
-      if (fingerCount === 2 && maxMove < SWIPE_THRESHOLD) {
-        const now = Date.now();
-        if (now - twoFingerLastTap.current < 440) {
-          twoFingerLastTap.current = 0;
-          if (onSend && value.trim()) {
-            onSend();
-          }
-        } else {
-          twoFingerLastTap.current = now;
-        }
-        return;
-      }
+      if (maxMove >= SWIPE_THRESHOLD) return;
 
       commitDots(snap);
     }
