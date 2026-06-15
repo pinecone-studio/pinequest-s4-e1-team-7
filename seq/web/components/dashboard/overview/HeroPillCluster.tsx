@@ -22,14 +22,14 @@ type CircleDef = {
 };
 
 const PILLS: PillDef[] = [
-  { text: "Дохионоос яриа руу",     sent: true,  rot: -14, pos: { top: "4%",  right: "5%" },  fp: { y: 4, wobble: 1.6, dur: 4.4, delay: 0.0 } },
-  { text: "Яриаг бичвэр болгох",    sent: false, rot:  -8, pos: { top: "12%", left:  "8%" },  fp: { y: 5, wobble: 1.2, dur: 5.1, delay: 0.5 } },
-  { text: "Монгол дохионы хэл",     sent: true,  rot: -17, pos: { top: "21%", right: "8%" },  fp: { y: 3, wobble: 1.8, dur: 4.6, delay: 1.0 }, mobileHide: true },
-  { text: "Бодит цагийн орчуулга",  sent: false, rot:   7, pos: { top: "30%", left:  "6%" },  fp: { y: 5, wobble: 1.4, dur: 5.4, delay: 0.3 }, mobileHide: true },
-  { text: "Гарын үсгийн толь",      sent: true,  rot: -11, pos: { top: "50%", right: "5%" },  fp: { y: 4, wobble: 1.6, dur: 4.8, delay: 0.7 } },
-  { text: "Хэл хоорондын холбоо",   sent: false, rot:  13, pos: { top: "60%", left:  "7%" },  fp: { y: 5, wobble: 1.2, dur: 5.6, delay: 1.3 }, mobileHide: true },
-  { text: "Дохионы илэрхийлэл",     sent: true,  rot:  -8, pos: { top: "72%", right: "6%" },  fp: { y: 3, wobble: 1.8, dur: 4.2, delay: 0.2 } },
-  { text: "Толь бичгийн хэсэг",     sent: false, rot:  -4, pos: { top: "81%", left: "10%" },  fp: { y: 4, wobble: 1.4, dur: 5.0, delay: 0.9 }, mobileHide: true },
+  { text: "Дохионоос яриа руу",     sent: true,  rot: -12, pos: { top: "4%",  right: "5%" },  fp: { y: 4, wobble: 1.6, dur: 4.4, delay: 0.0 } },
+  { text: "Яриаг бичвэр болгох",    sent: false, rot:  -6, pos: { top: "13%", left:  "8%" },  fp: { y: 5, wobble: 1.2, dur: 5.1, delay: 0.5 } },
+  { text: "Монгол дохионы хэл",     sent: true,  rot: -14, pos: { top: "22%", right: "8%" },  fp: { y: 3, wobble: 1.8, dur: 4.6, delay: 1.0 }, mobileHide: true },
+  { text: "Бодит цагийн орчуулга",  sent: false, rot:   6, pos: { top: "31%", left:  "6%" },  fp: { y: 5, wobble: 1.4, dur: 5.4, delay: 0.3 }, mobileHide: true },
+  { text: "Гарын үсгийн толь",      sent: true,  rot: -10, pos: { top: "50%", right: "5%" },  fp: { y: 4, wobble: 1.6, dur: 4.8, delay: 0.7 } },
+  { text: "Хэл хоорондын холбоо",   sent: false, rot:  11, pos: { top: "60%", left:  "7%" },  fp: { y: 5, wobble: 1.2, dur: 5.6, delay: 1.3 }, mobileHide: true },
+  { text: "Дохионы илэрхийлэл",     sent: true,  rot:  -7, pos: { top: "70%", right: "6%" },  fp: { y: 3, wobble: 1.8, dur: 4.2, delay: 0.2 } },
+  { text: "Толь бичгийн хэсэг",     sent: false, rot:  -3, pos: { top: "79%", left: "10%" },  fp: { y: 4, wobble: 1.4, dur: 5.0, delay: 0.9 }, mobileHide: true },
 ];
 
 const CIRCLES: CircleDef[] = [
@@ -40,16 +40,16 @@ const CIRCLES: CircleDef[] = [
 const PILL_BASE: CSSProperties = {
   display: "block",
   fontFamily: "var(--font-sans)",
-  fontSize: "clamp(0.88rem, 1.55vw, 1.15rem)",
+  fontSize: "13px",
   fontWeight: 600,
-  lineHeight: 1.2,
-  borderRadius: "18px",
-  padding: "9px 18px",
+  lineHeight: 1.3,
+  borderRadius: "10px",
+  padding: "6px 13px",
   whiteSpace: "nowrap",
   userSelect: "none",
 };
 const SENT: CSSProperties = { background: "#f6c945", color: "#0d1b2a" };
-const RECV: CSSProperties = { background: "#1c2d42", color: "#e0eaf4" };
+const RECV: CSSProperties = { background: "var(--surface-2)", color: "var(--text)", border: "1px solid var(--border-c)" };
 
 export const HeroPillCluster = () => {
   const reduce = useReducedMotion();
