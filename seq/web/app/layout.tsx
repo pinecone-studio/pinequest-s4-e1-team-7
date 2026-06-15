@@ -23,7 +23,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Sign Bridge — Realtime",
+  title: "Sign Bridge",
   description: "Монгол дохионы хэлнээс шууд хөрвүүлэгч",
   icons: {
     icon: "/images/metalogo.png",
