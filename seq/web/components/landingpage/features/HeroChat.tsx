@@ -1,5 +1,5 @@
 "use client";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { m, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { MicrophoneIcon } from "@heroicons/react/24/outline";
 const MicIcon = MicrophoneIcon;
@@ -22,7 +22,7 @@ function Dots() {
   return (
     <span className="flex items-center gap-[3px] px-3.5 py-3">
       {[0, 1, 2].map((i) => (
-        <motion.span key={i} className="block rounded-full"
+        <m.span key={i} className="block rounded-full"
           style={{ width: 6, height: 6, background: "rgba(255,255,255,0.5)" }}
           animate={{ opacity: [0.25, 1, 0.25] }}
           transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.27, ease: "easeInOut" }}
@@ -35,7 +35,7 @@ function Dots() {
 function Bubble({ msg }: { msg: Msg }) {
   const isMe = msg.sender === "me";
   return (
-    <motion.div className={`flex items-center gap-2${isMe ? " flex-row-reverse" : ""}`}
+    <m.div className={`flex items-center gap-2${isMe ? " flex-row-reverse" : ""}`}
       initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}>
   
@@ -54,7 +54,7 @@ function Bubble({ msg }: { msg: Msg }) {
       }}>
         {msg.text}
       </p>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -125,7 +125,7 @@ export function HeroChat({ active }: { active: boolean }) {
           {shown.map((msg) => <Bubble key={msg.id} msg={msg} />)}
           <AnimatePresence>
             {typing && (
-              <motion.div key="typing" className="flex items-end gap-2"
+              <m.div key="typing" className="flex items-end gap-2"
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 4 }} transition={{ duration: 0.22 }}>
                 <div style={{ width: 32, height: 32, flexShrink: 0 }}>
@@ -136,7 +136,7 @@ export function HeroChat({ active }: { active: boolean }) {
                 <div style={{ borderRadius: "18px 18px 18px 4px", background: "#1c2733" }}>
                   <Dots />
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
           <div ref={bottomRef} />
