@@ -24,7 +24,7 @@ export function PageHeader({ title, right }: Props) {
       >
         {title}
       </h1>
-      <div className="flex h-10 w-10 items-center justify-center">{right}</div>
+      <div className="flex h-10 min-w-[2.5rem] items-center justify-end">{right}</div>
     </div>
   );
 }

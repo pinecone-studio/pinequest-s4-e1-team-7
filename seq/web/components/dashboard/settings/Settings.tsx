@@ -344,7 +344,7 @@ export function Settings() {
       </div>
 
       {/* ── Admin (зөвхөн admin email-д харагдана) ── */}
-      {user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL && (
+      {(process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "").split(",").map((s) => s.trim()).includes(user?.email ?? "") && (
         <button
           type="button"
           onClick={() => router.push("/dashboard/admin")}

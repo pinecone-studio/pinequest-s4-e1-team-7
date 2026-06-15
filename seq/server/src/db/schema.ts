@@ -93,6 +93,14 @@ export const conversationReads = sqliteTable(
   (t) => [primaryKey({ columns: [t.userId, t.convId] })],
 );
 
+export const feedbackConfig = sqliteTable("feedback_config", {
+  id: integer("id").primaryKey().default(1),
+  config: text("config").notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 export const feedback = sqliteTable("feedback", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   userId: text("user_id")

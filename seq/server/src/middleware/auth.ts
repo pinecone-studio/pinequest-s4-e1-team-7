@@ -9,7 +9,9 @@ export type AuthUser = {
   phone: string;
 };
 
-export async function requireAuth(c: Context<{ Bindings: Env }>, next: Next) {
+export type AuthEnv = { Bindings: Env; Variables: { user: AuthUser } };
+
+export async function requireAuth(c: Context<AuthEnv>, next: Next) {
   const header = c.req.header("Authorization");
   const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
   if (!token) return c.json({ error: "Нэвтрээгүй" }, 401);
@@ -28,6 +30,6 @@ export async function requireAuth(c: Context<{ Bindings: Env }>, next: Next) {
   await next();
 }
 
-export function getAuthUser(c: Context<{ Bindings: Env }>): AuthUser {
-  return c.get("user") as AuthUser;
+export function getAuthUser(c: Context<AuthEnv>): AuthUser {
+  return c.get("user");
 }
