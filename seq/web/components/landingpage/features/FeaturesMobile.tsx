@@ -24,14 +24,14 @@ export const FeaturesMobile = () => {
           style={{ fontSize: "clamp(1.5rem, 6vw, 2.4rem)", lineHeight: 0.92, letterSpacing: "-0.02em", color: "#fff" }}>
           {STEPS[0].title}
         </h3>
-        <p className="mb-5 text-[14px] leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
+        <p className="mb-5 text-[14px] leading-relaxed" style={{ color: "rgba(255,255,255,0.65)", fontFamily: "var(--font-inter)" }}>
           {STEPS[0].desc}
         </p>
         <ul className="mb-8 flex flex-col gap-3">
           {STEPS[0].bullets.map((b, j) => (
             <li key={j} className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-black"
-                style={{ background: "var(--olive)", color: "#0d1e35" }}>✓</span>
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full"
+                style={{ background: "#facc15" }} />
               <span className="text-[14px] leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>{b}</span>
             </li>
           ))}
@@ -70,12 +70,12 @@ export const FeaturesMobile = () => {
                     <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.35em]" style={{ color: "var(--olive)" }}>
                       Онцлог {step.tag}
                     </p>
-                    <p className="mb-4 text-[14px] leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>{step.desc}</p>
+                    <p className="mb-4 text-[14px] leading-relaxed" style={{ color: "rgba(255,255,255,0.65)", fontFamily: "var(--font-inter)" }}>{step.desc}</p>
                     <ul className="flex flex-col gap-3">
                       {step.bullets.map((b, j) => (
                         <li key={j} className="flex items-start gap-3">
-                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-black"
-                            style={{ background: "var(--olive)", color: "#0d1e35" }}>✓</span>
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full"
+                            style={{ background: "#facc15" }} />
                           <span className="text-[14px] leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>{b}</span>
                         </li>
                       ))}
