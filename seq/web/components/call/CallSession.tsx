@@ -423,6 +423,13 @@ export function CallSession({ roomId }: { roomId: string }) {
         onBack={() => void leaveSession(true)}
         ttsEnabled={ttsEnabled}
         onTtsToggle={() => setTtsEnabled((v) => !v)}
+        camMuted={camMuted}
+        voiceListening={listening}
+        voiceSupported={supported}
+        hideCamera={audioOnly}
+        hideVoice={audioOnly}
+        onCamToggle={handleCamToggle}
+        onVoiceToggle={handleVoiceToggle}
       />
 
       {(modelError || modelLoading) && connected && !audioOnly && (
@@ -451,16 +458,7 @@ export function CallSession({ roomId }: { roomId: string }) {
 
       {/* ── Controls ── */}
       <div className="shrink-0 z-40 px-3 pb-[max(env(safe-area-inset-bottom),16px)] pt-3 [background:var(--surface)] [border-top:1px_solid_var(--border-c)] md:absolute md:inset-x-0 md:bottom-0 md:px-6 md:pt-4 md:[background:transparent] md:[border-top:none]">
-        <CallControls
-          camMuted={camMuted}
-          voiceListening={listening}
-          voiceSupported={supported}
-          hideCamera={audioOnly}
-          hideVoice={audioOnly}
-          onCamToggle={handleCamToggle}
-          onVoiceToggle={handleVoiceToggle}
-          onEnd={() => void leaveSession(true)}
-        />
+        <CallControls onEnd={() => void leaveSession(true)} />
       </div>
     </div>
   );
