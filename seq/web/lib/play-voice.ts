@@ -52,6 +52,7 @@ const VOICE_MAP: Record<string, string | VoiceFile> = {
   тав: "тав",
   зургаа: "зургаа",
   долоо: "долоо",
+  "pinecone-ии": "pinecone-ии",
 };
 
 function resolveVoiceEntry(value: string | VoiceFile): VoiceFile {
@@ -154,6 +155,28 @@ export function playVoice(text: string): void {
   audio.onended = () => {
     if (currentAudio === audio) currentAudio = null;
   };
+}
+
+/** playVoice-ийн дуусахыг хүлээнэ (Chimege-тэй дараалалд тоглуулахад) */
+export function playVoiceAsync(text: string): Promise<void> {
+  if (typeof window === "undefined" || !text) return Promise.resolve();
+
+  const src = resolvePlaySrc(text);
+  if (!src) return Promise.resolve();
+
+  stopVoice();
+
+  return new Promise((resolve) => {
+    const audio = new Audio(src);
+    currentAudio = audio;
+    const done = () => {
+      if (currentAudio === audio) currentAudio = null;
+      resolve();
+    };
+    audio.onended = done;
+    audio.onerror = done;
+    audio.play().catch(done);
+  });
 }
 
 /** Тохирох аудиог loop-оор тоглуулна (duудлага хүлээх гэх мэт) */

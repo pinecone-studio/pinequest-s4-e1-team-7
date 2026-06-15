@@ -18,6 +18,7 @@ import { sendCallEnded, fetchMessages } from "@/lib/chat-api";
 import { useChatRealtime } from "@/context/ChatRealtimeContext";
 import { CALL_DECLINE_POLL_MS, createAdaptivePoller } from "@/lib/poll-schedule";
 import { releaseAllCameras } from "@/lib/camera-registry";
+import { speakMixedText } from "@/lib/speak-mixed";
 import { playVoiceLoop, stopAllVoice, stopVoiceLoop } from "@/lib/play-voice";
 import { releaseMediaStream } from "@/lib/video-utils";
 import { VideoCameraSlashIcon, PhoneIcon } from "@heroicons/react/24/solid";
@@ -92,7 +93,9 @@ export function CallSession({ roomId }: { roomId: string }) {
       theirSignTsTimerRef.current = setTimeout(() => {
         const text = theirSignAccRef.current;
         theirSignAccRef.current = "";
-        if (ttsEnabledRef.current && text.trim()) void ttsSpeak(text, { rate: 1, gender: "female" });
+        if (ttsEnabledRef.current && text.trim()) {
+          void speakMixedText(text, (part) => ttsSpeak(part, { rate: 1, gender: "female" }));
+        }
       }, 1000);
     },
     [onTheirCaption, ttsSpeak],
@@ -101,7 +104,9 @@ export function CallSession({ roomId }: { roomId: string }) {
   const handleTheirPhrase = useCallback(
     (text: string) => {
       onTheirPhrase(text);
-      if (ttsEnabledRef.current && text.trim()) void ttsSpeak(text, { rate: 1, gender: "female" });
+      if (ttsEnabledRef.current && text.trim()) {
+        void speakMixedText(text, (part) => ttsSpeak(part, { rate: 1, gender: "female" }));
+      }
     },
     [onTheirPhrase, ttsSpeak],
   );

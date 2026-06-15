@@ -6,6 +6,7 @@ import {
   type CallLogEntry,
 } from "@/lib/call-log";
 import { playVoice, stopAllVoice } from "@/lib/play-voice";
+import { speakMixedText } from "@/lib/speak-mixed";
 
 export type HistoryItem =
   | { type: "message"; msg: ChatMessage }
@@ -116,6 +117,11 @@ export function stopHistoryPlayback() {
 }
 
 export async function speakChimege(text: string): Promise<boolean> {
+  if (typeof window === "undefined" || !text.trim()) return false;
+  return speakMixedText(text, speakChimegePlain);
+}
+
+async function speakChimegePlain(text: string): Promise<boolean> {
   if (typeof window === "undefined" || !text.trim()) return false;
 
   stopChimege();
