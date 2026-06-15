@@ -884,8 +884,7 @@ export function MessagesApp({
                 className="max-w-sm text-[14px] leading-relaxed"
                 style={{ color: "var(--text-3)" }}
               >
-                Нэр эсвэл утасны дугаараар хайж, чат бичих, дуу илгээх, видео
-                дуудлага хийнэ
+                Нэр эсвэл утасны дугаараар хайж видео/дуудлага хийнэ үү.
               </p>
             </div>
           ) : (
