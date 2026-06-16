@@ -6,7 +6,7 @@ import { OLIVE, NAVY, TILE_STYLE } from "./tileConsts";
 export function ChatTile() {
   return (
     <BentoTile
-      i={0} area="chat" href="/dashboard/translator"
+      i={0} area="chat" href="/dashboard/call"
       className="min-h-[260px] md:min-h-[340px]"
       style={TILE_STYLE}
     >
