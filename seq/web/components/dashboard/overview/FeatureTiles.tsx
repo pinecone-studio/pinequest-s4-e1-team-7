@@ -48,7 +48,7 @@ export function VcallTile() {
 
 export function KboardTile() {
   return (
-    <BentoTile i={3} area="kboard" href="/dashboard/voice" className="min-h-[220px]" style={TILE_STYLE}>
+    <BentoTile i={3} area="kboard" href="/dashboard/settings" className="min-h-[220px]" style={TILE_STYLE}>
       <div className="flex h-full flex-col p-5">
         <div className="mb-3">
           <EyeSlashIcon className="h-8 w-8" style={{ color: OLIVE }} />

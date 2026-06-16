@@ -23,6 +23,6 @@ export const STATS: Record<string, { title: string; big: string; bigLabel: strin
   jobs: {
     title: "Хөдөлмөр эрхлэлт",
     big: "18%", bigLabel: "Ажил эрхэлж буй иргэд",
-    rows: [{ label: "Ажил эрхлээгүй иргэд", value: "82%" }, { label: "Хүртээмжтэй ажлын байрны хэрэгцээ", value: "Өндөр" }],
+    rows: [{ label: "Ажил эрхлээгүй иргэд", value: "82%" }, { label: "Хүртээмжтэй ажлын байр, боловсролын хэрэгцээ", value: "Өндөр" }],
   },
 };
